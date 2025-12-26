@@ -606,466 +606,487 @@ export default function WorkerFeed() {
     toast.success('Comment deleted')
   }
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-[1400px] mx-auto pb-24 px-6 pt-8">
-      
-      {/* LEFT COLUMN: Follower Management (span 3) */}
-      <div className="lg:col-span-3 space-y-6">
-        <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden">
-          <CardHeader className="p-5 border-b border-slate-50 bg-slate-50/50 flex flex-row items-center justify-between">
-            <h3 className="font-bold text-xs uppercase tracking-widest text-slate-900">Follow Requests</h3>
-            {pendingRequests.length > 0 && (
-              <Badge className="bg-rose-500 text-white border-none font-black text-[10px] h-5 px-1.5 animate-pulse">
-                {pendingRequests.length}
-              </Badge>
-            )}
-          </CardHeader>
-          <CardContent className="p-0">
-            {pendingRequests.length > 0 ? (
-              <div className="divide-y divide-slate-50">
-                {pendingRequests.map((req) => (
-                  <FollowerRequestItem key={req.id} request={req} onResolve={handleResolveRequest} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 px-6">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                  <Check className="h-6 w-6 text-emerald-500" />
-                </div>
-                <p className="text-sm font-bold text-slate-900">All caught up!</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
-                  No pending requests
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-3xl border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[600px]">
-          <CardHeader className="p-5 border-b border-slate-50 bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-xs uppercase tracking-widest text-slate-900">My Community</h3>
-              <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-black text-[10px] h-5">
-                {activeFollowers.length}
-              </Badge>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-300" />
-              <Input
-                placeholder="Search community..."
-                value={followerSearch}
-                onChange={(e) => setFollowerSearch(e.target.value)}
-                className="pl-9 h-9 text-xs bg-slate-50 border-none rounded-xl focus:ring-slate-200"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-y-auto flex-1 no-scrollbar">
-            {activeFollowers.length > 0 ? (
-              <div className="divide-y divide-slate-50">
-                {activeFollowers.map((follower) => (
-                  <div key={follower.id} className="p-4 hover:bg-slate-50/50 transition-colors group">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border border-slate-100 shadow-sm">
-                          <AvatarImage src={follower.avatar} />
-                          <AvatarFallback className="text-[10px] font-bold bg-slate-100 text-slate-600">
-                            {follower.initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 leading-none">{follower.name}</p>
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            {follower.isDonor && (
-                              <Badge className="h-3.5 px-1.5 text-[8px] bg-emerald-100 text-emerald-700 border-none font-black uppercase tracking-widest">
-                                Donor
-                              </Badge>
-                            )}
-                            <Badge className="h-3.5 px-1.5 text-[8px] bg-blue-100 text-blue-700 border-none font-black uppercase tracking-widest">
-                              {follower.accessLevel}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-slate-900 rounded-xl">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="rounded-xl border-slate-100 shadow-xl p-1">
-                          <DropdownMenuLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-1.5">
-                            Manage Access
-                          </DropdownMenuLabel>
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateAccess(follower.id, 'view')}
-                            className="font-bold text-xs rounded-lg py-2"
-                          >
-                            <Globe className="h-3.5 w-3.5 mr-2" /> View Only
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateAccess(follower.id, 'comment')}
-                            className="font-bold text-xs rounded-lg py-2"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5 mr-2" /> View & Comment
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-slate-50" />
-                          <DropdownMenuItem 
-                            onClick={() => handleRemoveFollower(follower.id)}
-                            className="text-red-600 font-bold text-xs rounded-lg py-2"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-2" /> Remove Follower
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-12 text-center">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No followers found</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* CENTER COLUMN: Feed Stream (span 6) */}
-      <div className="lg:col-span-6 space-y-8">
-        <Card className="overflow-hidden border-slate-200 shadow-lg rounded-[2.5rem] bg-white">
-          <div className="px-8 pt-8 pb-2">
-            <div className="flex gap-2 flex-wrap items-center">
-              {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setPostType(type)}
+    return (
+    <div className="max-w-[1400px] mx-auto pb-24 px-6 pt-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">My Feed</h1>
+          <p className="text-slate-500 font-medium mt-2">Connect with your supporters and share your journey.</p>
+        </div>
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="rounded-2xl border-slate-200 hover:bg-slate-50 font-bold text-xs uppercase tracking-widest h-11 px-6">
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Security & Access
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="p-8 pb-4 bg-slate-50/50 border-b border-slate-100">
+              <DialogTitle className="font-black text-xl tracking-tight">Security & Access</DialogTitle>
+              <DialogDescription className="font-medium">
+                Manage how your feed is shared and who can see your updates.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div 
+                  onClick={() => setSecurityLevel('high')}
                   className={cn(
-                    'px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
-                    postType === type
-                      ? 'bg-slate-900 text-white border-slate-900 scale-105'
-                      : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                    "p-4 rounded-[1.5rem] border-2 cursor-pointer transition-all flex items-start gap-4",
+                    securityLevel === 'high' ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
                   )}
                 >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="p-8 pt-4">
-            <div className="flex gap-4">
-              <Avatar className="h-12 w-12 border-2 border-white shadow-md shrink-0 hidden sm:block">
-                <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                <AvatarFallback>MF</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <RichTextEditor
-                  value={postContent}
-                  onChange={setPostContent}
-                  placeholder={`Share your latest ${postType.toLowerCase()}...`}
-                  className="border-none shadow-none rounded-none px-0"
-                  contentClassName="py-2 text-xl text-slate-700 placeholder:text-slate-300 min-h-[160px]"
-                  toolbarPosition="bottom"
-                  actions={
-                    <div className="flex items-center gap-4 ml-auto">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 text-slate-500 gap-2 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl"
-                          >
-                            {postPrivacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                            {postPrivacy}
-                            <ChevronDown className="h-3 w-3 opacity-30" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2">
-                          <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-bold text-xs rounded-xl py-3">
-                            <Globe className="h-4 w-4 mr-3 text-slate-400" /> Public Feed
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-bold text-xs rounded-xl py-3">
-                            <Users className="h-4 w-4 mr-3 text-slate-400" /> Partners Only
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-bold text-xs rounded-xl py-3">
-                            <Lock className="h-4 w-4 mr-3 text-slate-400" /> Private Update
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                  <div className={cn("p-2 rounded-full", securityLevel === 'high' ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400")}>
+                    <ShieldAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-black text-xs uppercase tracking-widest text-slate-900">High</p>
+                    <p className="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">Manual approval required. Granular permissions.</p>
+                  </div>
+                </div>
 
-                      <Button
-                        onClick={handlePost}
-                        disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                        className="bg-slate-900 text-white hover:bg-slate-800 shadow-xl h-11 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
-                      >
-                        Publish <Send className="h-4 w-4 ml-2 opacity-70" />
-                      </Button>
-                    </div>
-                  }
-                />
+                <div 
+                  onClick={() => setSecurityLevel('medium')}
+                  className={cn(
+                    "p-4 rounded-[1.5rem] border-2 cursor-pointer transition-all flex items-start gap-4",
+                    securityLevel === 'medium' ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
+                  )}
+                >
+                  <div className={cn("p-2 rounded-full", securityLevel === 'medium' ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400")}>
+                    <ShieldHalf className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-black text-xs uppercase tracking-widest text-slate-900">Medium</p>
+                    <p className="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">Auto-follow for donors. Open to followers.</p>
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => setSecurityLevel('low')}
+                  className={cn(
+                    "p-4 rounded-[1.5rem] border-2 cursor-pointer transition-all flex items-start gap-4",
+                    securityLevel === 'low' ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
+                  )}
+                >
+                  <div className={cn("p-2 rounded-full", securityLevel === 'low' ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400")}>
+                    <Shield className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-black text-xs uppercase tracking-widest text-slate-900">Low</p>
+                    <p className="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">Public feed on giving page. Auto-sync.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-50 space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-black uppercase tracking-widest">Public Mirror</Label>
+                    <p className="text-[10px] text-slate-400 font-bold">Sync to Giving Page</p>
+                  </div>
+                  <Switch 
+                      checked={securityLevel === 'low'} 
+                      onCheckedChange={(val) => setSecurityLevel(val ? 'low' : 'medium')}
+                      disabled={securityLevel === 'high'}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-black uppercase tracking-widest">Auto-Approval</Label>
+                    <p className="text-[10px] text-slate-400 font-bold">Instantly accept donors</p>
+                  </div>
+                  <Switch checked={securityLevel !== 'high'} onCheckedChange={(val) => setSecurityLevel(val ? 'medium' : 'high')} />
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
+            <DialogFooter className="p-8 pt-0">
+              <Button onClick={() => toast.success('Security settings saved')} className="w-full h-12 rounded-2xl bg-slate-900 font-black text-xs uppercase tracking-widest">
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        <div className="space-y-12 mt-12">
-          {posts.map((post) => (
-            <Card key={post.id} className="overflow-hidden border-slate-200 shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[2.5rem] group bg-white border-none">
-              <CardHeader className="p-8 pb-4 flex flex-row items-start justify-between space-y-0">
-                <div className="flex gap-5">
-                  <Avatar className="h-12 w-12 border-4 border-white shadow-xl ring-1 ring-slate-100">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* MAIN COLUMN: Feed Stream (span 8) */}
+        <div className="lg:col-span-8 space-y-8">
+          <Card className="overflow-hidden border-none shadow-2xl rounded-[3rem] bg-slate-50/50 p-1">
+            <div className="bg-white rounded-[2.8rem] overflow-hidden">
+              <div className="px-8 pt-8 pb-2">
+                <div className="flex gap-2 flex-wrap items-center">
+                  {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setPostType(type)}
+                      className={cn(
+                        'px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
+                        postType === type
+                          ? 'bg-slate-900 text-white border-slate-900 scale-105'
+                          : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                      )}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="p-8 pt-4">
+                <div className="flex gap-4">
+                  <Avatar className="h-12 w-12 border-2 border-white shadow-md shrink-0 hidden sm:block">
                     <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
                     <AvatarFallback>MF</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-black text-slate-900 text-base tracking-tight">The Miller Family</h3>
-                      <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[9px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-md">
-                        {post.type}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
-                      <span className="text-slate-200">•</span>
-                      <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        {post.privacy === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                        {post.privacy}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
-                      <MoreHorizontal className="h-6 w-6" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[180px]">
-                    <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                      <Pin className="h-4 w-4 mr-3 text-slate-400" /> Pin to Top
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                      <Settings className="h-4 w-4 mr-3 text-slate-400" /> Edit Post
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-slate-50" />
-                    <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer">
-                      <Trash2 className="h-4 w-4 mr-3" /> Delete Post
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardHeader>
+                  <div className="flex-1 min-w-0">
+                    <RichTextEditor
+                      value={postContent}
+                      onChange={setPostContent}
+                      placeholder={`Share your latest ${postType.toLowerCase()}...`}
+                      className="border-none shadow-none rounded-none px-0"
+                      contentClassName="py-2 text-xl text-slate-700 placeholder:text-slate-300 min-h-[160px]"
+                      toolbarPosition="bottom"
+                      actions={
+                        <div className="flex items-center gap-4 ml-auto">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 text-slate-500 gap-2 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl"
+                              >
+                                {postPrivacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                {postPrivacy}
+                                <ChevronDown className="h-3 w-3 opacity-30" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2">
+                              <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-bold text-xs rounded-xl py-3">
+                                <Globe className="h-4 w-4 mr-3 text-slate-400" /> Public Feed
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-bold text-xs rounded-xl py-3">
+                                <Users className="h-4 w-4 mr-3 text-slate-400" /> Partners Only
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-bold text-xs rounded-xl py-3">
+                                <Lock className="h-4 w-4 mr-3 text-slate-400" /> Private Update
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
 
-              <CardContent className="p-0">
-                <div className="px-8 pb-8 space-y-6">
-                  <div
-                    className="prose prose-slate prose-lg max-w-none text-slate-700 leading-relaxed
-                              prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight
-                              prose-strong:font-black prose-strong:text-slate-900
-                              prose-a:text-blue-600 prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-                              prose-blockquote:border-l-4 prose-blockquote:border-slate-200 prose-blockquote:italic prose-blockquote:text-slate-500"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
-                  {post.image && (
-                    <div className="rounded-[2.5rem] overflow-hidden border border-slate-50 shadow-2xl group-hover:scale-[1.01] transition-transform duration-700">
-                      <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[550px]" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="px-8 py-5 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <ReactionButton
-                      isActive={false}
-                      count={post.likes}
-                      icon={Heart}
-                      label="Love"
-                      onClick={() => {}}
-                      colorClass="text-rose-600 bg-rose-50"
-                      hoverClass="hover:text-rose-600 hover:bg-rose-50"
-                    />
-                    <ReactionButton
-                      isActive={false}
-                      count={post.fires}
-                      icon={Flame}
-                      label="Hot"
-                      onClick={() => {}}
-                      colorClass="text-orange-500 bg-orange-50"
-                      hoverClass="hover:text-orange-500 hover:bg-orange-50"
-                    />
-                    <ReactionButton
-                      isActive={false}
-                      count={post.prayers}
-                      icon={PrayerHandsIcon}
-                      label="Pray"
-                      onClick={() => {}}
-                      colorClass="text-indigo-600 bg-indigo-50"
-                      hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
-                      fillOnActive={false}
+                          <Button
+                            onClick={handlePost}
+                            disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
+                            className="bg-slate-900 text-white hover:bg-slate-800 shadow-xl h-11 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
+                          >
+                            Publish <Send className="h-4 w-4 ml-2 opacity-70" />
+                          </Button>
+                        </div>
+                      }
                     />
                   </div>
-                  <button
-                    className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-all group/comm"
-                    onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
-                  >
-                    <MessageCircle className="h-4 w-4 text-slate-300 group-hover/comm:scale-110 transition-transform" />
-                    {post.comments.length} comments
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {expandedComments === post.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <WorkerCommentSection
-                        comments={post.comments}
-                        canManageComments={true} // In real app, check if user is Missionary or Tenant Admin
-                        onAddComment={(text, parentId) => {
-                          const newComment = {
-                            id: Date.now().toString(),
-                            author: 'You',
-                            text,
-                            time: 'Just now',
-                            avatar: 'ME',
-                            replies: [],
-                          }
-                          setPosts(prev => prev.map(p => {
-                            if (p.id === post.id) {
-                                if (parentId) {
-                                    return { ...p, comments: p.comments.map(c => c.id === parentId ? { ...c, replies: [...c.replies, newComment] } : c) }
-                                }
-                                return { ...p, comments: [...p.comments, newComment] }
-                            }
-                            return p
-                          }))
-                          toast.success('Comment published')
-                        }}
-                        onDeleteComment={(commentId, parentId) => handleDeleteComment(post.id, commentId, parentId)}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* RIGHT COLUMN: Settings & Stats (span 3) */}
-      <div className="lg:col-span-3 space-y-8">
-        <Card className="rounded-[2rem] border-slate-200 shadow-sm overflow-hidden bg-white">
-          <CardHeader className="p-6 pb-4 border-b border-slate-50">
-            <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-900">Security & Access</h3>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="space-y-4">
-              <div 
-                onClick={() => setSecurityLevel('high')}
-                className={cn(
-                  "p-4 rounded-[1.5rem] border-2 cursor-pointer transition-all flex items-start gap-4",
-                  securityLevel === 'high' ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
-                )}
-              >
-                <div className={cn("p-2 rounded-full", securityLevel === 'high' ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400")}>
-                  <ShieldAlert className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-black text-xs uppercase tracking-widest text-slate-900">High</p>
-                  <p className="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">Manual approval required. Granular permissions.</p>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => setSecurityLevel('medium')}
-                className={cn(
-                  "p-4 rounded-[1.5rem] border-2 cursor-pointer transition-all flex items-start gap-4",
-                  securityLevel === 'medium' ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
-                )}
-              >
-                <div className={cn("p-2 rounded-full", securityLevel === 'medium' ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400")}>
-                  <ShieldHalf className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-black text-xs uppercase tracking-widest text-slate-900">Medium</p>
-                  <p className="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">Auto-follow for donors. Open to followers.</p>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => setSecurityLevel('low')}
-                className={cn(
-                  "p-4 rounded-[1.5rem] border-2 cursor-pointer transition-all flex items-start gap-4",
-                  securityLevel === 'low' ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
-                )}
-              >
-                <div className={cn("p-2 rounded-full", securityLevel === 'low' ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400")}>
-                  <Shield className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-black text-xs uppercase tracking-widest text-slate-900">Low</p>
-                  <p className="text-[10px] text-slate-500 font-bold leading-relaxed mt-1">Public feed on giving page. Auto-sync.</p>
                 </div>
               </div>
             </div>
+          </Card>
 
-            <div className="pt-4 border-t border-slate-50 space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-[11px] font-black uppercase tracking-widest">Public Mirror</Label>
-                  <p className="text-[10px] text-slate-400 font-bold">Sync to Giving Page</p>
+          <div className="space-y-12 mt-12">
+            {posts.map((post) => (
+              <Card key={post.id} className="overflow-hidden border-slate-200 shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[2.5rem] group bg-white border-none">
+                <CardHeader className="p-8 pb-4 flex flex-row items-start justify-between space-y-0">
+                  <div className="flex gap-5">
+                    <Avatar className="h-12 w-12 border-4 border-white shadow-xl ring-1 ring-slate-100">
+                      <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
+                      <AvatarFallback>MF</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-black text-slate-900 text-base tracking-tight">The Miller Family</h3>
+                        <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[9px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-md">
+                          {post.type}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
+                        <span className="text-slate-200">•</span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                          {post.privacy === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                          {post.privacy}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
+                        <MoreHorizontal className="h-6 w-6" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[180px]">
+                      <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 cursor-pointer">
+                        <Pin className="h-4 w-4 mr-3 text-slate-400" /> Pin to Top
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 cursor-pointer">
+                        <Settings className="h-4 w-4 mr-3 text-slate-400" /> Edit Post
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-slate-50" />
+                      <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer">
+                        <Trash2 className="h-4 w-4 mr-3" /> Delete Post
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardHeader>
+
+                <CardContent className="p-0">
+                  <div className="px-8 pb-8 space-y-6">
+                    <div
+                      className="prose prose-slate prose-lg max-w-none text-slate-700 leading-relaxed
+                                prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight
+                                prose-strong:font-black prose-strong:text-slate-900
+                                prose-a:text-blue-600 prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+                                prose-blockquote:border-l-4 prose-blockquote:border-slate-200 prose-blockquote:italic prose-blockquote:text-slate-500"
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />
+                    {post.image && (
+                      <div className="rounded-[2.5rem] overflow-hidden border border-slate-50 shadow-2xl group-hover:scale-[1.01] transition-transform duration-700">
+                        <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[550px]" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="px-8 py-5 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <ReactionButton
+                        isActive={false}
+                        count={post.likes}
+                        icon={Heart}
+                        label="Love"
+                        onClick={() => {}}
+                        colorClass="text-rose-600 bg-rose-50"
+                        hoverClass="hover:text-rose-600 hover:bg-rose-50"
+                      />
+                      <ReactionButton
+                        isActive={false}
+                        count={post.fires}
+                        icon={Flame}
+                        label="Hot"
+                        onClick={() => {}}
+                        colorClass="text-orange-500 bg-orange-50"
+                        hoverClass="hover:text-orange-500 hover:bg-orange-50"
+                      />
+                      <ReactionButton
+                        isActive={false}
+                        count={post.prayers}
+                        icon={PrayerHandsIcon}
+                        label="Pray"
+                        onClick={() => {}}
+                        colorClass="text-indigo-600 bg-indigo-50"
+                        hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
+                        fillOnActive={false}
+                      />
+                    </div>
+                    <button
+                      className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-all group/comm"
+                      onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
+                    >
+                      <MessageCircle className="h-4 w-4 text-slate-300 group-hover/comm:scale-110 transition-transform" />
+                      {post.comments.length} comments
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {expandedComments === post.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <WorkerCommentSection
+                          comments={post.comments}
+                          canManageComments={true} // In real app, check if user is Missionary or Tenant Admin
+                          onAddComment={(text, parentId) => {
+                            const newComment = {
+                              id: Date.now().toString(),
+                              author: 'You',
+                              text,
+                              time: 'Just now',
+                              avatar: 'ME',
+                              replies: [],
+                            }
+                            setPosts(prev => prev.map(p => {
+                              if (p.id === post.id) {
+                                  if (parentId) {
+                                      return { ...p, comments: p.comments.map(c => c.id === parentId ? { ...c, replies: [...c.replies, newComment] } : c) }
+                                  }
+                                  return { ...p, comments: [...p.comments, newComment] }
+                              }
+                              return p
+                            }))
+                            toast.success('Comment published')
+                          }}
+                          onDeleteComment={(commentId, parentId) => handleDeleteComment(post.id, commentId, parentId)}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Community & Follower Management (span 4) */}
+        <div className="lg:col-span-4 space-y-8">
+          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm overflow-hidden bg-white">
+            <CardHeader className="p-6 border-b border-slate-50 bg-slate-50/30 flex flex-row items-center justify-between">
+              <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-900">Follow Requests</h3>
+              {pendingRequests.length > 0 && (
+                <Badge className="bg-rose-500 text-white border-none font-black text-[10px] h-5 px-1.5 animate-pulse">
+                  {pendingRequests.length}
+                </Badge>
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              {pendingRequests.length > 0 ? (
+                <div className="divide-y divide-slate-50">
+                  {pendingRequests.map((req) => (
+                    <FollowerRequestItem key={req.id} request={req} onResolve={handleResolveRequest} />
+                  ))}
                 </div>
-                <Switch 
-                    checked={securityLevel === 'low'} 
-                    onCheckedChange={(val) => setSecurityLevel(val ? 'low' : 'medium')}
-                    disabled={securityLevel === 'high'}
+              ) : (
+                <div className="text-center py-10 px-6">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+                    <Check className="h-5 w-5 text-emerald-500" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">All caught up!</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[600px] bg-white">
+            <CardHeader className="p-6 border-b border-slate-50 bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-900">My Community</h3>
+                <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-black text-[10px] h-5">
+                  {activeFollowers.length}
+                </Badge>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-300" />
+                <Input
+                  placeholder="Search community..."
+                  value={followerSearch}
+                  onChange={(e) => setFollowerSearch(e.target.value)}
+                  className="pl-9 h-10 text-xs bg-slate-50 border-none rounded-2xl focus:ring-slate-200"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-[11px] font-black uppercase tracking-widest">Auto-Approval</Label>
-                  <p className="text-[10px] text-slate-400 font-bold">Instantly accept donors</p>
+            </CardHeader>
+            <CardContent className="p-0 overflow-y-auto flex-1 no-scrollbar">
+              {activeFollowers.length > 0 ? (
+                <div className="divide-y divide-slate-50">
+                  {activeFollowers.map((follower) => (
+                    <div key={follower.id} className="p-5 hover:bg-slate-50/50 transition-colors group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border border-slate-100 shadow-sm">
+                            <AvatarImage src={follower.avatar} />
+                            <AvatarFallback className="text-[10px] font-bold bg-slate-100 text-slate-600">
+                              {follower.initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 leading-none">{follower.name}</p>
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              {follower.isDonor && (
+                                <Badge className="h-3.5 px-1.5 text-[8px] bg-emerald-100 text-emerald-700 border-none font-black uppercase tracking-widest">
+                                  Donor
+                                </Badge>
+                              )}
+                              <Badge className="h-3.5 px-1.5 text-[8px] bg-blue-100 text-blue-700 border-none font-black uppercase tracking-widest">
+                                {follower.accessLevel}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-slate-900 rounded-xl">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-xl p-2 min-w-[160px]">
+                            <DropdownMenuLabel className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 py-1.5">
+                              Manage Access
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateAccess(follower.id, 'view')}
+                              className="font-bold text-xs rounded-xl py-2.5 cursor-pointer"
+                            >
+                              <Globe className="h-3.5 w-3.5 mr-2" /> View Only
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateAccess(follower.id, 'comment')}
+                              className="font-bold text-xs rounded-xl py-2.5 cursor-pointer"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5 mr-2" /> View & Comment
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-slate-50" />
+                            <DropdownMenuItem 
+                              onClick={() => handleRemoveFollower(follower.id)}
+                              className="text-red-600 font-bold text-xs rounded-xl py-2.5 cursor-pointer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Remove Follower
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <Switch checked={securityLevel !== 'high'} onCheckedChange={(val) => setSecurityLevel(val ? 'medium' : 'high')} />
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No followers found</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm p-8 bg-slate-900 text-white overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
+            <h3 className="font-black text-[11px] uppercase tracking-[0.2em] mb-8 opacity-60">Community Pulse</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="text-3xl font-black tracking-tight">{followers.filter(f => f.status === 'approved').length}</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Followers</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl font-black tracking-tight text-emerald-400">+12</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Growth</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border-slate-200 shadow-sm p-8 bg-slate-900 text-white overflow-hidden relative group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
-          <h3 className="font-black text-[11px] uppercase tracking-[0.2em] mb-8 opacity-60">Community Pulse</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="text-3xl font-black tracking-tight">{followers.filter(f => f.status === 'approved').length}</div>
-              <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Followers</div>
+            <div className="mt-10 pt-8 border-t border-white/10 flex flex-col items-center">
+              <div className="flex -space-x-3 mb-6">
+                  {followers.slice(0, 5).map((f, i) => (
+                      <Avatar key={i} className="h-10 w-10 border-4 border-slate-900 shadow-2xl ring-1 ring-white/10">
+                          <AvatarImage src={f.avatar} />
+                          <AvatarFallback className="bg-slate-800 text-white text-[10px] font-black">{f.initials}</AvatarFallback>
+                      </Avatar>
+                  ))}
+                  {followers.length > 5 && (
+                      <div className="h-10 w-10 rounded-full bg-slate-800 border-4 border-slate-900 flex items-center justify-center text-[10px] font-black shadow-2xl ring-1 ring-white/10">
+                          +{followers.length - 5}
+                      </div>
+                  )}
+              </div>
+              <Button variant="ghost" className="w-full h-11 rounded-2xl border border-white/10 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest transition-all">
+                  Analytics Report
+              </Button>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl font-black tracking-tight text-emerald-400">+12</div>
-              <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Growth</div>
-            </div>
-          </div>
-          <div className="mt-10 pt-8 border-t border-white/10 flex flex-col items-center">
-            <div className="flex -space-x-3 mb-6">
-                {followers.slice(0, 5).map((f, i) => (
-                    <Avatar key={i} className="h-10 w-10 border-4 border-slate-900 shadow-2xl ring-1 ring-white/10">
-                        <AvatarImage src={f.avatar} />
-                        <AvatarFallback className="bg-slate-800 text-white text-[10px] font-black">{f.initials}</AvatarFallback>
-                    </Avatar>
-                ))}
-                {followers.length > 5 && (
-                    <div className="h-10 w-10 rounded-full bg-slate-800 border-4 border-slate-900 flex items-center justify-center text-[10px] font-black shadow-2xl ring-1 ring-white/10">
-                        +{followers.length - 5}
-                    </div>
-                )}
-            </div>
-            <Button variant="ghost" className="w-full h-11 rounded-2xl border border-white/10 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest transition-all">
-                Analytics Report
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
-  )
-}
+    )
+  }
