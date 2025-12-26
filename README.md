@@ -70,16 +70,20 @@ The administrative headquarters for organization leaders. Manage CRM, Contributi
 
 ### Missionary Dashboard
 Empowering field missionaries with donor engagement tools, task management, and impact feeds.
-- **My Feed**: A high-fidelity social engagement platform for missionaries to share updates directly with their support base.
-  - **Functionality**: Supports rich text (HTML), multi-media carousels (images/videos), and real-time interaction (Likes, Prayers, Comments).
-  - **Animations**: Reimagined reaction system using Framer Motion. Clicking reactions triggers custom micro-interactions: pulsing hearts, glowing prayer hands, and delightful emoji particle bursts for visceral feedback.
-  - **UX/UI**: Built with shadcn/ui `Card` and `Carousel` components, featuring a refined Zinc aesthetic and responsive design optimized for field use.
+- **My Feed**: A high-fidelity social engagement platform designed for missionaries to share their journey directly with their support base.
+  - **Functionality**: Supports rich text (HTML) storytelling, multi-media carousels for multiple photos, and real-time interaction (Likes, Prayers, Comments).
+  - **Premium Style**: Features a high-end "Vega" aesthetic with animated micro-interactions. Clicking a reaction triggers a delightful burst of floating emoji particles (❤️, 🙏, 🔥) and visceral pulsing effects.
+  - **Workflow**: Missionaries can save drafts, manage visibility (Public vs Partners Only), and handle follower requests with manual or automated approval levels.
+  - **Media Management**: Integrated media toolbar allows for quick image uploads and carousel creation to make updates visually engaging.
 - Route: `/missionary-dashboard`
 
 ### Donor Portal
 A seamless experience for kingdom partners to manage their giving and follow mission progress.
-- **Personalized Feed**: A unified view of updates from all followed or supported missionaries.
-- **Connection Concept**: The platform automatically bridges the gap between giving and impact. If a donor gives to a specific missionary or "follows" their profile, that missionary's posts are instantly promoted to the donor's portal feed. This ensures donors stay connected to the stories and breakthroughs their generosity enables.
+- **Personalized Impact Feed**: A unified, high-fidelity view of updates from all missionaries the donor supports.
+- **The Connection Concept**: The platform creates a direct link between generosity and real-world impact. 
+  - **Automatic Integration**: When a donor makes a contribution to a missionary or clicks "Follow" on their profile, that missionary's feed is automatically integrated into the donor's personalized dashboard.
+  - **Real-Time Updates**: Donors receive instant access to stories, prayer requests, and progress reports, allowing them to see exactly how their partnership is making a difference.
+  - **Two-Way Interaction**: Donors can respond with reactions and comments, fostering a genuine relationship between the field and the support base.
 - Route: `/donor-dashboard`
 
 ## Development

@@ -2,6 +2,13 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
+import {
   Send,
   MoreHorizontal,
   MessageCircle,
@@ -25,6 +32,7 @@ import {
   Save,
   Clock,
   ExternalLink,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -643,6 +651,23 @@ export default function WorkerFeed() {
     
     const [expandedComments, setExpandedComments] = useState<string | null>(null)
     const [postPrivacy, setPostPrivacy] = useState<Visibility>('public')
+    const [selectedMedia, setSelectedMedia] = useState<any[]>([])
+    const [isUploading, setIsUploading] = useState(false)
+
+    const simulateUpload = async () => {
+      setIsUploading(true)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      const demoImages = [
+        'https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=1200',
+        'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=1200',
+        'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=1200',
+        'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=1200'
+      ]
+      const randomImage = demoImages[Math.floor(Math.random() * demoImages.length)]
+      setSelectedMedia(prev => [...prev, { url: randomImage, type: 'image' }])
+      setIsUploading(false)
+      toast.success('Image uploaded successfully!')
+    }
 
 
   // Security & Follower State
@@ -692,38 +717,40 @@ export default function WorkerFeed() {
       const method = editingPostId ? 'PATCH' : 'POST'
       const url = editingPostId ? `/api/posts/${editingPostId}` : '/api/posts'
       
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: postContent,
-          post_type: postType,
-          visibility: postPrivacy,
-          status
-        }),
-      })
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: postContent,
+            post_type: postType,
+            visibility: postPrivacy,
+            status,
+            media: selectedMedia
+          }),
+        })
 
-      if (!res.ok) throw new Error('Failed to save post')
-      
-      const { post } = await res.json()
-      
-      if (status === 'published') {
-        if (editingPostId && activeTab === 'draft') {
-          setDrafts(prev => prev.filter(d => d.id !== editingPostId))
-          setPosts(prev => [post, ...prev])
+        if (!res.ok) throw new Error('Failed to save post')
+        
+        const { post } = await res.json()
+        
+        if (status === 'published') {
+          if (editingPostId && activeTab === 'draft') {
+            setDrafts(prev => prev.filter(d => d.id !== editingPostId))
+            setPosts(prev => [post, ...prev])
+          } else {
+            setPosts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
+          }
+          toast.success(editingPostId ? 'Update updated!' : 'Update published!')
         } else {
-          setPosts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
+          setDrafts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
+          setLastSaved(new Date())
+          toast.success('Draft saved!')
         }
-        toast.success(editingPostId ? 'Update updated!' : 'Update published!')
-      } else {
-        setDrafts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
-        setLastSaved(new Date())
-        toast.success('Draft saved!')
-      }
 
-      setPostContent('')
-      setEditingPostId(null)
-      setPostType('Update')
+        setPostContent('')
+        setEditingPostId(null)
+        setPostType('Update')
+        setSelectedMedia([])
     } catch (err) {
       toast.error('Failed to save')
     } finally {
@@ -963,62 +990,92 @@ export default function WorkerFeed() {
 
                           contentClassName="py-6 px-8 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px] leading-relaxed"
                           toolbarPosition="bottom"
-                          actions={
-                            <div className="flex items-center gap-3">
-                              {lastSaved && (
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mr-2 animate-in fade-in duration-500">
-                                  Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              )}
-                              
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                            actions={
+                              <div className="flex flex-col gap-4 w-full">
+                                {selectedMedia.length > 0 && (
+                                  <div className="flex gap-4 px-8 pb-4 overflow-x-auto">
+                                    {selectedMedia.map((item, idx) => (
+                                      <div key={idx} className="relative group/img shrink-0">
+                                        <img src={item.url} className="h-20 w-20 object-cover rounded-2xl border-2 border-white shadow-lg" />
+                                        <button 
+                                          onClick={() => setSelectedMedia(prev => prev.filter((_, i) => i !== idx))}
+                                          className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-3 w-full px-8 pb-4">
+                                  {lastSaved && (
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mr-2 animate-in fade-in duration-500">
+                                      Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
+
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    disabled={isUploading}
+                                    onClick={simulateUpload}
                                     className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100 transition-all active:scale-95"
                                   >
-                                    {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : postPrivacy === 'partners' ? <Users className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                                    {postPrivacy === 'partners' ? 'Partners Only' : postPrivacy}
-                                    <ChevronDown className="h-3 w-3 opacity-30" />
+                                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                                    Add Media
                                   </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[200px] animate-in slide-in-from-top-2 duration-300">
-                                  <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
-                                    <div className="p-1.5 bg-slate-50 rounded-full"><Globe className="h-3.5 w-3.5 text-slate-600" /></div>
-                                    Public Feed
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
-                                    <div className="p-1.5 bg-slate-50 rounded-full"><Users className="h-3.5 w-3.5 text-slate-600" /></div>
-                                    Partners Only
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
-                                    <div className="p-1.5 bg-slate-50 rounded-full"><Lock className="h-3.5 w-3.5 text-slate-600" /></div>
-                                    Private Update
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                
-                              <Button
-                                onClick={() => handlePost('draft')}
-                                variant="maia-outline"
-                                disabled={isSaving || !postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                                className="h-10 px-6 text-[10px] uppercase tracking-widest rounded-xl border-slate-200"
-                              >
-                                {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-2" />}
-                                Save Draft
-                              </Button>
-                
-                              <Button
-                                onClick={() => handlePost('published')}
-                                variant="maia"
-                                disabled={isSaving || !postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                                className="h-10 px-8 text-[10px] uppercase tracking-widest rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.2)]"
-                              >
-                                {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
-                              </Button>
-                            </div>
-                          }
+                                  
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100 transition-all active:scale-95"
+                                      >
+                                        {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : postPrivacy === 'partners' ? <Users className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                                        {postPrivacy === 'partners' ? 'Partners Only' : postPrivacy}
+                                        <ChevronDown className="h-3 w-3 opacity-30" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[200px] animate-in slide-in-from-top-2 duration-300">
+                                      <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                        <div className="p-1.5 bg-slate-50 rounded-full"><Globe className="h-3.5 w-3.5 text-slate-600" /></div>
+                                        Public Feed
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                        <div className="p-1.5 bg-slate-50 rounded-full"><Users className="h-3.5 w-3.5 text-slate-600" /></div>
+                                        Partners Only
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                        <div className="p-1.5 bg-slate-50 rounded-full"><Lock className="h-3.5 w-3.5 text-slate-600" /></div>
+                                        Private Update
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                    
+                                  <div className="flex-1" />
+
+                                  <Button
+                                    onClick={() => handlePost('draft')}
+                                    variant="maia-outline"
+                                    disabled={isSaving || isUploading || (!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') && selectedMedia.length === 0}
+                                    className="h-10 px-6 text-[10px] uppercase tracking-widest rounded-xl border-slate-200"
+                                  >
+                                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-2" />}
+                                    Save Draft
+                                  </Button>
+                    
+                                  <Button
+                                    onClick={() => handlePost('published')}
+                                    variant="maia"
+                                    disabled={isSaving || isUploading || (!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') && selectedMedia.length === 0}
+                                    className="h-10 px-8 text-[10px] uppercase tracking-widest rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.2)]"
+                                  >
+                                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
+                                  </Button>
+                                </div>
+                              </div>
+                            }
 
                       />
                     </div>
@@ -1256,9 +1313,23 @@ function PostCard({ post, onEdit, onDelete, onReaction, setPosts, expandedCommen
                         prose-blockquote:border-l-4 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
-            {post.media && post.media.length > 0 && post.media[0].url && (
-              <div className="rounded-[2rem] overflow-hidden border border-slate-50 shadow-2xl group-hover:scale-[1.002] transition-transform duration-1000">
-                <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[600px]" />
+            {post.media && post.media.length > 0 && (
+              <div className="rounded-[2rem] overflow-hidden border border-slate-50 shadow-2xl group-hover:shadow-[0_30px_80px_rgba(0,0,0,0.12)] transition-all duration-1000">
+                {post.media.length === 1 ? (
+                  <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[600px]" />
+                ) : (
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {post.media.map((item: any, idx: number) => (
+                        <CarouselItem key={idx}>
+                          <img src={item.url} alt={`Update ${idx + 1}`} className="w-full h-auto object-cover max-h-[600px]" />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-4 bg-white/80 border-none hover:bg-white transition-all shadow-lg" />
+                    <CarouselNext className="right-4 bg-white/80 border-none hover:bg-white transition-all shadow-lg" />
+                  </Carousel>
+                )}
               </div>
             )}
           </div>
