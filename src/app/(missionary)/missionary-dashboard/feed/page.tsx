@@ -515,8 +515,12 @@ export default function WorkerFeed() {
   const [isSaving, setIsSaving] = useState(false)
   const [editingPostId, setEditingPostId] = useState<string | null>(null)
   
-  const [expandedComments, setExpandedComments] = useState<string | null>(null)
-  const [postPrivacy, setPostPrivacy] = useState<Visibility>('public')
+    const [lastSaved, setLastSaved] = useState<Date | null>(null)
+    const [isAutosaving, setIsAutosaving] = useState(false)
+    
+    const [expandedComments, setExpandedComments] = useState<string | null>(null)
+    const [postPrivacy, setPostPrivacy] = useState<Visibility>('public')
+
 
   // Security & Follower State
   const [securityLevel, setSecurityLevel] = useState<SecurityLevel>('medium')
@@ -541,8 +545,20 @@ export default function WorkerFeed() {
     fetchPosts('draft')
   }, [fetchPosts])
 
-  // Derived follower lists
-  const pendingRequests = useMemo(() => followers.filter((f) => f.status === 'pending'), [followers])
+    // Autosave functionality
+    useEffect(() => {
+      if (!postContent || postContent === '<p></p>' || postContent === '<p><br></p>' || isSaving || activeTab === 'published' && !editingPostId) return
+
+      const timer = setTimeout(() => {
+        handlePost('draft')
+      }, 30000) // 30 seconds
+
+      return () => clearTimeout(timer)
+    }, [postContent])
+
+    // Derived follower lists
+    const pendingRequests = useMemo(() => followers.filter((f) => f.status === 'pending'), [followers])
+
 
   const handlePost = async (status: PostStatus = 'published') => {
     const plainText = postContent.replace(/<[^>]*>?/gm, '').trim()
@@ -570,7 +586,6 @@ export default function WorkerFeed() {
       
       if (status === 'published') {
         if (editingPostId && activeTab === 'draft') {
-          // If we published a draft, remove it from drafts and add to posts
           setDrafts(prev => prev.filter(d => d.id !== editingPostId))
           setPosts(prev => [post, ...prev])
         } else {
@@ -579,6 +594,7 @@ export default function WorkerFeed() {
         toast.success(editingPostId ? 'Update updated!' : 'Update published!')
       } else {
         setDrafts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
+        setLastSaved(new Date())
         toast.success('Draft saved!')
       }
 
@@ -634,16 +650,16 @@ export default function WorkerFeed() {
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto pb-24 px-6 pt-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+    <div className="max-w-[1500px] mx-auto pb-20 px-8 pt-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
         <div>
-          <h1 className="text-6xl font-black text-slate-900 tracking-tighter">My Feed</h1>
-          <p className="text-slate-500 font-bold mt-4 text-xl opacity-60">Your journey, shared with your community.</p>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter">My Feed</h1>
+          <p className="text-slate-500 font-bold mt-2 text-lg opacity-60 uppercase tracking-widest">Your journey, shared.</p>
         </div>
         
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="maia-outline" className="h-12 px-8">
+              <Button variant="maia-outline" className="h-11 px-6 text-[10px] uppercase tracking-widest font-black">
                 <ShieldCheck className="h-4 w-4 mr-2" />
                 Security & Access
               </Button>
@@ -736,67 +752,74 @@ export default function WorkerFeed() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        
-        {/* MAIN COLUMN: Feed Stream (span 9) */}
-        <div className="lg:col-span-9 space-y-12">
-            <Card className="overflow-hidden border-none shadow-[0_30px_70px_rgba(0,0,0,0.12)] rounded-[4rem] bg-white p-2 transition-all hover:shadow-[0_40px_90px_rgba(0,0,0,0.18)]">
-              <div className="bg-white rounded-[3.8rem] overflow-hidden">
-                <div className="px-8 pt-8 pb-4">
-                  <div className="flex gap-4 flex-wrap items-center">
-                    {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
-                      <Button
-                        key={type}
-                        variant={postType === type ? "maia" : "maia-outline"}
-                        onClick={() => setPostType(type)}
-                        className={cn(
-                          "px-8 py-3 h-auto",
-                          postType === type && "scale-105 shadow-2xl"
-                        )}
-                      >
-                        {type}
-                      </Button>
-                    ))}
-                    {editingPostId && (
-                      <Button variant="ghost" size="sm" onClick={() => {
-                        setEditingPostId(null)
-                        setPostContent('')
-                      }} className="ml-auto text-rose-500 font-black text-[10px] uppercase tracking-widest">
-                        Cancel Edit
-                      </Button>
-                    )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          
+          {/* MAIN COLUMN: Feed Stream (span 9) */}
+          <div className="lg:col-span-9 space-y-10">
+              <Card className="overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[3rem] bg-white p-1.5 transition-all hover:shadow-[0_30px_70px_rgba(0,0,0,0.15)]">
+                <div className="bg-white rounded-[2.8rem] overflow-hidden">
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex gap-3 flex-wrap items-center">
+                      {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
+                        <Button
+                          key={type}
+                          variant={postType === type ? "maia" : "maia-outline"}
+                          onClick={() => setPostType(type)}
+                          className={cn(
+                            "px-6 py-2 h-9 text-[10px] uppercase tracking-widest font-black",
+                            postType === type && "scale-105 shadow-xl"
+                          )}
+                        >
+                          {type}
+                        </Button>
+                      ))}
+                      {editingPostId && (
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          setEditingPostId(null)
+                          setPostContent('')
+                        }} className="ml-auto text-rose-500 font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 rounded-xl">
+                          Cancel Edit
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="px-8 pb-8 pt-2">
-                <div className="flex gap-8">
-                  <Avatar className="h-16 w-16 border-4 border-white shadow-2xl shrink-0 hidden md:block">
-                    <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                    <AvatarFallback className="font-bold">MF</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="rounded-[2.5rem] border-2 border-slate-50 bg-slate-50/20 overflow-hidden focus-within:border-slate-200 focus-within:bg-white transition-all shadow-inner">
-                      <RichTextEditor
-                        value={postContent}
-                        onChange={setPostContent}
-                        placeholder={`What's happening in your mission today? Share a ${postType.toLowerCase()}...`}
-                        className="border-none shadow-none rounded-none px-4"
-                        contentClassName="py-8 px-10 text-2xl text-slate-700 placeholder:text-slate-300 min-h-[250px] leading-relaxed"
-                        toolbarPosition="bottom"
+                  <div className="px-6 pb-6 pt-2">
+                  <div className="flex gap-6">
+                    <Avatar className="h-14 w-14 border-2 border-slate-50 shadow-xl shrink-0 hidden md:block">
+                      <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
+                      <AvatarFallback className="font-bold">MF</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/10 overflow-hidden focus-within:border-slate-200 focus-within:bg-white transition-all shadow-inner">
+                        <RichTextEditor
+                          value={postContent}
+                          onChange={setPostContent}
+                          placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
+                          className="border-none shadow-none rounded-none px-2"
+
+                          contentClassName="py-6 px-8 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px] leading-relaxed"
+                          toolbarPosition="bottom"
                           actions={
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              {lastSaved && (
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mr-2 animate-in fade-in duration-500">
+                                  Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              )}
+                              
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-9 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100"
+                                    className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100 transition-all active:scale-95"
                                   >
-                                    {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                                    {postPrivacy}
+                                    {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : postPrivacy === 'partners' ? <Users className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                                    {postPrivacy === 'partners' ? 'Partners Only' : postPrivacy}
                                     <ChevronDown className="h-3 w-3 opacity-30" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[180px]">
+                                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[200px] animate-in slide-in-from-top-2 duration-300">
                                   <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
                                     <div className="p-1.5 bg-slate-50 rounded-full"><Globe className="h-3.5 w-3.5 text-slate-600" /></div>
                                     Public Feed
@@ -811,27 +834,28 @@ export default function WorkerFeed() {
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
-
+                
                               <Button
                                 onClick={() => handlePost('draft')}
                                 variant="maia-outline"
                                 disabled={isSaving || !postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                                className="h-9 px-6 text-[10px] uppercase tracking-widest rounded-xl"
+                                className="h-10 px-6 text-[10px] uppercase tracking-widest rounded-xl border-slate-200"
                               >
                                 {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-2" />}
                                 Save Draft
                               </Button>
-
+                
                               <Button
                                 onClick={() => handlePost('published')}
                                 variant="maia"
                                 disabled={isSaving || !postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                                className="h-9 px-6 text-[10px] uppercase tracking-widest rounded-xl"
+                                className="h-10 px-8 text-[10px] uppercase tracking-widest rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.2)]"
                               >
                                 {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
                               </Button>
                             </div>
                           }
+
                       />
                     </div>
                   </div>
@@ -840,22 +864,22 @@ export default function WorkerFeed() {
             </div>
           </Card>
 
-          <div className="mt-16 space-y-12">
+          <div className="mt-12 space-y-10">
             <Tabs defaultValue="published" value={activeTab} onValueChange={(v) => setActiveTab(v as PostStatus)} className="w-full">
-              <div className="flex items-center justify-between mb-8">
-                <TabsList className="bg-slate-100/50 p-1.5 rounded-[2rem] h-auto border border-slate-200">
+              <div className="flex items-center justify-between mb-6">
+                <TabsList className="bg-slate-100/50 p-1 rounded-2xl h-auto border border-slate-200/50 backdrop-blur-sm">
                   <TabsTrigger 
                     value="published" 
-                    className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-slate-900 text-slate-400 transition-all"
+                    className="rounded-xl px-6 py-2 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 text-slate-400 transition-all"
                   >
                     Published
                   </TabsTrigger>
                   <TabsTrigger 
                     value="draft" 
-                    className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-slate-900 text-slate-400 transition-all flex items-center gap-2"
+                    className="rounded-xl px-6 py-2 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-slate-900 text-slate-400 transition-all flex items-center gap-2"
                   >
                     Drafts
-                    {drafts.length > 0 && <Badge className="bg-slate-900 text-white border-none h-5 px-1.5">{drafts.length}</Badge>}
+                    {drafts.length > 0 && <Badge className="bg-slate-900 text-white border-none h-4 px-1 text-[8px] font-black">{drafts.length}</Badge>}
                   </TabsTrigger>
                 </TabsList>
 
@@ -1003,25 +1027,25 @@ function PostCard({ post, onEdit, onDelete, setPosts, expandedComments, setExpan
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <Card className="overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[3.5rem] group bg-white">
-        <CardHeader className="p-10 pb-6 flex flex-row items-start justify-between space-y-0">
-          <div className="flex gap-6">
-            <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-slate-100">
+      <Card className="overflow-hidden border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)] transition-all duration-700 rounded-[2.5rem] group bg-white border border-slate-100/50">
+        <CardHeader className="p-8 pb-4 flex flex-row items-start justify-between space-y-0">
+          <div className="flex gap-4">
+            <Avatar className="h-12 w-12 border-2 border-white shadow-lg ring-1 ring-slate-100">
               <AvatarImage src={authorAvatar} />
               <AvatarFallback>{post.author?.first_name?.[0] || 'M'}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="flex items-center gap-4">
-                <h3 className="font-black text-slate-900 text-xl tracking-tighter">{authorName}</h3>
-                <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full">
+              <div className="flex items-center gap-3">
+                <h3 className="font-black text-slate-900 text-lg tracking-tighter">{authorName}</h3>
+                <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[9px] uppercase tracking-[0.2em] px-2.5 py-0.5 rounded-full">
                   {post.post_type}
                 </Badge>
               </div>
-              <div className="flex items-center gap-3 mt-2">
-                <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</span>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</span>
                 <span className="text-slate-200">•</span>
-                <span className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest">
-                  {post.visibility === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                <span className="flex items-center gap-2 text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  {post.visibility === 'public' ? <Globe className="h-3 w-3" /> : post.visibility === 'partners' ? <Users className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                   {post.visibility}
                 </span>
               </div>
@@ -1029,44 +1053,45 @@ function PostCard({ post, onEdit, onDelete, setPosts, expandedComments, setExpan
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-12 w-12 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
-                <MoreHorizontal className="h-8 w-8" />
+              <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-300 hover:text-slate-900 rounded-xl transition-all">
+                <MoreHorizontal className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[200px]">
-              <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                <Pin className="h-4 w-4 text-slate-400" /> Pin to Top
+            <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[180px]">
+              <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                <Pin className="h-3.5 w-3.5 text-slate-400" /> Pin to Top
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onEdit} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                <Settings className="h-4 w-4 text-slate-400" /> Edit Post
+              <DropdownMenuItem onClick={onEdit} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                <Settings className="h-3.5 w-3.5 text-slate-400" /> Edit Post
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-slate-50" />
-              <DropdownMenuItem onClick={onDelete} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-4">
-                <Trash2 className="h-4 w-4" /> Delete Post
+              <DropdownMenuItem onClick={onDelete} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-3">
+                <Trash2 className="h-3.5 w-3.5" /> Delete Post
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="px-10 pb-10 space-y-8">
+          <div className="px-8 pb-8 space-y-6">
             <div
-              className="prose prose-slate prose-2xl max-w-none text-slate-700 leading-relaxed
+              className="prose prose-slate prose-xl max-w-none text-slate-700 leading-relaxed
                         prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tighter
                         prose-strong:font-black prose-strong:text-slate-900
                         prose-a:text-blue-600 prose-a:font-black prose-a:no-underline hover:prose-a:underline
-                        prose-blockquote:border-l-8 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
+                        prose-blockquote:border-l-4 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             {post.media && post.media.length > 0 && post.media[0].url && (
-              <div className="rounded-[3rem] overflow-hidden border border-slate-50 shadow-3xl group-hover:scale-[1.005] transition-transform duration-1000">
-                <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[700px]" />
+              <div className="rounded-[2rem] overflow-hidden border border-slate-50 shadow-2xl group-hover:scale-[1.002] transition-transform duration-1000">
+                <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[600px]" />
               </div>
             )}
           </div>
+  
+          <div className="px-8 py-4 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
+            <div className="flex gap-2">
 
-          <div className="px-10 py-6 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
-            <div className="flex gap-4">
               <ReactionButton
                 isActive={post.user_liked}
                 count={post.likes_count || 0}
