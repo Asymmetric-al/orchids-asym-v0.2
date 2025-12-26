@@ -32,34 +32,159 @@ interface Particle {
   y: number
 }
 
+const FloatingEmoji = ({ emoji }: { emoji: string }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0, y: 0, x: 0 }}
+      animate={{ 
+        opacity: [0, 1, 1, 0], 
+        scale: [0, 1.8, 1.2, 0.8], 
+        y: [-20, -120],
+        x: (Math.random() - 0.5) * 80,
+        rotate: (Math.random() - 0.5) * 90
+      }}
+      transition={{ 
+        duration: 1.2, 
+        ease: "easeOut",
+        times: [0, 0.2, 0.8, 1]
+      }}
+      className="absolute pointer-events-none z-50 text-2xl filter drop-shadow-md"
+    >
+      {emoji}
+    </motion.div>
+  )
+}
+
+const ReactionButton = ({
+  isActive,
+  count,
+  type,
+  label,
+  onClick,
+}: {
+  isActive: boolean
+  count: number
+  type: 'heart' | 'fire' | 'prayer'
+  label: string
+  onClick: () => void
+}) => {
+  const [particles, setParticles] = useState<{ id: number, emoji: string }[]>([])
+
+  const config = {
+    heart: { 
+      emoji: "❤️", 
+      activeColor: "text-rose-600", 
+      bg: "bg-rose-50/80", 
+      hoverBg: "hover:bg-rose-50",
+      glowColor: "rgba(225, 29, 72, 0.2)"
+    },
+    fire: { 
+      emoji: "🔥", 
+      activeColor: "text-amber-600", 
+      bg: "bg-amber-50/80", 
+      hoverBg: "hover:bg-amber-100",
+      glowColor: "rgba(217, 119, 6, 0.2)"
+    },
+    prayer: { 
+      emoji: "🙏", 
+      activeColor: "text-indigo-600", 
+      bg: "bg-indigo-50/80", 
+      hoverBg: "hover:bg-indigo-50",
+      glowColor: "rgba(79, 70, 229, 0.2)"
+    },
+  }
+
+  const { emoji, activeColor, bg, hoverBg, glowColor } = config[type]
+
+  const handleClick = () => {
+    if (!isActive) {
+      const newParticles = Array.from({ length: 8 }).map((_, i) => ({
+        id: Date.now() + i,
+        emoji: emoji
+      }))
+      setParticles(prev => [...prev, ...newParticles])
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)))
+      }, 1500)
+    }
+    onClick()
+  }
+
+  return (
+    <div className="relative">
+      <AnimatePresence>
+        {particles.map(p => (
+          <FloatingEmoji key={p.id} emoji={p.emoji} />
+        ))}
+      </AnimatePresence>
+      <motion.button
+        whileHover={{ 
+          scale: 1.1, 
+          y: -4,
+          boxShadow: `0 12px 24px -8px ${glowColor}`
+        }}
+        whileTap={{ scale: 0.9 }}
+        onClick={(e) => {
+          e.stopPropagation()
+          handleClick()
+        }}
+        className={cn(
+          "relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl transition-all duration-300 font-black text-[10px] uppercase tracking-widest overflow-hidden group h-10",
+          isActive 
+            ? cn(bg, activeColor, "shadow-lg ring-1 ring-black/5") 
+            : "text-slate-400 hover:text-slate-600 bg-white border border-slate-100",
+          !isActive && hoverBg
+        )}
+      >
+        <motion.div 
+          className="text-lg relative z-10 select-none"
+          animate={isActive ? {
+            scale: [1, 1.4, 1],
+            rotate: [0, 15, -15, 0]
+          } : {}}
+          transition={{ duration: 0.4 }}
+        >
+          {emoji}
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={count}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="relative z-10 tabular-nums min-w-[1ch]"
+          >
+            {count > 0 ? count : label}
+          </motion.span>
+        </AnimatePresence>
+
+        {isActive && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent pointer-events-none"
+          />
+        )}
+      </motion.button>
+    </div>
+  )
+}
+
 export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
   const [liked, setLiked] = useState(post.user_liked ?? false)
   const [prayed, setPrayed] = useState(post.user_prayed ?? false)
-  const [fired, setFired] = useState(false) // Assuming fires are client-side only for now or need schema update
+  const [fired, setFired] = useState(false) 
   const [likeCount, setLikeCount] = useState(post.like_count)
   const [prayerCount, setPrayerCount] = useState(post.prayer_count)
   const [showComments, setShowComments] = useState(false)
-  const [particles, setParticles] = useState<Particle[]>([])
-
-  const addParticles = (emoji: string) => {
-    const newParticles = Array.from({ length: 8 }).map((_, i) => ({
-      id: Date.now() + i,
-      emoji,
-      x: (Math.random() - 0.5) * 100,
-      y: (Math.random() - 0.5) * 100,
-    }))
-    setParticles((prev) => [...prev, ...newParticles])
-    setTimeout(() => {
-      setParticles((prev) => prev.filter((p) => !newParticles.find((np) => np.id === p.id)))
-    }, 1000)
-  }
 
   const handleLike = () => {
     const newLiked = !liked
     setLiked(newLiked)
     setLikeCount((prev) => (newLiked ? prev + 1 : prev - 1))
     onLike(post.id, newLiked)
-    if (newLiked) addParticles('❤️')
   }
 
   const handlePrayer = () => {
@@ -67,12 +192,10 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
     setPrayed(newPrayed)
     setPrayerCount((prev) => (newPrayed ? prev + 1 : prev - 1))
     onPrayer(post.id, newPrayed)
-    if (newPrayed) addParticles('🙏')
   }
 
   const handleFire = () => {
     setFired(!fired)
-    if (!fired) addParticles('🔥')
   }
 
   const initials = `${post.author.first_name[0]}${post.author.last_name[0]}`
@@ -157,92 +280,42 @@ export function FeedPost({ post, onLike, onPrayer }: FeedPostProps) {
         )}
 
         <CardContent className="space-y-4 pt-4">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'rounded-full transition-colors',
-                  liked && 'bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/10'
-                )}
-                onClick={handleLike}
-              >
-                <motion.div
-                  whileTap={{ scale: 1.5 }}
-                  animate={liked ? { scale: [1, 1.2, 1] } : {}}
-                >
-                  <Heart className={cn('size-5', liked && 'fill-current')} />
-                </motion.div>
-              </Button>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                'rounded-full transition-colors',
-                prayed && 'bg-indigo-50 text-indigo-500 hover:bg-indigo-100 dark:bg-indigo-500/10'
-              )}
+          <div className="flex items-center gap-3">
+            <ReactionButton
+              isActive={liked}
+              count={likeCount}
+              type="heart"
+              label="Love"
+              onClick={handleLike}
+            />
+            <ReactionButton
+              isActive={prayed}
+              count={prayerCount}
+              type="prayer"
+              label="Pray"
               onClick={handlePrayer}
-            >
-              <motion.div
-                whileTap={{ scale: 1.5 }}
-                animate={prayed ? { scale: [1, 1.2, 1] } : {}}
-              >
-                <HandHeart className={cn('size-5', prayed && 'fill-current')} />
-              </motion.div>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                'rounded-full transition-colors',
-                fired && 'bg-orange-50 text-orange-500 hover:bg-orange-100 dark:bg-orange-500/10'
-              )}
+            />
+            <ReactionButton
+              isActive={fired}
+              count={0}
+              type="fire"
+              label="Hot"
               onClick={handleFire}
-            >
-              <motion.div
-                whileTap={{ scale: 1.5 }}
-                animate={fired ? { scale: [1, 1.2, 1] } : {}}
-              >
-                <Flame className={cn('size-5', fired && 'fill-current')} />
-              </motion.div>
-            </Button>
+            />
 
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full"
+              className="rounded-full hover:bg-slate-100 transition-colors h-10 w-10"
               onClick={() => setShowComments(true)}
             >
-              <MessageCircle className="size-5" />
+              <MessageCircle className="size-5 text-slate-400" />
             </Button>
-
-            <AnimatePresence>
-              {particles.map((p) => (
-                <motion.span
-                  key={p.id}
-                  initial={{ opacity: 1, scale: 0.5, x: 0, y: 0 }}
-                  animate={{ 
-                    opacity: 0, 
-                    scale: 1.5, 
-                    x: p.x, 
-                    y: p.y - 100,
-                    rotate: p.x 
-                  }}
-                  className="pointer-events-none absolute z-50 text-xl"
-                >
-                  {p.emoji}
-                </motion.span>
-              ))}
-            </AnimatePresence>
           </div>
 
-          <div className="flex gap-4 text-xs font-medium text-muted-foreground/80">
-            <span className={cn(liked && "text-red-500")}>{likeCount} likes</span>
-            <span className={cn(prayed && "text-indigo-500")}>{prayerCount} prayers</span>
+          <div className="flex gap-4 text-xs font-medium text-muted-foreground/80 px-1">
+            <span className={cn(liked && "text-rose-500 font-bold")}>{likeCount} likes</span>
+            <span className={cn(prayed && "text-indigo-500 font-bold")}>{prayerCount} prayers</span>
             <span>{post.comment_count} comments</span>
           </div>
 
