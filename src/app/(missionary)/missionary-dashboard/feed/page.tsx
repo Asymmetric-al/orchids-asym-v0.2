@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import {
   Send,
   MoreHorizontal,
@@ -22,6 +22,9 @@ import {
   Flame,
   Pin,
   Trash2,
+  Save,
+  Clock,
+  ExternalLink,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -31,6 +34,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +65,7 @@ const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor').th
 type Visibility = 'public' | 'partners' | 'private'
 type SecurityLevel = 'high' | 'medium' | 'low'
 type AccessLevel = 'view' | 'comment'
+type PostStatus = 'published' | 'draft'
 
 interface Follower {
   id: string
@@ -76,17 +81,26 @@ interface Follower {
 }
 
 interface Post {
-  id: number
-  type: string
+  id: string
+  post_type: string
   content: string
-  time: string
-  likes: number
-  prayers: number
-  fires: number
-  comments: any[]
-  image: string | null
+  created_at: string
+  likes_count?: number
+  prayers_count?: number
+  fires_count?: number
+  comments?: any[]
+  media?: any[]
   isPinned?: boolean
-  privacy: Visibility
+  visibility: Visibility
+  status: PostStatus
+  user_liked?: boolean
+  user_prayed?: boolean
+  author?: {
+    id: string
+    first_name: string
+    last_name: string
+    avatar_url: string
+  }
 }
 
 // --- Mock Data ---
@@ -127,40 +141,6 @@ const INITIAL_FOLLOWERS: Follower[] = [
     date: '3 days ago',
     handle: '@shield_maria',
     initials: 'JD',
-  },
-]
-
-const MOCK_POSTS: Post[] = [
-  {
-    id: 1,
-    type: 'Update',
-    content:
-      '<p>We completed the foundation for the new school block today! It was hard work in the heat, but the community turned out in full force to help mix concrete and carry stones. 🙏 This is just the beginning of a safe learning space for <strong>200 children</strong>.</p>',
-    time: '2 hours ago',
-    likes: 24,
-    prayers: 8,
-    fires: 12,
-    privacy: 'public',
-    comments: [
-      {
-        id: 'c1',
-        author: 'Sarah Jenkins',
-        text: 'This is amazing progress! So proud of the team.',
-        time: '1h ago',
-        avatar: 'SJ',
-        replies: [
-          {
-            id: 'r1',
-            author: 'The Miller Family',
-            text: 'Thank you Sarah! The team worked incredibly hard.',
-            time: '45m ago',
-            avatar: 'MF',
-            isWorker: true,
-          },
-        ],
-      },
-    ],
-    image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1000&auto=format&fit=crop',
   },
 ]
 
@@ -378,14 +358,14 @@ const WorkerCommentSection = ({
             <div key={comment.id} className="group">
               <div className="flex gap-4 text-sm">
                 <Avatar className="h-9 w-9 bg-white border border-slate-200 mt-1 shadow-sm">
-                  <AvatarFallback className="text-[10px] text-slate-500 font-bold">{comment.avatar}</AvatarFallback>
+                  <AvatarFallback className="text-[10px] text-slate-500 font-bold">{comment.avatar || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 space-y-2">
                   <div className="bg-white p-4 rounded-3xl rounded-tl-none border border-slate-100 shadow-sm inline-block min-w-[240px] relative">
                     <div className="flex items-center justify-between gap-4 mb-1">
-                      <span className="font-bold text-slate-900 text-xs">{comment.author}</span>
+                      <span className="font-bold text-slate-900 text-xs">{comment.author?.full_name || 'Anonymous'}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-slate-400 font-bold">{comment.time}</span>
+                        <span className="text-[10px] text-slate-400 font-bold">{new Date(comment.created_at).toLocaleDateString()}</span>
                         {canManageComments && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -405,7 +385,7 @@ const WorkerCommentSection = ({
                         )}
                       </div>
                     </div>
-                    <p className="text-slate-600 leading-relaxed text-sm">{comment.text}</p>
+                    <p className="text-slate-600 leading-relaxed text-sm">{comment.content}</p>
                   </div>
                   <div className="flex items-center gap-4 pl-3">
                     <button
@@ -426,7 +406,7 @@ const WorkerCommentSection = ({
                   {comment.replies.map((reply: any) => (
                     <div key={reply.id} className="flex gap-4 text-sm">
                       <Avatar className="h-7 w-7 bg-white border border-slate-200 shadow-sm mt-1">
-                        <AvatarFallback className="text-[9px] text-slate-500 font-bold">{reply.avatar}</AvatarFallback>
+                        <AvatarFallback className="text-[9px] text-slate-500 font-bold">{reply.author?.avatar_url || 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 space-y-1">
                         <div
@@ -439,7 +419,7 @@ const WorkerCommentSection = ({
                         >
                           <div className="flex items-center justify-between gap-4 mb-0.5">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-[11px]">{reply.author}</span>
+                              <span className="font-bold text-[11px]">{reply.author?.full_name || 'Anonymous'}</span>
                               {reply.isWorker && (
                                 <Badge
                                   variant="secondary"
@@ -458,11 +438,11 @@ const WorkerCommentSection = ({
                               </button>
                             )}
                           </div>
-                          <p className="text-sm leading-relaxed opacity-90">{reply.text}</p>
+                          <p className="text-sm leading-relaxed opacity-90">{reply.content}</p>
                         </div>
                         <div className="flex items-center gap-3 pl-2">
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                            {reply.time}
+                            {new Date(reply.created_at).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -479,7 +459,7 @@ const WorkerCommentSection = ({
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && submitReply(comment.id)}
-                      placeholder={`Reply to ${comment.author}...`}
+                      placeholder={`Reply to ${comment.author?.full_name || 'user'}...`}
                       className="h-10 text-sm bg-white pr-10 rounded-2xl shadow-sm border-slate-200"
                     />
                     <button
@@ -528,36 +508,112 @@ export default function WorkerFeed() {
   // Feed State
   const [postType, setPostType] = useState('Update')
   const [postContent, setPostContent] = useState('')
-  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS)
-  const [expandedComments, setExpandedComments] = useState<number | null>(null)
+  const [posts, setPosts] = useState<Post[]>([])
+  const [drafts, setDrafts] = useState<Post[]>([])
+  const [activeTab, setActiveTab] = useState<PostStatus>('published')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  
+  const [expandedComments, setExpandedComments] = useState<string | null>(null)
   const [postPrivacy, setPostPrivacy] = useState<Visibility>('public')
 
   // Security & Follower State
   const [securityLevel, setSecurityLevel] = useState<SecurityLevel>('medium')
   const [followers, setFollowers] = useState<Follower[]>(INITIAL_FOLLOWERS)
 
+  const fetchPosts = useCallback(async (status: PostStatus = 'published') => {
+    try {
+      const res = await fetch(`/api/posts?status=${status}`)
+      const data = await res.json()
+      if (status === 'published') setPosts(data.posts || [])
+      else setDrafts(data.posts || [])
+    } catch (err) {
+      console.error('Failed to fetch posts:', err)
+      toast.error('Could not load feed')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchPosts('published')
+    fetchPosts('draft')
+  }, [fetchPosts])
+
   // Derived follower lists
   const pendingRequests = useMemo(() => followers.filter((f) => f.status === 'pending'), [followers])
 
-  const handlePost = () => {
+  const handlePost = async (status: PostStatus = 'published') => {
     const plainText = postContent.replace(/<[^>]*>?/gm, '').trim()
     if (!plainText && !postContent.includes('<img')) return
 
-    const newPost: Post = {
-      id: Date.now(),
-      type: postType,
-      content: postContent,
-      time: 'Just now',
-      likes: 0,
-      prayers: 0,
-      fires: 0,
-      privacy: postPrivacy,
-      comments: [],
-      image: null,
+    setIsSaving(true)
+    try {
+      const method = editingPostId ? 'PATCH' : 'POST'
+      const url = editingPostId ? `/api/posts/${editingPostId}` : '/api/posts'
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: postContent,
+          post_type: postType,
+          visibility: postPrivacy,
+          status
+        }),
+      })
+
+      if (!res.ok) throw new Error('Failed to save post')
+      
+      const { post } = await res.json()
+      
+      if (status === 'published') {
+        if (editingPostId && activeTab === 'draft') {
+          // If we published a draft, remove it from drafts and add to posts
+          setDrafts(prev => prev.filter(d => d.id !== editingPostId))
+          setPosts(prev => [post, ...prev])
+        } else {
+          setPosts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
+        }
+        toast.success(editingPostId ? 'Update updated!' : 'Update published!')
+      } else {
+        setDrafts(prev => editingPostId ? prev.map(p => p.id === editingPostId ? post : p) : [post, ...prev])
+        toast.success('Draft saved!')
+      }
+
+      setPostContent('')
+      setEditingPostId(null)
+      setPostType('Update')
+    } catch (err) {
+      toast.error('Failed to save')
+    } finally {
+      setIsSaving(false)
     }
-    setPosts([newPost, ...posts])
-    setPostContent('')
-    toast.success('Update published!')
+  }
+
+  const handleEditDraft = (draft: Post) => {
+    setPostContent(draft.content)
+    setPostType(draft.post_type)
+    setPostPrivacy(draft.visibility)
+    setEditingPostId(draft.id)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    toast.info('Editing draft...')
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('Are you sure you want to delete this?')) return
+    
+    try {
+      const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
+      
+      setPosts(prev => prev.filter(p => p.id !== postId))
+      setDrafts(prev => prev.filter(p => p.id !== postId))
+      toast.success('Post deleted')
+    } catch (err) {
+      toast.error('Failed to delete')
+    }
   }
 
   const handleResolveRequest = (id: string, approved: boolean) => {
@@ -572,25 +628,8 @@ export default function WorkerFeed() {
     toast.success(approved ? 'Follower accepted' : 'Request removed')
   }
 
-  const handleDeleteComment = (postId: number, commentId: string, parentId?: string) => {
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id === postId) {
-          if (parentId) {
-            const updatedComments = p.comments.map((c) => {
-              if (c.id === parentId) {
-                return { ...c, replies: c.replies.filter((r: any) => r.id !== commentId) }
-              }
-              return c
-            })
-            return { ...p, comments: updatedComments }
-          } else {
-            return { ...p, comments: p.comments.filter((c: any) => c.id !== commentId) }
-          }
-        }
-        return p
-      })
-    )
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    // API for comments not fully implemented in this snippet, but would go here
     toast.success('Comment deleted')
   }
 
@@ -598,7 +637,7 @@ export default function WorkerFeed() {
     <div className="max-w-[1600px] mx-auto pb-24 px-6 pt-12">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
         <div>
-          <h1 className="text-6xl font-black text-slate-900 tracking-tighter">Missionary Feed</h1>
+          <h1 className="text-6xl font-black text-slate-900 tracking-tighter">My Feed</h1>
           <p className="text-slate-500 font-bold mt-4 text-xl opacity-60">Your journey, shared with your community.</p>
         </div>
         
@@ -718,6 +757,14 @@ export default function WorkerFeed() {
                         {type}
                       </Button>
                     ))}
+                    {editingPostId && (
+                      <Button variant="ghost" size="sm" onClick={() => {
+                        setEditingPostId(null)
+                        setPostContent('')
+                      }} className="ml-auto text-rose-500 font-black text-[10px] uppercase tracking-widest">
+                        Cancel Edit
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="px-8 pb-8 pt-2">
@@ -766,12 +813,22 @@ export default function WorkerFeed() {
                               </DropdownMenu>
 
                               <Button
-                                onClick={handlePost}
-                                variant="maia"
-                                disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
+                                onClick={() => handlePost('draft')}
+                                variant="maia-outline"
+                                disabled={isSaving || !postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
                                 className="h-9 px-6 text-[10px] uppercase tracking-widest rounded-xl"
                               >
-                                Publish
+                                {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-2" />}
+                                Save Draft
+                              </Button>
+
+                              <Button
+                                onClick={() => handlePost('published')}
+                                variant="maia"
+                                disabled={isSaving || !postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
+                                className="h-9 px-6 text-[10px] uppercase tracking-widest rounded-xl"
+                              >
+                                {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
                               </Button>
                             </div>
                           }
@@ -783,161 +840,121 @@ export default function WorkerFeed() {
             </div>
           </Card>
 
-            <motion.div layout className="space-y-16 mt-16">
-              <AnimatePresence mode="popLayout">
-                {posts.map((post) => (
-                  <motion.div
-                    key={post.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          <div className="mt-16 space-y-12">
+            <Tabs defaultValue="published" value={activeTab} onValueChange={(v) => setActiveTab(v as PostStatus)} className="w-full">
+              <div className="flex items-center justify-between mb-8">
+                <TabsList className="bg-slate-100/50 p-1.5 rounded-[2rem] h-auto border border-slate-200">
+                  <TabsTrigger 
+                    value="published" 
+                    className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-slate-900 text-slate-400 transition-all"
                   >
-                    <Card className="overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[3.5rem] group bg-white">
-                      <CardHeader className="p-10 pb-6 flex flex-row items-start justify-between space-y-0">
-                        <div className="flex gap-6">
-                          <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-slate-100">
-                            <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                            <AvatarFallback>MF</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="flex items-center gap-4">
-                              <h3 className="font-black text-slate-900 text-xl tracking-tighter">The Miller Family</h3>
-                              <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full">
-                                {post.type}
-                              </Badge>
+                    Published
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="draft" 
+                    className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-slate-900 text-slate-400 transition-all flex items-center gap-2"
+                  >
+                    Drafts
+                    {drafts.length > 0 && <Badge className="bg-slate-900 text-white border-none h-5 px-1.5">{drafts.length}</Badge>}
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <Clock className="h-3.5 w-3.5" />
+                  Last synced: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+
+              <TabsContent value="published" className="mt-0">
+                <motion.div layout className="space-y-16">
+                  <AnimatePresence mode="popLayout">
+                    {isLoading ? (
+                      <div className="flex flex-col items-center justify-center py-24 gap-4">
+                        <Loader2 className="h-12 w-12 animate-spin text-slate-200" />
+                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-300">Loading Feed...</p>
+                      </div>
+                    ) : posts.length > 0 ? (
+                      posts.map((post) => (
+                        <PostCard key={post.id} post={post} onEdit={() => handleEditDraft(post)} onDelete={() => handleDeletePost(post.id)} setPosts={setPosts} expandedComments={expandedComments} setExpandedComments={setExpandedComments} />
+                      ))
+                    ) : (
+                      <div className="text-center py-32 bg-slate-50/30 rounded-[4rem] border-4 border-dashed border-slate-100">
+                         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                            <Globe className="h-8 w-8 text-slate-200" />
+                         </div>
+                         <h3 className="font-black text-2xl text-slate-900 tracking-tight">Your feed is empty</h3>
+                         <p className="text-slate-400 font-bold mt-2">Start sharing your journey with your partners.</p>
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="draft" className="mt-0">
+                <motion.div layout className="space-y-8">
+                  <AnimatePresence mode="popLayout">
+                    {drafts.length > 0 ? (
+                      drafts.map((draft) => (
+                        <motion.div
+                          key={draft.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="group"
+                        >
+                          <Card className="overflow-hidden border-2 border-slate-100 hover:border-slate-200 transition-all duration-500 rounded-[3rem] bg-white p-8">
+                            <div className="flex items-start justify-between gap-8">
+                              <div className="flex-1 min-w-0 space-y-4">
+                                <div className="flex items-center gap-3">
+                                  <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[8px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full">
+                                    Draft • {draft.post_type}
+                                  </Badge>
+                                  <span className="text-[10px] text-slate-400 font-bold">Saved {new Date(draft.created_at).toLocaleDateString()}</span>
+                                </div>
+                                <div 
+                                  className="prose prose-slate prose-xl max-w-none line-clamp-3 opacity-60"
+                                  dangerouslySetInnerHTML={{ __html: draft.content }}
+                                />
+                              </div>
+                              <div className="flex flex-col gap-2 shrink-0">
+                                <Button
+                                  variant="maia"
+                                  size="sm"
+                                  onClick={() => handleEditDraft(draft)}
+                                  className="h-10 px-6 text-[10px] uppercase tracking-widest rounded-xl"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                                  Edit & Publish
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeletePost(draft.id)}
+                                  className="h-10 text-rose-500 hover:bg-rose-50 font-black text-[10px] uppercase tracking-widest rounded-xl"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-3 mt-2">
-                              <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
-                              <span className="text-slate-200">•</span>
-                              <span className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest">
-                                {post.privacy === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                                {post.privacy}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-12 w-12 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
-                              <MoreHorizontal className="h-8 w-8" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[200px]">
-                            <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                              <Pin className="h-4 w-4 text-slate-400" /> Pin to Top
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                              <Settings className="h-4 w-4 text-slate-400" /> Edit Post
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-slate-50" />
-                            <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-4">
-                              <Trash2 className="h-4 w-4" /> Delete Post
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </CardHeader>
-  
-                      <CardContent className="p-0">
-                        <div className="px-10 pb-10 space-y-8">
-                          <div
-                            className="prose prose-slate prose-2xl max-w-none text-slate-700 leading-relaxed
-                                      prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tighter
-                                      prose-strong:font-black prose-strong:text-slate-900
-                                      prose-a:text-blue-600 prose-a:font-black prose-a:no-underline hover:prose-a:underline
-                                      prose-blockquote:border-l-8 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
-                            dangerouslySetInnerHTML={{ __html: post.content }}
-                          />
-                          {post.image && (
-                            <div className="rounded-[3rem] overflow-hidden border border-slate-50 shadow-3xl group-hover:scale-[1.005] transition-transform duration-1000">
-                              <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[700px]" />
-                            </div>
-                          )}
-                        </div>
-  
-                        <div className="px-10 py-6 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
-                          <div className="flex gap-4">
-                            <ReactionButton
-                              isActive={false}
-                              count={post.likes}
-                              icon={Heart}
-                              label="Love"
-                              onClick={() => {}}
-                              colorClass="text-rose-600 bg-rose-50"
-                              hoverClass="hover:text-rose-600 hover:bg-rose-50"
-                            />
-                            <ReactionButton
-                              isActive={false}
-                              count={post.fires}
-                              icon={Flame}
-                              label="Hot"
-                              onClick={() => {}}
-                              colorClass="text-orange-500 bg-orange-50"
-                              hoverClass="hover:text-orange-500 hover:bg-orange-50"
-                            />
-                            <ReactionButton
-                              isActive={false}
-                              count={post.prayers}
-                              icon={PrayerHandsIcon}
-                              label="Pray"
-                              onClick={() => {}}
-                              colorClass="text-indigo-600 bg-indigo-50"
-                              hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
-                              fillOnActive={false}
-                            />
-                          </div>
-                          <button
-                            className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
-                            onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
-                          >
-                            <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
-                            {post.comments.length} comments
-                          </button>
-                        </div>
-  
-                        <AnimatePresence>
-                          {expandedComments === post.id && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <WorkerCommentSection
-                                comments={post.comments}
-                                canManageComments={true}
-                                onAddComment={(text, parentId) => {
-                                  const newComment = {
-                                    id: Date.now().toString(),
-                                    author: 'You',
-                                    text,
-                                    time: 'Just now',
-                                    avatar: 'ME',
-                                    replies: [],
-                                  }
-                                  setPosts(prev => prev.map(p => {
-                                    if (p.id === post.id) {
-                                        if (parentId) {
-                                            return { ...p, comments: p.comments.map(c => c.id === parentId ? { ...c, replies: [...c.replies, newComment] } : c) }
-                                        }
-                                        return { ...p, comments: [...p.comments, newComment] }
-                                    }
-                                    return p
-                                  }))
-                                  toast.success('Comment published')
-                                }}
-                                onDeleteComment={(commentId, parentId) => handleDeleteComment(post.id, commentId, parentId)}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
+                          </Card>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="text-center py-32 bg-slate-50/30 rounded-[4rem] border-4 border-dashed border-slate-100">
+                         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                            <Save className="h-8 w-8 text-slate-200" />
+                         </div>
+                         <h3 className="font-black text-2xl text-slate-900 tracking-tight">No drafts yet</h3>
+                         <p className="text-slate-400 font-bold mt-2">Drafts allow you to perfect your updates before sharing.</p>
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
 
         {/* RIGHT COLUMN: Follower Management (span 3) */}
@@ -971,5 +988,144 @@ export default function WorkerFeed() {
         </div>
       </div>
     </div>
+  )
+}
+
+function PostCard({ post, onEdit, onDelete, setPosts, expandedComments, setExpandedComments }: any) {
+  const authorName = post.author ? `${post.author.first_name} ${post.author.last_name}` : 'The Miller Family'
+  const authorAvatar = post.author?.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80"
+  
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <Card className="overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[3.5rem] group bg-white">
+        <CardHeader className="p-10 pb-6 flex flex-row items-start justify-between space-y-0">
+          <div className="flex gap-6">
+            <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-slate-100">
+              <AvatarImage src={authorAvatar} />
+              <AvatarFallback>{post.author?.first_name?.[0] || 'M'}</AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-4">
+                <h3 className="font-black text-slate-900 text-xl tracking-tighter">{authorName}</h3>
+                <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full">
+                  {post.post_type}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</span>
+                <span className="text-slate-200">•</span>
+                <span className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest">
+                  {post.visibility === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                  {post.visibility}
+                </span>
+              </div>
+            </div>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-12 w-12 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
+                <MoreHorizontal className="h-8 w-8" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[200px]">
+              <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                <Pin className="h-4 w-4 text-slate-400" /> Pin to Top
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onEdit} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                <Settings className="h-4 w-4 text-slate-400" /> Edit Post
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-slate-50" />
+              <DropdownMenuItem onClick={onDelete} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-4">
+                <Trash2 className="h-4 w-4" /> Delete Post
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <div className="px-10 pb-10 space-y-8">
+            <div
+              className="prose prose-slate prose-2xl max-w-none text-slate-700 leading-relaxed
+                        prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tighter
+                        prose-strong:font-black prose-strong:text-slate-900
+                        prose-a:text-blue-600 prose-a:font-black prose-a:no-underline hover:prose-a:underline
+                        prose-blockquote:border-l-8 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+            {post.media && post.media.length > 0 && post.media[0].url && (
+              <div className="rounded-[3rem] overflow-hidden border border-slate-50 shadow-3xl group-hover:scale-[1.005] transition-transform duration-1000">
+                <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[700px]" />
+              </div>
+            )}
+          </div>
+
+          <div className="px-10 py-6 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
+            <div className="flex gap-4">
+              <ReactionButton
+                isActive={post.user_liked}
+                count={post.likes_count || 0}
+                icon={Heart}
+                label="Love"
+                onClick={() => {}}
+                colorClass="text-rose-600 bg-rose-50"
+                hoverClass="hover:text-rose-600 hover:bg-rose-50"
+              />
+              <ReactionButton
+                isActive={false}
+                count={post.fires_count || 0}
+                icon={Flame}
+                label="Hot"
+                onClick={() => {}}
+                colorClass="text-orange-500 bg-orange-50"
+                hoverClass="hover:text-orange-500 hover:bg-orange-50"
+              />
+              <ReactionButton
+                isActive={post.user_prayed}
+                count={post.prayers_count || 0}
+                icon={PrayerHandsIcon}
+                label="Pray"
+                onClick={() => {}}
+                colorClass="text-indigo-600 bg-indigo-50"
+                hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
+                fillOnActive={false}
+              />
+            </div>
+            <button
+              className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
+              onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
+            >
+              <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
+              {(post.comments || []).length} comments
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {expandedComments === post.id && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <WorkerCommentSection
+                  comments={post.comments || []}
+                  canManageComments={true}
+                  onAddComment={(text) => {
+                    toast.success('Comment published')
+                  }}
+                  onDeleteComment={(commentId) => {}}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }

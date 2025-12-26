@@ -17,20 +17,31 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
+    const status = searchParams.get('status') || 'published'
+    const missionaryId = searchParams.get('missionaryId')
 
-    const { data: posts, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('posts')
       .select(`
         *,
         author:profiles!missionary_id(id, first_name, last_name, avatar_url)
       `)
       .eq('tenant_id', ctx.tenantId)
+      .eq('status', status)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    if (missionaryId) {
+      query = query.eq('missionary_id', missionaryId)
+    }
+
+    const { data: posts, error } = await query
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     const postIds = (posts || []).map((p: { id: string }) => p.id)
+    if (postIds.length === 0) return NextResponse.json({ posts: [] })
+
     const { data: likes } = await supabaseAdmin
       .from('post_likes')
       .select('post_id')
@@ -67,7 +78,7 @@ export async function POST(request: NextRequest) {
     const audit = createAuditLogger(ctx, request)
 
     const body = await request.json()
-    const { content, media = [] } = body
+    const { content, media = [], status = 'published', visibility = 'public', post_type = 'Update' } = body
 
     if (!content?.trim()) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 })
@@ -91,6 +102,9 @@ export async function POST(request: NextRequest) {
         missionary_id: profile.id,
         content: content.trim(),
         media,
+        status,
+        visibility,
+        post_type
       })
       .select(`
         *,
@@ -100,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    await audit.logPost(post.id, 'post_created')
+    await audit.logPost(post.id, status === 'draft' ? 'post_draft_created' : 'post_created')
     return NextResponse.json({ post }, { status: 201 })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Internal error'
