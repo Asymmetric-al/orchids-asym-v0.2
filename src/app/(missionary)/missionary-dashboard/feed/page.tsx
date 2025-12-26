@@ -6,30 +6,25 @@ import {
   MoreHorizontal,
   MessageCircle,
   Heart,
-  Share2,
   Loader2,
   Globe,
   ChevronDown,
   X,
   Lock,
   Users,
-  UserPlus,
   Check,
   CornerDownRight,
   ShieldCheck,
-  Search,
-  UserCheck,
-  AlertCircle,
-  Pin,
-  Trash2,
-  Flame,
   ShieldAlert,
   ShieldHalf,
   Shield,
   Settings,
+  Flame,
+  Pin,
+  Trash2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
@@ -37,14 +32,12 @@ import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -57,7 +50,6 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 // --- Types ---
 
@@ -221,12 +213,12 @@ const FollowerRequestItem = ({
           </div>
         </div>
 
-        <div className="pl-[3.25rem] h-8 relative">
+        <div className="pl-13 h-8 relative">
           {status === 'pending' && (
             <div className="flex gap-2 absolute inset-0">
               <Button
                 size="sm"
-                className="flex-1 h-8 text-[10px] bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold uppercase tracking-wider"
+                className="flex-1 h-8 text-[10px] bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold uppercase tracking-wider shadow-sm"
                 onClick={() => handleAction('approve')}
               >
                 Accept
@@ -234,7 +226,7 @@ const FollowerRequestItem = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 h-8 text-[10px] text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-50 rounded-lg font-bold uppercase tracking-wider"
+                className="flex-1 h-8 text-[10px] text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-50 rounded-lg font-bold uppercase tracking-wider shadow-sm"
                 onClick={() => handleAction('ignore')}
               >
                 Ignore
@@ -523,20 +515,9 @@ export default function WorkerFeed() {
   // Security & Follower State
   const [securityLevel, setSecurityLevel] = useState<SecurityLevel>('medium')
   const [followers, setFollowers] = useState<Follower[]>(INITIAL_FOLLOWERS)
-  const [followerSearch, setFollowerSearch] = useState('')
 
   // Derived follower lists
   const pendingRequests = useMemo(() => followers.filter((f) => f.status === 'pending'), [followers])
-  const activeFollowers = useMemo(
-    () =>
-      followers.filter(
-        (f) =>
-          f.status === 'approved' &&
-          (f.name.toLowerCase().includes(followerSearch.toLowerCase()) ||
-            f.email.toLowerCase().includes(followerSearch.toLowerCase()))
-      ),
-    [followers, followerSearch]
-  )
 
   const handlePost = () => {
     const plainText = postContent.replace(/<[^>]*>?/gm, '').trim()
@@ -571,16 +552,6 @@ export default function WorkerFeed() {
     toast.success(approved ? 'Follower accepted' : 'Request removed')
   }
 
-  const handleRemoveFollower = (id: string) => {
-    setFollowers((prev) => prev.filter((f) => f.id !== id))
-    toast.success('Follower removed')
-  }
-
-  const handleUpdateAccess = (id: string, level: AccessLevel) => {
-    setFollowers((prev) => prev.map((f) => (f.id === id ? { ...f, accessLevel: level } : f)))
-    toast.success(`Access updated to ${level}`)
-  }
-
   const handleDeleteComment = (postId: number, commentId: string, parentId?: string) => {
     setPosts((prev) =>
       prev.map((p) => {
@@ -603,17 +574,17 @@ export default function WorkerFeed() {
     toast.success('Comment deleted')
   }
 
-    return (
-    <div className="max-w-[1600px] mx-auto pb-24 px-6 pt-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+  return (
+    <div className="max-w-[1600px] mx-auto pb-24 px-6 pt-12">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
         <div>
-          <h1 className="text-5xl font-black text-slate-900 tracking-tight">My Feed</h1>
-          <p className="text-slate-500 font-medium mt-2 text-lg">Connect with your supporters and share your journey.</p>
+          <h1 className="text-6xl font-black text-slate-900 tracking-tighter">Missionary Feed</h1>
+          <p className="text-slate-500 font-bold mt-4 text-xl opacity-60">Your journey, shared with your community.</p>
         </div>
         
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="rounded-2xl border-slate-200 hover:bg-slate-50 font-bold text-xs uppercase tracking-widest h-11 px-6">
+            <Button variant="outline" className="rounded-2xl border-slate-200 hover:bg-slate-50 font-bold text-xs uppercase tracking-widest h-12 px-8 shadow-sm">
               <ShieldCheck className="h-4 w-4 mr-2" />
               Security & Access
             </Button>
@@ -706,109 +677,114 @@ export default function WorkerFeed() {
         </Dialog>
       </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* MAIN COLUMN: Feed Stream (span 9) */}
-          <div className="lg:col-span-9 space-y-8">
-            <Card className="overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[3rem] bg-slate-50/50 p-1.5 transition-all hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)]">
-              <div className="bg-white rounded-[2.8rem] overflow-hidden">
-                <div className="px-10 pt-10 pb-4">
-                  <div className="flex gap-3 flex-wrap items-center">
-                    {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setPostType(type)}
-                        className={cn(
-                          'px-8 py-3 text-[11px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
-                          postType === type
-                            ? 'bg-slate-900 text-white border-slate-900 scale-105 shadow-lg'
-                            : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-600'
-                        )}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        
+        {/* MAIN COLUMN: Feed Stream (span 9) */}
+        <div className="lg:col-span-9 space-y-12">
+          <Card className="overflow-hidden border-none shadow-[0_30px_70px_rgba(0,0,0,0.12)] rounded-[4rem] bg-white p-2 transition-all hover:shadow-[0_40px_90px_rgba(0,0,0,0.18)]">
+            <div className="bg-white rounded-[3.8rem] overflow-hidden">
+              <div className="px-12 pt-12 pb-6">
+                <div className="flex gap-4 flex-wrap items-center">
+                  {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setPostType(type)}
+                      className={cn(
+                        'px-10 py-4 text-[11px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
+                        postType === type
+                          ? 'bg-slate-900 text-white border-slate-900 scale-105 shadow-xl'
+                          : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-600'
+                      )}
+                    >
+                      {type}
+                    </button>
+                  ))}
                 </div>
-                <div className="px-10 pb-10 pt-4">
-                  <div className="flex gap-6">
-                    <Avatar className="h-14 w-14 border-2 border-white shadow-xl shrink-0 hidden sm:block">
-                      <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                      <AvatarFallback className="font-bold">MF</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/30 overflow-hidden focus-within:border-slate-200 focus-within:bg-white transition-all">
-                        <RichTextEditor
-                          value={postContent}
-                          onChange={setPostContent}
-                          placeholder={`Share your latest ${postType.toLowerCase()}...`}
-                          className="border-none shadow-none rounded-none px-2"
-                          contentClassName="py-4 px-6 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px]"
-                          toolbarPosition="bottom"
-                          actions={
-                            <div className="flex items-center gap-4 ml-auto p-2">
-                              <DropdownMenu>
+              </div>
+              <div className="px-12 pb-12 pt-4">
+                <div className="flex gap-8">
+                  <Avatar className="h-16 w-16 border-4 border-white shadow-2xl shrink-0 hidden md:block">
+                    <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
+                    <AvatarFallback className="font-bold">MF</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="rounded-[2.5rem] border-2 border-slate-50 bg-slate-50/20 overflow-hidden focus-within:border-slate-200 focus-within:bg-white transition-all shadow-inner">
+                      <RichTextEditor
+                        value={postContent}
+                        onChange={setPostContent}
+                        placeholder={`What's happening in your mission today? Share a ${postType.toLowerCase()}...`}
+                        className="border-none shadow-none rounded-none px-4"
+                        contentClassName="py-8 px-10 text-2xl text-slate-700 placeholder:text-slate-300 min-h-[250px] leading-relaxed"
+                        toolbarPosition="bottom"
+                        actions={
+                          <div className="flex flex-wrap items-center gap-4 ml-auto p-4 border-t border-slate-50/50 w-full justify-between">
+                            <div className="flex items-center gap-2">
+                                <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button
+                                    <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-10 text-slate-500 gap-2 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4"
-                                  >
+                                    className="h-11 text-slate-500 gap-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 rounded-2xl px-6 border border-slate-100"
+                                    >
                                     {postPrivacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                     {postPrivacy}
                                     <ChevronDown className="h-3 w-3 opacity-30" />
-                                  </Button>
+                                    </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[160px]">
-                                  <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                                    <Globe className="h-4 w-4 mr-3 text-slate-400" /> Public Feed
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                                    <Users className="h-4 w-4 mr-3 text-slate-400" /> Partners Only
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                                    <Lock className="h-4 w-4 mr-3 text-slate-400" /> Private Update
-                                  </DropdownMenuItem>
+                                <DropdownMenuContent align="start" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[220px]">
+                                    <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                                    <div className="p-2 bg-slate-50 rounded-full"><Globe className="h-4 w-4 text-slate-600" /></div>
+                                    Public Feed
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                                    <div className="p-2 bg-slate-50 rounded-full"><Users className="h-4 w-4 text-slate-600" /></div>
+                                    Partners Only
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                                    <div className="p-2 bg-slate-50 rounded-full"><Lock className="h-4 w-4 text-slate-600" /></div>
+                                    Private Update
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
-                              </DropdownMenu>
-    
-                              <Button
-                                onClick={handlePost}
-                                disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                                className="bg-slate-900 text-white hover:bg-slate-800 shadow-xl h-12 px-10 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
-                              >
-                                Publish <Send className="h-4 w-4 ml-2 opacity-70" />
-                              </Button>
+                                </DropdownMenu>
                             </div>
-                          }
-                        />
-                      </div>
+
+                            <Button
+                              onClick={handlePost}
+                              disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
+                              className="bg-slate-900 text-white hover:bg-slate-800 shadow-2xl h-14 px-12 rounded-[1.5rem] font-black text-[12px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 group"
+                            >
+                              Publish Update <Send className="h-4 w-4 ml-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                            </Button>
+                          </div>
+                        }
+                      />
                     </div>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-          <div className="space-y-12 mt-12">
+          <div className="space-y-16 mt-16">
             {posts.map((post) => (
-              <Card key={post.id} className="overflow-hidden border-slate-200 shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[2.5rem] group bg-white border-none">
-                <CardHeader className="p-8 pb-4 flex flex-row items-start justify-between space-y-0">
-                  <div className="flex gap-5">
-                    <Avatar className="h-12 w-12 border-4 border-white shadow-xl ring-1 ring-slate-100">
+              <Card key={post.id} className="overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[3.5rem] group bg-white">
+                <CardHeader className="p-10 pb-6 flex flex-row items-start justify-between space-y-0">
+                  <div className="flex gap-6">
+                    <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-slate-100">
                       <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
                       <AvatarFallback>MF</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-black text-slate-900 text-base tracking-tight">The Miller Family</h3>
-                        <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[9px] uppercase tracking-[0.15em] px-2 py-0.5 rounded-md">
+                      <div className="flex items-center gap-4">
+                        <h3 className="font-black text-slate-900 text-xl tracking-tighter">The Miller Family</h3>
+                        <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full">
                           {post.type}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
                         <span className="text-slate-200">•</span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                        <span className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest">
                           {post.privacy === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                           {post.privacy}
                         </span>
@@ -817,44 +793,44 @@ export default function WorkerFeed() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
-                        <MoreHorizontal className="h-6 w-6" />
+                      <Button variant="ghost" size="icon" className="h-12 w-12 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
+                        <MoreHorizontal className="h-8 w-8" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[180px]">
-                      <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                        <Pin className="h-4 w-4 mr-3 text-slate-400" /> Pin to Top
+                    <DropdownMenuContent align="end" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[200px]">
+                      <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                        <Pin className="h-4 w-4 text-slate-400" /> Pin to Top
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 cursor-pointer">
-                        <Settings className="h-4 w-4 mr-3 text-slate-400" /> Edit Post
+                      <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                        <Settings className="h-4 w-4 text-slate-400" /> Edit Post
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-slate-50" />
-                      <DropdownMenuItem className="font-bold text-xs rounded-xl py-3 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer">
-                        <Trash2 className="h-4 w-4 mr-3" /> Delete Post
+                      <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-4">
+                        <Trash2 className="h-4 w-4" /> Delete Post
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardHeader>
 
                 <CardContent className="p-0">
-                  <div className="px-8 pb-8 space-y-6">
+                  <div className="px-10 pb-10 space-y-8">
                     <div
-                      className="prose prose-slate prose-lg max-w-none text-slate-700 leading-relaxed
-                                prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight
+                      className="prose prose-slate prose-2xl max-w-none text-slate-700 leading-relaxed
+                                prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tighter
                                 prose-strong:font-black prose-strong:text-slate-900
-                                prose-a:text-blue-600 prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-                                prose-blockquote:border-l-4 prose-blockquote:border-slate-200 prose-blockquote:italic prose-blockquote:text-slate-500"
+                                prose-a:text-blue-600 prose-a:font-black prose-a:no-underline hover:prose-a:underline
+                                prose-blockquote:border-l-8 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
                       dangerouslySetInnerHTML={{ __html: post.content }}
                     />
                     {post.image && (
-                      <div className="rounded-[2.5rem] overflow-hidden border border-slate-50 shadow-2xl group-hover:scale-[1.01] transition-transform duration-700">
-                        <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[550px]" />
+                      <div className="rounded-[3rem] overflow-hidden border border-slate-50 shadow-3xl group-hover:scale-[1.005] transition-transform duration-1000">
+                        <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[700px]" />
                       </div>
                     )}
                   </div>
 
-                  <div className="px-8 py-5 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
-                    <div className="flex gap-2">
+                  <div className="px-10 py-6 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
+                    <div className="flex gap-4">
                       <ReactionButton
                         isActive={false}
                         count={post.likes}
@@ -885,10 +861,10 @@ export default function WorkerFeed() {
                       />
                     </div>
                     <button
-                      className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 hover:text-slate-900 transition-all group/comm"
+                      className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
                       onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
                     >
-                      <MessageCircle className="h-4 w-4 text-slate-300 group-hover/comm:scale-110 transition-transform" />
+                      <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
                       {post.comments.length} comments
                     </button>
                   </div>
@@ -903,7 +879,7 @@ export default function WorkerFeed() {
                       >
                         <WorkerCommentSection
                           comments={post.comments}
-                          canManageComments={true} // In real app, check if user is Missionary or Tenant Admin
+                          canManageComments={true}
                           onAddComment={(text, parentId) => {
                             const newComment = {
                               id: Date.now().toString(),
@@ -935,17 +911,17 @@ export default function WorkerFeed() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Community & Follower Management (span 3) */}
-        <div className="lg:col-span-3 space-y-8">
-          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm overflow-hidden bg-white">
-            <CardHeader className="p-6 border-b border-slate-50 bg-slate-50/30 flex flex-row items-center justify-between">
+        {/* RIGHT COLUMN: Follower Management (span 3) */}
+        <div className="lg:col-span-3 space-y-12">
+          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm overflow-hidden bg-white flex flex-col">
+            <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex flex-row items-center justify-between">
               <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-900">Follow Requests</h3>
               {pendingRequests.length > 0 && (
-                <Badge className="bg-rose-500 text-white border-none font-black text-[10px] h-5 px-1.5 animate-pulse">
+                <Badge className="bg-rose-500 text-white border-none font-black text-[10px] h-5 px-1.5 animate-pulse rounded-full">
                   {pendingRequests.length}
                 </Badge>
               )}
-            </CardHeader>
+            </div>
             <CardContent className="p-0">
               {pendingRequests.length > 0 ? (
                 <div className="divide-y divide-slate-50">
@@ -954,11 +930,11 @@ export default function WorkerFeed() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-10 px-6">
-                  <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100">
-                    <Check className="h-5 w-5 text-emerald-500" />
+                <div className="text-center py-12 px-6">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                    <Check className="h-6 w-6 text-emerald-500" />
                   </div>
-                  <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">All caught up!</p>
+                  <p className="text-xs font-black text-slate-900 uppercase tracking-widest opacity-40">All caught up!</p>
                 </div>
               )}
             </CardContent>
