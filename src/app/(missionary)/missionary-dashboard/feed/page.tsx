@@ -783,10 +783,10 @@ export default function WorkerFeed() {
   }
 
   return (
-    <div className="max-w-[1500px] mx-auto pb-20 px-8 pt-10">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+    <div className="max-w-[1500px] mx-auto pb-20 px-4 md:px-8 pt-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-5xl font-black text-slate-900 tracking-tighter">My Feed</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">My Feed</h1>
           <p className="text-slate-500 font-bold mt-2 text-lg opacity-60 uppercase tracking-widest">Your journey, shared.</p>
         </div>
         
@@ -929,103 +929,102 @@ export default function WorkerFeed() {
                           onChange={setPostContent}
                           placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
                           className="border-none shadow-none rounded-none px-2"
-
                           contentClassName="py-6 px-8 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px] leading-relaxed"
                           toolbarPosition="bottom"
-                            actions={
-                              <div className="flex flex-col gap-4 w-full">
-                                {selectedMedia.length > 0 && (
-                                  <div className="flex gap-4 px-8 pb-4 overflow-x-auto">
-                                    {selectedMedia.map((item, idx) => (
-                                      <div key={idx} className="relative group/img shrink-0">
-                                        <img src={item.url} className="h-20 w-20 object-cover rounded-2xl border-2 border-white shadow-lg" />
-                                        <button 
-                                          onClick={() => setSelectedMedia(prev => prev.filter((_, i) => i !== idx))}
-                                          className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg"
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                <div className="flex items-center gap-3 w-full px-8 pb-4">
-                                  {lastSaved && (
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mr-2 animate-in fade-in duration-500">
-                                      Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                  )}
-
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    disabled={isUploading}
-                                    onClick={simulateUpload}
-                                    className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100 transition-all active:scale-95"
-                                  >
-                                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
-                                    Add Media
-                                  </Button>
-                                  
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100 transition-all active:scale-95"
+                          actions={
+                            <div className="flex flex-col gap-4 w-full">
+                              {selectedMedia.length > 0 && (
+                                <div className="flex gap-4 px-4 md:px-8 pb-4 overflow-x-auto no-scrollbar">
+                                  {selectedMedia.map((item, idx) => (
+                                    <div key={idx} className="relative group/img shrink-0">
+                                      <img src={item.url} className="h-20 w-20 object-cover rounded-2xl border-2 border-white shadow-lg" />
+                                      <button 
+                                        onClick={() => setSelectedMedia(prev => prev.filter((_, i) => i !== idx))}
+                                        className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg"
                                       >
-                                        {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : postPrivacy === 'partners' ? <Users className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                                        {postPrivacy === 'partners' ? 'Partners Only' : postPrivacy}
-                                        <ChevronDown className="h-3 w-3 opacity-30" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[200px] animate-in slide-in-from-top-2 duration-300">
-                                      <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
-                                        <div className="p-1.5 bg-slate-50 rounded-full"><Globe className="h-3.5 w-3.5 text-slate-600" /></div>
-                                        Public Feed
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
-                                        <div className="p-1.5 bg-slate-50 rounded-full"><Users className="h-3.5 w-3.5 text-slate-600" /></div>
-                                        Partners Only
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
-                                        <div className="p-1.5 bg-slate-50 rounded-full"><Lock className="h-3.5 w-3.5 text-slate-600" /></div>
-                                        Private Update
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                    
-                                  <div className="flex-1" />
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full px-4 md:px-8 pb-4">
+                                {lastSaved && (
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mr-2 animate-in fade-in duration-500 hidden sm:inline-block">
+                                    Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                )}
 
-                                  <Button
-                                    onClick={() => handlePost('draft')}
-                                    variant="maia-outline"
-                                    disabled={isSaving || isUploading || (!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') && selectedMedia.length === 0}
-                                    className="h-10 px-6 text-[10px] uppercase tracking-widest rounded-xl border-slate-200"
-                                  >
-                                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-2" />}
-                                    Save Draft
-                                  </Button>
-                    
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={isUploading}
+                                  onClick={simulateUpload}
+                                  className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-3 sm:px-4 border border-slate-100 transition-all active:scale-95"
+                                >
+                                  {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                                  <span className="hidden xs:inline">Add Media</span>
+                                  <span className="xs:hidden">Media</span>
+                                </Button>
+                                
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-10 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-3 sm:px-4 border border-slate-100 transition-all active:scale-95"
+                                    >
+                                      {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : postPrivacy === 'partners' ? <Users className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                                      <span className="hidden xs:inline">{postPrivacy === 'partners' ? 'Partners Only' : postPrivacy}</span>
+                                      <ChevronDown className="h-3 w-3 opacity-30" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[200px] animate-in slide-in-from-top-2 duration-300">
+                                    <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                      <div className="p-1.5 bg-slate-50 rounded-full"><Globe className="h-3.5 w-3.5 text-slate-600" /></div>
+                                      Public Feed
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                      <div className="p-1.5 bg-slate-50 rounded-full"><Users className="h-3.5 w-3.5 text-slate-600" /></div>
+                                      Partners Only
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                      <div className="p-1.5 bg-slate-50 rounded-full"><Lock className="h-3.5 w-3.5 text-slate-600" /></div>
+                                      Private Update
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                  
+                                <div className="flex-1 min-w-[10px]" />
+
+                                <Button
+                                  onClick={() => handlePost('draft')}
+                                  variant="maia-outline"
+                                  disabled={isSaving || isUploading || (!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') && selectedMedia.length === 0}
+                                  className="h-10 px-4 sm:px-6 text-[10px] uppercase tracking-widest rounded-xl border-slate-200"
+                                >
+                                  {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3.5 w-3.5 sm:mr-2" />}
+                                  <span className="hidden sm:inline">Save Draft</span>
+                                </Button>
+                  
                                   <Button
                                     onClick={() => handlePost('published')}
                                     variant="maia"
                                     disabled={isSaving || isUploading || (!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') && selectedMedia.length === 0}
-                                    className="h-10 px-8 text-[10px] uppercase tracking-widest rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.2)]"
+                                    className="h-10 px-6 sm:px-8 text-[10px] uppercase tracking-widest rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.2)]"
                                   >
-                                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
-                                  </Button>
-                                </div>
+                                  {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
+                                </Button>
                               </div>
-                            }
-
-                      />
+                            </div>
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
 
           <div className="mt-12 space-y-10">
             <Tabs defaultValue="published" value={activeTab} onValueChange={(v) => setActiveTab(v as PostStatus)} className="w-full">

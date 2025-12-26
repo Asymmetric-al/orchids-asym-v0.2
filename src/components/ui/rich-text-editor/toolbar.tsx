@@ -36,9 +36,9 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex items-center justify-between px-6 py-4 bg-white/50 backdrop-blur-sm gap-4">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          <ToggleGroup type="multiple" className="flex items-center gap-1">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white/50 backdrop-blur-sm gap-4">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
+          <ToggleGroup type="multiple" className="flex items-center gap-1 shrink-0">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBold().run()}
               active={editor.isActive('bold')}
@@ -114,7 +114,7 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
             {onImageClick ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-xl hover:bg-slate-100 transition-all" onClick={onImageClick}>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-xl hover:bg-slate-100 transition-all shrink-0" onClick={onImageClick}>
                     <ImageIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -127,7 +127,7 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
         </div>
         
         {actions && (
-          <div className="flex items-center shrink-0">
+          <div className="flex items-center shrink-0 w-full sm:w-auto">
             {actions}
           </div>
         )}
