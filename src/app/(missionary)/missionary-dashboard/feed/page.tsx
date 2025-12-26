@@ -604,11 +604,11 @@ export default function WorkerFeed() {
   }
 
     return (
-    <div className="max-w-[1400px] mx-auto pb-24 px-6 pt-8">
+    <div className="max-w-[1600px] mx-auto pb-24 px-6 pt-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">My Feed</h1>
-          <p className="text-slate-500 font-medium mt-2">Connect with your supporters and share your journey.</p>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tight">My Feed</h1>
+          <p className="text-slate-500 font-medium mt-2 text-lg">Connect with your supporters and share your journey.</p>
         </div>
         
         <Dialog>
@@ -710,82 +710,84 @@ export default function WorkerFeed() {
           
           {/* MAIN COLUMN: Feed Stream (span 9) */}
           <div className="lg:col-span-9 space-y-8">
-          <Card className="overflow-hidden border-none shadow-2xl rounded-[3rem] bg-slate-50/50 p-1">
-            <div className="bg-white rounded-[2.8rem] overflow-hidden">
-              <div className="px-8 pt-8 pb-2">
-                <div className="flex gap-2 flex-wrap items-center">
-                  {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setPostType(type)}
-                      className={cn(
-                        'px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
-                        postType === type
-                          ? 'bg-slate-900 text-white border-slate-900 scale-105'
-                          : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300 hover:bg-slate-50'
-                      )}
-                    >
-                      {type}
-                    </button>
-                  ))}
+            <Card className="overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[3rem] bg-slate-50/50 p-1.5 transition-all hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)]">
+              <div className="bg-white rounded-[2.8rem] overflow-hidden">
+                <div className="px-10 pt-10 pb-4">
+                  <div className="flex gap-3 flex-wrap items-center">
+                    {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setPostType(type)}
+                        className={cn(
+                          'px-8 py-3 text-[11px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
+                          postType === type
+                            ? 'bg-slate-900 text-white border-slate-900 scale-105 shadow-lg'
+                            : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-600'
+                        )}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="p-8 pt-4">
-                <div className="flex gap-4">
-                  <Avatar className="h-12 w-12 border-2 border-white shadow-md shrink-0 hidden sm:block">
-                    <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                    <AvatarFallback>MF</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <RichTextEditor
-                      value={postContent}
-                      onChange={setPostContent}
-                      placeholder={`Share your latest ${postType.toLowerCase()}...`}
-                      className="border-none shadow-none rounded-none px-0"
-                      contentClassName="py-2 text-xl text-slate-700 placeholder:text-slate-300 min-h-[160px]"
-                      toolbarPosition="bottom"
-                      actions={
-                        <div className="flex items-center gap-4 ml-auto">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                <div className="px-10 pb-10 pt-4">
+                  <div className="flex gap-6">
+                    <Avatar className="h-14 w-14 border-2 border-white shadow-xl shrink-0 hidden sm:block">
+                      <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
+                      <AvatarFallback className="font-bold">MF</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="rounded-[2rem] border border-slate-100 bg-slate-50/30 overflow-hidden focus-within:border-slate-200 focus-within:bg-white transition-all">
+                        <RichTextEditor
+                          value={postContent}
+                          onChange={setPostContent}
+                          placeholder={`Share your latest ${postType.toLowerCase()}...`}
+                          className="border-none shadow-none rounded-none px-2"
+                          contentClassName="py-4 px-6 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px]"
+                          toolbarPosition="bottom"
+                          actions={
+                            <div className="flex items-center gap-4 ml-auto p-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 text-slate-500 gap-2 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4"
+                                  >
+                                    {postPrivacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                    {postPrivacy}
+                                    <ChevronDown className="h-3 w-3 opacity-30" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[160px]">
+                                  <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-bold text-xs rounded-xl py-3 cursor-pointer">
+                                    <Globe className="h-4 w-4 mr-3 text-slate-400" /> Public Feed
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-bold text-xs rounded-xl py-3 cursor-pointer">
+                                    <Users className="h-4 w-4 mr-3 text-slate-400" /> Partners Only
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-bold text-xs rounded-xl py-3 cursor-pointer">
+                                    <Lock className="h-4 w-4 mr-3 text-slate-400" /> Private Update
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+    
                               <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 text-slate-500 gap-2 font-bold text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl"
+                                onClick={handlePost}
+                                disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
+                                className="bg-slate-900 text-white hover:bg-slate-800 shadow-xl h-12 px-10 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
                               >
-                                {postPrivacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                                {postPrivacy}
-                                <ChevronDown className="h-3 w-3 opacity-30" />
+                                Publish <Send className="h-4 w-4 ml-2 opacity-70" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2">
-                              <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-bold text-xs rounded-xl py-3">
-                                <Globe className="h-4 w-4 mr-3 text-slate-400" /> Public Feed
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-bold text-xs rounded-xl py-3">
-                                <Users className="h-4 w-4 mr-3 text-slate-400" /> Partners Only
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-bold text-xs rounded-xl py-3">
-                                <Lock className="h-4 w-4 mr-3 text-slate-400" /> Private Update
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-
-                          <Button
-                            onClick={handlePost}
-                            disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                            className="bg-slate-900 text-white hover:bg-slate-800 shadow-xl h-11 px-8 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95"
-                          >
-                            Publish <Send className="h-4 w-4 ml-2 opacity-70" />
-                          </Button>
-                        </div>
-                      }
-                    />
+                            </div>
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
 
           <div className="space-y-12 mt-12">
             {posts.map((post) => (
