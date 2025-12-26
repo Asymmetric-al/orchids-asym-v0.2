@@ -221,7 +221,7 @@ const FollowerRequestItem = ({
           </div>
         </div>
 
-        <div className="pl-13 h-8 relative">
+        <div className="pl-[3.25rem] h-8 relative">
           {status === 'pending' && (
             <div className="flex gap-2 absolute inset-0">
               <Button
@@ -563,14 +563,11 @@ export default function WorkerFeed() {
     setFollowers((prev) =>
       prev.map((f) => {
         if (f.id === id) {
-          return { ...f, status: approved ? 'approved' : ('pending' as any) }
+          return { ...f, status: approved ? 'approved' : f.status }
         }
         return f
-      }).filter(f => f.id !== id || approved)
+      }).filter(f => approved || f.id !== id)
     )
-    if (!approved) {
-        setFollowers(prev => prev.filter(f => f.id !== id))
-    }
     toast.success(approved ? 'Follower accepted' : 'Request removed')
   }
 
@@ -1066,13 +1063,14 @@ export default function WorkerFeed() {
                 <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Growth</div>
               </div>
             </div>
-            <div className="mt-10 pt-8 border-t border-white/10 flex flex-col items-center">
-              <div className="flex -space-x-3 mb-6">
-                  {followers.slice(0, 5).map((f, i) => (
-                      <Avatar key={i} className="h-10 w-10 border-4 border-slate-900 shadow-2xl ring-1 ring-white/10">
-                          <AvatarImage src={f.avatar} />
-                          <AvatarFallback className="bg-slate-800 text-white text-[10px] font-black">{f.initials}</AvatarFallback>
-                      </Avatar>
+                <div className="flex -space-x-3 mb-6">
+                  {followers.slice(0, 5).map((f) => (
+                    <Avatar key={f.id} className="h-10 w-10 border-4 border-slate-900 shadow-2xl ring-1 ring-white/10">
+                      <AvatarImage src={f.avatar} />
+                      <AvatarFallback className="bg-slate-800 text-white text-[10px] font-black">
+                        {f.initials}
+                      </AvatarFallback>
+                    </Avatar>
                   ))}
                   {followers.length > 5 && (
                       <div className="h-10 w-10 rounded-full bg-slate-800 border-4 border-slate-900 flex items-center justify-center text-[10px] font-black shadow-2xl ring-1 ring-white/10">
