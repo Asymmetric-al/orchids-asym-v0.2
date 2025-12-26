@@ -16,6 +16,7 @@ interface EditorProps {
   toolbarPosition?: 'top' | 'bottom'
   actions?: React.ReactNode
   onImageClick?: () => void
+  proseInvert?: boolean
 }
 
 export function Editor({
@@ -27,7 +28,8 @@ export function Editor({
   disabled,
   toolbarPosition = 'top',
   actions,
-  onImageClick
+  onImageClick,
+  proseInvert = true
 }: EditorProps) {
   const editor = useEditor({
     extensions,
@@ -39,7 +41,8 @@ export function Editor({
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[150px] p-4',
+          'prose prose-sm sm:prose-base focus:outline-none max-w-none min-h-[150px] p-4',
+          proseInvert && 'dark:prose-invert',
           contentClassName
         ),
       },

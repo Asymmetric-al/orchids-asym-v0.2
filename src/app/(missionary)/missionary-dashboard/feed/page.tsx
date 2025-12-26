@@ -924,14 +924,15 @@ export default function WorkerFeed() {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="rounded-[2rem] border border-slate-100 bg-slate-50/10 overflow-hidden focus-within:border-slate-200 focus-within:bg-white transition-all shadow-inner">
-                        <RichTextEditor
-                          value={postContent}
-                          onChange={setPostContent}
-                          placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
-                          className="border-none shadow-none rounded-none px-2"
-                          contentClassName="py-6 px-8 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px] leading-relaxed"
-                          toolbarPosition="bottom"
-                          actions={
+                          <RichTextEditor
+                            value={postContent}
+                            onChange={setPostContent}
+                            placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
+                            className="border-none shadow-none rounded-none px-2"
+                            contentClassName="py-6 px-8 text-xl text-slate-700 placeholder:text-slate-300 min-h-[200px] leading-relaxed"
+                            toolbarPosition="bottom"
+                            proseInvert={false}
+                            actions={
                             <div className="flex flex-col gap-4 w-full">
                               {selectedMedia.length > 0 && (
                                 <div className="flex gap-4 px-4 md:px-8 pb-4 overflow-x-auto no-scrollbar">
