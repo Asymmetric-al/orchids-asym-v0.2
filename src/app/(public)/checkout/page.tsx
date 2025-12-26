@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, use } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -20,7 +20,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { cn, formatCurrency } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 
 // --- Types & Constants ---
 
@@ -389,17 +388,17 @@ function CheckoutContent() {
                       </div>
   
                       {/* Amount Grid */}
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Support Amount</Label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           {PRESET_AMOUNTS.map((val) => (
                             <button
                               key={val}
                               onClick={() => handleAmountSelect(val)}
                               className={cn(
-                                "h-14 rounded-2xl border-2 font-bold font-syne text-lg transition-all duration-500",
+                                "h-24 rounded-[1.8rem] border-2 font-bold font-syne text-2xl transition-all duration-500",
                                 amount === val && !customAmount
-                                  ? "border-slate-950 bg-slate-950 text-white shadow-xl scale-[1.02]"
+                                  ? "border-slate-950 bg-slate-950 text-white shadow-2xl scale-[1.05]"
                                   : "border-slate-50 bg-slate-50 text-slate-400 hover:border-slate-200 hover:bg-slate-100"
                               )}
                             >
@@ -408,8 +407,8 @@ function CheckoutContent() {
                           ))}
                         </div>
                         
-                        <div className="relative mt-4">
-                          <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-bold font-syne text-xl">$</span>
+                        <div className="relative mt-8">
+                          <span className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 font-bold font-syne text-3xl">$</span>
                           <input 
                             type="text"
                             inputMode="decimal"
@@ -417,52 +416,14 @@ function CheckoutContent() {
                             value={customAmount}
                             onChange={handleCustomAmountChange}
                             className={cn(
-                              "w-full h-14 pl-12 pr-6 rounded-2xl text-xl font-bold font-syne transition-all duration-500 outline-none border-2",
+                              "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-bold font-syne transition-all duration-500 outline-none border-2",
                               customAmount ? "border-slate-950 bg-white" : "border-slate-50 bg-slate-50 focus:border-slate-200"
                             )}
                           />
                         </div>
                       </div>
-                    </div>
 
-                    {/* Amount Grid */}
-                    <div className="space-y-6">
-                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Support Amount</Label>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {PRESET_AMOUNTS.map((val) => (
-                          <button
-                            key={val}
-                            onClick={() => handleAmountSelect(val)}
-                            className={cn(
-                              "h-24 rounded-[1.8rem] border-2 font-bold font-syne text-2xl transition-all duration-500",
-                              amount === val && !customAmount
-                                ? "border-slate-950 bg-slate-950 text-white shadow-2xl scale-[1.05]"
-                                : "border-slate-50 bg-slate-50 text-slate-400 hover:border-slate-200 hover:bg-slate-100"
-                            )}
-                          >
-                            ${val}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      <div className="relative mt-8">
-                        <span className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 font-bold font-syne text-3xl">$</span>
-                        <input 
-                          type="text"
-                          inputMode="decimal"
-                          placeholder="Other Amount"
-                          value={customAmount}
-                          onChange={handleCustomAmountChange}
-                          className={cn(
-                            "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-bold font-syne transition-all duration-500 outline-none border-2",
-                            customAmount ? "border-slate-950 bg-white" : "border-slate-50 bg-slate-50 focus:border-slate-200"
-                          )}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Monthly Schedule Configuration */}
-                    <AnimatePresence>
+                      {/* Monthly Schedule Configuration */}
                       {frequency === 'monthly' && (
                         <motion.div 
                           initial={{ opacity: 0, height: 0 }}
@@ -525,32 +486,31 @@ function CheckoutContent() {
                           </div>
                         </motion.div>
                       )}
-                    </AnimatePresence>
 
-                    {/* Fee Coverage */}
-                    <div 
-                      className={cn(
-                        "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-all duration-500",
-                        coverFees ? "bg-zinc-900 border-zinc-900 text-white" : "bg-white border-slate-100 text-slate-950 hover:border-slate-200"
-                      )} 
-                      onClick={() => setCoverFees(!coverFees)}
-                    >
-                      <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center transition-colors", coverFees ? "bg-white/20" : "bg-slate-50")}>
-                        <Heart className={cn("h-6 w-6", coverFees ? "text-white fill-current" : "text-zinc-900")} />
+                      {/* Fee Coverage */}
+                      <div 
+                        className={cn(
+                          "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-all duration-500",
+                          coverFees ? "bg-zinc-900 border-zinc-900 text-white" : "bg-white border-slate-100 text-slate-950 hover:border-slate-200"
+                        )} 
+                        onClick={() => setCoverFees(!coverFees)}
+                      >
+                        <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center transition-colors", coverFees ? "bg-white/20" : "bg-slate-50")}>
+                          <Heart className={cn("h-6 w-6", coverFees ? "text-white fill-current" : "text-zinc-900")} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold font-syne text-xl">Cover Processing Fees</p>
+                          <p className={cn("text-xs font-medium mt-1 leading-relaxed", coverFees ? "text-white/80" : "text-slate-400")}>
+                            Add <strong>{formatCurrency(calculatedFees)}</strong> so 100% of your gift reaches the field.
+                          </p>
+                        </div>
+                        <Switch checked={coverFees} onCheckedChange={setCoverFees} className="data-[state=checked]:bg-white data-[state=checked]:opacity-100" />
                       </div>
-                      <div className="flex-1">
-                        <p className="font-bold font-syne text-xl">Cover Processing Fees</p>
-                        <p className={cn("text-xs font-medium mt-1 leading-relaxed", coverFees ? "text-white/80" : "text-slate-400")}>
-                          Add <strong>{formatCurrency(calculatedFees)}</strong> so 100% of your gift reaches the field.
-                        </p>
-                      </div>
-                      <Switch checked={coverFees} onCheckedChange={setCoverFees} className="data-[state=checked]:bg-white data-[state=checked]:opacity-100" />
                     </div>
-                  </div>
 
-                  <Button onClick={handleNext} disabled={amount <= 0} size="lg" className="w-full h-24 text-2xl font-black font-syne bg-slate-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all hover:scale-[1.02] uppercase tracking-widest">
-                    Next Step <ArrowRight className="ml-4 h-8 w-8" />
-                  </Button>
+                    <Button onClick={handleNext} disabled={amount <= 0} size="lg" className="w-full h-24 text-2xl font-black font-syne bg-slate-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all hover:scale-[1.02] uppercase tracking-widest">
+                      Next Step <ArrowRight className="ml-4 h-8 w-8" />
+                    </Button>
                 </motion.div>
               )}
 

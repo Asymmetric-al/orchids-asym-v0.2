@@ -50,6 +50,12 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import dynamic from 'next/dynamic'
+
+const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor').then(mod => mod.RichTextEditor), { 
+  ssr: false,
+  loading: () => <div className="h-[250px] w-full bg-slate-50/50 rounded-[2.5rem] animate-pulse" />
+})
 
 // --- Types ---
 
