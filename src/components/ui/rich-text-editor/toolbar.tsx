@@ -36,8 +36,8 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex items-center justify-between p-1 bg-background flex-wrap gap-2">
-        <div className="flex items-center gap-1 flex-wrap">
+      <div className="flex items-center justify-between px-6 py-4 bg-white/50 backdrop-blur-sm gap-4">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <ToggleGroup type="multiple" className="flex items-center gap-1">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBold().run()}
@@ -62,7 +62,7 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
             </ToolbarButton>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-6 mx-1" />
+          <Separator orientation="vertical" className="h-6 mx-2 bg-slate-200" />
 
           <ToggleGroup type="multiple" className="flex items-center gap-1">
             <ToolbarButton
@@ -88,7 +88,7 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
             </ToolbarButton>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-6 mx-1" />
+          <Separator orientation="vertical" className="h-6 mx-2 bg-slate-200" />
 
           <ToggleGroup type="multiple" className="flex items-center gap-1">
             <ToolbarButton
@@ -107,14 +107,14 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
             </ToolbarButton>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-6 mx-1" />
+          <Separator orientation="vertical" className="h-6 mx-2 bg-slate-200" />
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <LinkButton editor={editor} />
             {onImageClick ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onImageClick}>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-xl hover:bg-slate-100 transition-all" onClick={onImageClick}>
                     <ImageIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -127,7 +127,7 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
         </div>
         
         {actions && (
-          <div className="flex items-center gap-2 pr-1">
+          <div className="flex items-center shrink-0">
             {actions}
           </div>
         )}
@@ -156,12 +156,16 @@ function ToolbarButton({
           size="sm"
           pressed={active}
           onPressedChange={onClick}
-          className={cn('h-8 w-8 p-0', className)}
+          className={cn(
+            'h-9 w-9 p-0 rounded-xl transition-all duration-300',
+            active ? 'bg-slate-900 text-white shadow-lg scale-110' : 'hover:bg-slate-100 text-slate-500',
+            className
+          )}
         >
           {children}
         </Toggle>
       </TooltipTrigger>
-      <TooltipContent side="top">
+      <TooltipContent side="top" className="bg-slate-900 text-white border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-lg">
         <p>{tooltip}</p>
       </TooltipContent>
     </Tooltip>
@@ -185,26 +189,26 @@ function LinkButton({ editor }: { editor: Editor }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-xl hover:bg-slate-100 text-slate-500 transition-all">
               <LinkIcon className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent>Link</TooltipContent>
+        <TooltipContent className="bg-slate-900 text-white border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-lg">Link</TooltipContent>
       </Tooltip>
-      <PopoverContent className="w-80 p-3" align="start">
-        <div className="flex flex-col gap-2">
+      <PopoverContent className="w-80 p-4 rounded-2xl border-slate-100 shadow-2xl" align="start">
+        <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <Input
               placeholder="https://example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="h-8"
+              className="h-10 rounded-xl border-slate-100 bg-slate-50 font-medium"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSetLink()
               }}
             />
-            <Button size="sm" onClick={handleSetLink} className="h-8">
+            <Button size="sm" onClick={handleSetLink} variant="maia" className="h-10 px-4 rounded-xl text-[10px] uppercase tracking-widest">
               Apply
             </Button>
           </div>
@@ -212,7 +216,7 @@ function LinkButton({ editor }: { editor: Editor }) {
             <Button
               variant="destructive"
               size="sm"
-              className="h-8 w-full"
+              className="h-9 w-full rounded-xl text-[10px] uppercase tracking-widest font-black"
               onClick={() => {
                 editor.chain().focus().unsetLink().run()
                 setUrl('')
@@ -278,14 +282,14 @@ function ImageButton({ editor }: { editor: Editor }) {
           <Button
             variant="ghost"
             size="sm"
-            className={cn('h-8 w-8 p-0', isUploading && 'animate-pulse')}
+            className={cn('h-9 w-9 p-0 rounded-xl hover:bg-slate-100 text-slate-500 transition-all', isUploading && 'animate-pulse')}
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
             <ImageIcon className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="top">
+        <TooltipContent side="top" className="bg-slate-900 text-white border-none font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-lg">
           {isUploading ? 'Uploading...' : 'Image'}
         </TooltipContent>
       </Tooltip>

@@ -701,26 +701,26 @@ export default function WorkerFeed() {
         
         {/* MAIN COLUMN: Feed Stream (span 9) */}
         <div className="lg:col-span-9 space-y-12">
-          <Card className="overflow-hidden border-none shadow-[0_30px_70px_rgba(0,0,0,0.12)] rounded-[4rem] bg-white p-2 transition-all hover:shadow-[0_40px_90px_rgba(0,0,0,0.18)]">
-            <div className="bg-white rounded-[3.8rem] overflow-hidden">
-              <div className="px-12 pt-12 pb-6">
-                <div className="flex gap-4 flex-wrap items-center">
-                  {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
-                    <Button
-                      key={type}
-                      variant={postType === type ? "maia" : "maia-outline"}
-                      onClick={() => setPostType(type)}
-                      className={cn(
-                        "px-8 py-3 h-auto",
-                        postType === type && "scale-105 shadow-2xl"
-                      )}
-                    >
-                      {type}
-                    </Button>
-                  ))}
+            <Card className="overflow-hidden border-none shadow-[0_30px_70px_rgba(0,0,0,0.12)] rounded-[4rem] bg-white p-2 transition-all hover:shadow-[0_40px_90px_rgba(0,0,0,0.18)]">
+              <div className="bg-white rounded-[3.8rem] overflow-hidden">
+                <div className="px-8 pt-8 pb-4">
+                  <div className="flex gap-4 flex-wrap items-center">
+                    {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
+                      <Button
+                        key={type}
+                        variant={postType === type ? "maia" : "maia-outline"}
+                        onClick={() => setPostType(type)}
+                        className={cn(
+                          "px-8 py-3 h-auto",
+                          postType === type && "scale-105 shadow-2xl"
+                        )}
+                      >
+                        {type}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="px-12 pb-12 pt-4">
+                <div className="px-8 pb-8 pt-2">
                 <div className="flex gap-8">
                   <Avatar className="h-16 w-16 border-4 border-white shadow-2xl shrink-0 hidden md:block">
                     <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
@@ -735,48 +735,46 @@ export default function WorkerFeed() {
                         className="border-none shadow-none rounded-none px-4"
                         contentClassName="py-8 px-10 text-2xl text-slate-700 placeholder:text-slate-300 min-h-[250px] leading-relaxed"
                         toolbarPosition="bottom"
-                        actions={
-                          <div className="flex flex-wrap items-center gap-4 ml-auto p-4 border-t border-slate-50/50 w-full justify-between">
+                          actions={
                             <div className="flex items-center gap-2">
-                                <DropdownMenu>
+                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button
+                                  <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-11 text-slate-500 gap-3 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 rounded-2xl px-6 border border-slate-100"
-                                    >
-                                    {postPrivacy === 'public' ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                    className="h-9 text-slate-500 gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 rounded-xl px-4 border border-slate-100"
+                                  >
+                                    {postPrivacy === 'public' ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
                                     {postPrivacy}
                                     <ChevronDown className="h-3 w-3 opacity-30" />
-                                    </Button>
+                                  </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[220px]">
-                                    <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                                    <div className="p-2 bg-slate-50 rounded-full"><Globe className="h-4 w-4 text-slate-600" /></div>
+                                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl p-2 min-w-[180px]">
+                                  <DropdownMenuItem onClick={() => setPostPrivacy('public')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                    <div className="p-1.5 bg-slate-50 rounded-full"><Globe className="h-3.5 w-3.5 text-slate-600" /></div>
                                     Public Feed
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                                    <div className="p-2 bg-slate-50 rounded-full"><Users className="h-4 w-4 text-slate-600" /></div>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setPostPrivacy('partners')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                    <div className="p-1.5 bg-slate-50 rounded-full"><Users className="h-3.5 w-3.5 text-slate-600" /></div>
                                     Partners Only
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                                    <div className="p-2 bg-slate-50 rounded-full"><Lock className="h-4 w-4 text-slate-600" /></div>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setPostPrivacy('private')} className="font-black text-[10px] uppercase tracking-widest rounded-xl py-3 cursor-pointer gap-3">
+                                    <div className="p-1.5 bg-slate-50 rounded-full"><Lock className="h-3.5 w-3.5 text-slate-600" /></div>
                                     Private Update
-                                    </DropdownMenuItem>
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                              </DropdownMenu>
 
                               <Button
                                 onClick={handlePost}
                                 variant="maia"
                                 disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                                className="h-12 px-10 text-[11px] uppercase tracking-[0.2em]"
+                                className="h-9 px-6 text-[10px] uppercase tracking-widest rounded-xl"
                               >
-                                Publish Update <Send className="h-4 w-4 ml-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                Publish
                               </Button>
-                          </div>
-                        }
+                            </div>
+                          }
                       />
                     </div>
                   </div>

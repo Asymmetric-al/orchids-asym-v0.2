@@ -65,7 +65,7 @@ export function Editor({
       {toolbarPosition === 'top' && <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />}
       <EditorContent editor={editor} className="flex-1" />
       {toolbarPosition === 'bottom' && (
-        <div className="border-t border-input">
+        <div className="border-t border-slate-100 bg-slate-50/30">
           <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />
         </div>
       )}
