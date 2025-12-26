@@ -70,10 +70,16 @@ The administrative headquarters for organization leaders. Manage CRM, Contributi
 
 ### Missionary Dashboard
 Empowering field missionaries with donor engagement tools, task management, and impact feeds.
+- **My Feed**: A high-fidelity social engagement platform for missionaries to share updates directly with their support base.
+  - **Functionality**: Supports rich text (HTML), multi-media carousels (images/videos), and real-time interaction (Likes, Prayers, Comments).
+  - **Animations**: Reimagined reaction system using Framer Motion. Clicking reactions triggers custom micro-interactions: pulsing hearts, glowing prayer hands, and delightful emoji particle bursts for visceral feedback.
+  - **UX/UI**: Built with shadcn/ui `Card` and `Carousel` components, featuring a refined Zinc aesthetic and responsive design optimized for field use.
 - Route: `/missionary-dashboard`
 
 ### Donor Portal
 A seamless experience for kingdom partners to manage their giving and follow mission progress.
+- **Personalized Feed**: A unified view of updates from all followed or supported missionaries.
+- **Connection Concept**: The platform automatically bridges the gap between giving and impact. If a donor gives to a specific missionary or "follows" their profile, that missionary's posts are instantly promoted to the donor's portal feed. This ensures donors stay connected to the stories and breakthroughs their generosity enables.
 - Route: `/donor-dashboard`
 
 ## Development
