@@ -36,8 +36,8 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex items-center justify-between p-1 bg-background">
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between p-1 bg-background flex-wrap gap-2">
+        <div className="flex items-center gap-1 flex-wrap">
           <ToggleGroup type="multiple" className="flex items-center gap-1">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBold().run()}

@@ -706,10 +706,10 @@ export default function WorkerFeed() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* MAIN COLUMN: Feed Stream (span 8) */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* MAIN COLUMN: Feed Stream (span 9) */}
+          <div className="lg:col-span-9 space-y-8">
           <Card className="overflow-hidden border-none shadow-2xl rounded-[3rem] bg-slate-50/50 p-1">
             <div className="bg-white rounded-[2.8rem] overflow-hidden">
               <div className="px-8 pt-8 pb-2">
@@ -933,8 +933,8 @@ export default function WorkerFeed() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Community & Follower Management (span 4) */}
-        <div className="lg:col-span-4 space-y-8">
+        {/* RIGHT COLUMN: Community & Follower Management (span 3) */}
+        <div className="lg:col-span-3 space-y-8">
           <Card className="rounded-[2.5rem] border-slate-200 shadow-sm overflow-hidden bg-white">
             <CardHeader className="p-6 border-b border-slate-50 bg-slate-50/30 flex flex-row items-center justify-between">
               <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-900">Follow Requests</h3>
@@ -961,130 +961,8 @@ export default function WorkerFeed() {
               )}
             </CardContent>
           </Card>
-
-          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[600px] bg-white">
-            <CardHeader className="p-6 border-b border-slate-50 bg-white">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-black text-[11px] uppercase tracking-[0.2em] text-slate-900">My Community</h3>
-                <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-black text-[10px] h-5">
-                  {activeFollowers.length}
-                </Badge>
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-300" />
-                <Input
-                  placeholder="Search community..."
-                  value={followerSearch}
-                  onChange={(e) => setFollowerSearch(e.target.value)}
-                  className="pl-9 h-10 text-xs bg-slate-50 border-none rounded-2xl focus:ring-slate-200"
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 overflow-y-auto flex-1 no-scrollbar">
-              {activeFollowers.length > 0 ? (
-                <div className="divide-y divide-slate-50">
-                  {activeFollowers.map((follower) => (
-                    <div key={follower.id} className="p-5 hover:bg-slate-50/50 transition-colors group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border border-slate-100 shadow-sm">
-                            <AvatarImage src={follower.avatar} />
-                            <AvatarFallback className="text-[10px] font-bold bg-slate-100 text-slate-600">
-                              {follower.initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-bold text-slate-900 leading-none">{follower.name}</p>
-                            <div className="flex items-center gap-1.5 mt-1.5">
-                              {follower.isDonor && (
-                                <Badge className="h-3.5 px-1.5 text-[8px] bg-emerald-100 text-emerald-700 border-none font-black uppercase tracking-widest">
-                                  Donor
-                                </Badge>
-                              )}
-                              <Badge className="h-3.5 px-1.5 text-[8px] bg-blue-100 text-blue-700 border-none font-black uppercase tracking-widest">
-                                {follower.accessLevel}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-300 hover:text-slate-900 rounded-xl">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-xl p-2 min-w-[160px]">
-                            <DropdownMenuLabel className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-2 py-1.5">
-                              Manage Access
-                            </DropdownMenuLabel>
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateAccess(follower.id, 'view')}
-                              className="font-bold text-xs rounded-xl py-2.5 cursor-pointer"
-                            >
-                              <Globe className="h-3.5 w-3.5 mr-2" /> View Only
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateAccess(follower.id, 'comment')}
-                              className="font-bold text-xs rounded-xl py-2.5 cursor-pointer"
-                            >
-                              <MessageCircle className="h-3.5 w-3.5 mr-2" /> View & Comment
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-slate-50" />
-                            <DropdownMenuItem 
-                              onClick={() => handleRemoveFollower(follower.id)}
-                              className="text-red-600 font-bold text-xs rounded-xl py-2.5 cursor-pointer"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Remove Follower
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-12 text-center">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No followers found</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-[2.5rem] border-slate-200 shadow-sm p-8 bg-slate-900 text-white overflow-hidden relative group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
-            <h3 className="font-black text-[11px] uppercase tracking-[0.2em] mb-8 opacity-60">Community Pulse</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="text-3xl font-black tracking-tight">{followers.filter(f => f.status === 'approved').length}</div>
-                <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Followers</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl font-black tracking-tight text-emerald-400">+12</div>
-                <div className="text-[10px] font-black uppercase tracking-[0.1em] opacity-40">Growth</div>
-              </div>
-            </div>
-                <div className="flex -space-x-3 mb-6">
-                  {followers.slice(0, 5).map((f) => (
-                    <Avatar key={f.id} className="h-10 w-10 border-4 border-slate-900 shadow-2xl ring-1 ring-white/10">
-                      <AvatarImage src={f.avatar} />
-                      <AvatarFallback className="bg-slate-800 text-white text-[10px] font-black">
-                        {f.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                  {followers.length > 5 && (
-                      <div className="h-10 w-10 rounded-full bg-slate-800 border-4 border-slate-900 flex items-center justify-center text-[10px] font-black shadow-2xl ring-1 ring-white/10">
-                          +{followers.length - 5}
-                      </div>
-                  )}
-              </div>
-              <Button variant="ghost" className="w-full h-11 rounded-2xl border border-white/10 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest transition-all">
-                  Analytics Report
-              </Button>
-            </div>
-          </Card>
         </div>
       </div>
     </div>
-    )
-  }
+  )
+}
