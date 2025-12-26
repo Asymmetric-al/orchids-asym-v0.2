@@ -214,25 +214,26 @@ const FollowerRequestItem = ({
         </div>
 
         <div className="pl-13 h-8 relative">
-          {status === 'pending' && (
-            <div className="flex gap-2 absolute inset-0">
-              <Button
-                size="sm"
-                className="flex-1 h-8 text-[10px] bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold uppercase tracking-wider shadow-sm"
-                onClick={() => handleAction('approve')}
-              >
-                Accept
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 h-8 text-[10px] text-slate-600 hover:text-slate-900 border-slate-200 hover:bg-slate-50 rounded-lg font-bold uppercase tracking-wider shadow-sm"
-                onClick={() => handleAction('ignore')}
-              >
-                Ignore
-              </Button>
-            </div>
-          )}
+            {status === 'pending' && (
+              <div className="flex gap-2 absolute inset-0">
+                <Button
+                  size="sm"
+                  variant="maia"
+                  className="flex-1 h-8 text-[10px] uppercase tracking-wider shadow-sm rounded-xl"
+                  onClick={() => handleAction('approve')}
+                >
+                  Accept
+                </Button>
+                <Button
+                  size="sm"
+                  variant="maia-outline"
+                  className="flex-1 h-8 text-[10px] uppercase tracking-wider shadow-sm rounded-xl"
+                  onClick={() => handleAction('ignore')}
+                >
+                  Ignore
+                </Button>
+              </div>
+            )}
 
           {status === 'processing' && (
             <div className="flex items-center justify-center h-full absolute inset-0">
@@ -303,27 +304,41 @@ const ReactionButton = ({
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleClick}
-      className={cn(
-        'flex items-center gap-2 transition-all duration-300 px-3 h-9 rounded-full relative overflow-hidden group font-bold text-[11px] uppercase tracking-wider',
-        isActive ? colorClass : cn('text-slate-500', hoverClass)
-      )}
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
     >
-      <div
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleClick}
         className={cn(
-          'transition-transform duration-300',
-          isPopping ? 'scale-150 rotate-[-12deg]' : 'scale-100 rotate-0'
+          'flex items-center gap-2 transition-all duration-300 px-3 h-9 rounded-full relative overflow-hidden group font-black text-[10px] uppercase tracking-wider',
+          isActive ? colorClass : cn('text-slate-500', hoverClass)
         )}
       >
-        <Icon className={cn('h-4 w-4 transition-all duration-300', isActive && fillOnActive ? 'fill-current' : '')} />
-      </div>
-      <span className={cn('tabular-nums', count > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}>
-        {count > 0 ? count : label}
-      </span>
-    </Button>
+        <div
+          className={cn(
+            'transition-transform duration-300',
+            isPopping ? 'scale-150 rotate-[-12deg]' : 'scale-100 rotate-0'
+          )}
+        >
+          <Icon className={cn('h-4 w-4 transition-all duration-300', isActive && fillOnActive ? 'fill-current' : '')} />
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={count}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={cn('tabular-nums', count > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}
+          >
+            {count > 0 ? count : label}
+          </motion.span>
+        </AnimatePresence>
+      </Button>
+    </motion.div>
   )
 }
 
@@ -582,13 +597,13 @@ export default function WorkerFeed() {
           <p className="text-slate-500 font-bold mt-4 text-xl opacity-60">Your journey, shared with your community.</p>
         </div>
         
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="rounded-2xl border-slate-200 hover:bg-slate-50 font-bold text-xs uppercase tracking-widest h-12 px-8 shadow-sm">
-              <ShieldCheck className="h-4 w-4 mr-2" />
-              Security & Access
-            </Button>
-          </DialogTrigger>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="maia-outline" className="h-12 px-8">
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Security & Access
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
             <DialogHeader className="p-8 pb-4 bg-slate-50/50 border-b border-slate-100">
               <DialogTitle className="font-black text-xl tracking-tight">Security & Access</DialogTitle>
@@ -686,18 +701,17 @@ export default function WorkerFeed() {
               <div className="px-12 pt-12 pb-6">
                 <div className="flex gap-4 flex-wrap items-center">
                   {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
-                    <button
+                    <Button
                       key={type}
+                      variant={postType === type ? "maia" : "maia-outline"}
                       onClick={() => setPostType(type)}
                       className={cn(
-                        'px-10 py-4 text-[11px] font-black uppercase tracking-widest rounded-full transition-all border shadow-sm',
-                        postType === type
-                          ? 'bg-slate-900 text-white border-slate-900 scale-105 shadow-xl'
-                          : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-600'
+                        "px-8 py-3 h-auto",
+                        postType === type && "scale-105 shadow-2xl"
                       )}
                     >
                       {type}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -748,13 +762,14 @@ export default function WorkerFeed() {
                                 </DropdownMenu>
                             </div>
 
-                            <Button
-                              onClick={handlePost}
-                              disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
-                              className="bg-slate-900 text-white hover:bg-slate-800 shadow-2xl h-14 px-12 rounded-[1.5rem] font-black text-[12px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 group"
-                            >
-                              Publish Update <Send className="h-4 w-4 ml-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                            </Button>
+                              <Button
+                                onClick={handlePost}
+                                variant="maia"
+                                disabled={!postContent || postContent === '<p></p>' || postContent === '<p><br></p>'}
+                                className="h-12 px-10 text-[11px] uppercase tracking-[0.2em]"
+                              >
+                                Publish Update <Send className="h-4 w-4 ml-3 opacity-50 group-hover:opacity-100 transition-opacity" />
+                              </Button>
                           </div>
                         }
                       />
@@ -765,150 +780,161 @@ export default function WorkerFeed() {
             </div>
           </Card>
 
-          <div className="space-y-16 mt-16">
-            {posts.map((post) => (
-              <Card key={post.id} className="overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[3.5rem] group bg-white">
-                <CardHeader className="p-10 pb-6 flex flex-row items-start justify-between space-y-0">
-                  <div className="flex gap-6">
-                    <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-slate-100">
-                      <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
-                      <AvatarFallback>MF</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center gap-4">
-                        <h3 className="font-black text-slate-900 text-xl tracking-tighter">The Miller Family</h3>
-                        <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full">
-                          {post.type}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
-                        <span className="text-slate-200">•</span>
-                        <span className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest">
-                          {post.privacy === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                          {post.privacy}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-12 w-12 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
-                        <MoreHorizontal className="h-8 w-8" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[200px]">
-                      <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                        <Pin className="h-4 w-4 text-slate-400" /> Pin to Top
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
-                        <Settings className="h-4 w-4 text-slate-400" /> Edit Post
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="bg-slate-50" />
-                      <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-4">
-                        <Trash2 className="h-4 w-4" /> Delete Post
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardHeader>
-
-                <CardContent className="p-0">
-                  <div className="px-10 pb-10 space-y-8">
-                    <div
-                      className="prose prose-slate prose-2xl max-w-none text-slate-700 leading-relaxed
-                                prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tighter
-                                prose-strong:font-black prose-strong:text-slate-900
-                                prose-a:text-blue-600 prose-a:font-black prose-a:no-underline hover:prose-a:underline
-                                prose-blockquote:border-l-8 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
-                      dangerouslySetInnerHTML={{ __html: post.content }}
-                    />
-                    {post.image && (
-                      <div className="rounded-[3rem] overflow-hidden border border-slate-50 shadow-3xl group-hover:scale-[1.005] transition-transform duration-1000">
-                        <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[700px]" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="px-10 py-6 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
-                    <div className="flex gap-4">
-                      <ReactionButton
-                        isActive={false}
-                        count={post.likes}
-                        icon={Heart}
-                        label="Love"
-                        onClick={() => {}}
-                        colorClass="text-rose-600 bg-rose-50"
-                        hoverClass="hover:text-rose-600 hover:bg-rose-50"
-                      />
-                      <ReactionButton
-                        isActive={false}
-                        count={post.fires}
-                        icon={Flame}
-                        label="Hot"
-                        onClick={() => {}}
-                        colorClass="text-orange-500 bg-orange-50"
-                        hoverClass="hover:text-orange-500 hover:bg-orange-50"
-                      />
-                      <ReactionButton
-                        isActive={false}
-                        count={post.prayers}
-                        icon={PrayerHandsIcon}
-                        label="Pray"
-                        onClick={() => {}}
-                        colorClass="text-indigo-600 bg-indigo-50"
-                        hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
-                        fillOnActive={false}
-                      />
-                    </div>
-                    <button
-                      className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
-                      onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
-                    >
-                      <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
-                      {post.comments.length} comments
-                    </button>
-                  </div>
-
-                  <AnimatePresence>
-                    {expandedComments === post.id && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <WorkerCommentSection
-                          comments={post.comments}
-                          canManageComments={true}
-                          onAddComment={(text, parentId) => {
-                            const newComment = {
-                              id: Date.now().toString(),
-                              author: 'You',
-                              text,
-                              time: 'Just now',
-                              avatar: 'ME',
-                              replies: [],
-                            }
-                            setPosts(prev => prev.map(p => {
-                              if (p.id === post.id) {
-                                  if (parentId) {
-                                      return { ...p, comments: p.comments.map(c => c.id === parentId ? { ...c, replies: [...c.replies, newComment] } : c) }
+            <motion.div layout className="space-y-16 mt-16">
+              <AnimatePresence mode="popLayout">
+                {posts.map((post) => (
+                  <motion.div
+                    key={post.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  >
+                    <Card className="overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all duration-700 rounded-[3.5rem] group bg-white">
+                      <CardHeader className="p-10 pb-6 flex flex-row items-start justify-between space-y-0">
+                        <div className="flex gap-6">
+                          <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-slate-100">
+                            <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
+                            <AvatarFallback>MF</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center gap-4">
+                              <h3 className="font-black text-slate-900 text-xl tracking-tighter">The Miller Family</h3>
+                              <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full">
+                                {post.type}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">{post.time}</span>
+                              <span className="text-slate-200">•</span>
+                              <span className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest">
+                                {post.privacy === 'public' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                                {post.privacy}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-12 w-12 text-slate-300 hover:text-slate-900 rounded-2xl transition-all">
+                              <MoreHorizontal className="h-8 w-8" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-[2rem] border-slate-100 shadow-2xl p-3 min-w-[200px]">
+                            <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                              <Pin className="h-4 w-4 text-slate-400" /> Pin to Top
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 cursor-pointer gap-4">
+                              <Settings className="h-4 w-4 text-slate-400" /> Edit Post
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-slate-50" />
+                            <DropdownMenuItem className="font-black text-[10px] uppercase tracking-widest rounded-xl py-4 text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer gap-4">
+                              <Trash2 className="h-4 w-4" /> Delete Post
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </CardHeader>
+  
+                      <CardContent className="p-0">
+                        <div className="px-10 pb-10 space-y-8">
+                          <div
+                            className="prose prose-slate prose-2xl max-w-none text-slate-700 leading-relaxed
+                                      prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tighter
+                                      prose-strong:font-black prose-strong:text-slate-900
+                                      prose-a:text-blue-600 prose-a:font-black prose-a:no-underline hover:prose-a:underline
+                                      prose-blockquote:border-l-8 prose-blockquote:border-slate-100 prose-blockquote:italic prose-blockquote:text-slate-400"
+                            dangerouslySetInnerHTML={{ __html: post.content }}
+                          />
+                          {post.image && (
+                            <div className="rounded-[3rem] overflow-hidden border border-slate-50 shadow-3xl group-hover:scale-[1.005] transition-transform duration-1000">
+                              <img src={post.image} alt="Update" className="w-full h-auto object-cover max-h-[700px]" />
+                            </div>
+                          )}
+                        </div>
+  
+                        <div className="px-10 py-6 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
+                          <div className="flex gap-4">
+                            <ReactionButton
+                              isActive={false}
+                              count={post.likes}
+                              icon={Heart}
+                              label="Love"
+                              onClick={() => {}}
+                              colorClass="text-rose-600 bg-rose-50"
+                              hoverClass="hover:text-rose-600 hover:bg-rose-50"
+                            />
+                            <ReactionButton
+                              isActive={false}
+                              count={post.fires}
+                              icon={Flame}
+                              label="Hot"
+                              onClick={() => {}}
+                              colorClass="text-orange-500 bg-orange-50"
+                              hoverClass="hover:text-orange-500 hover:bg-orange-50"
+                            />
+                            <ReactionButton
+                              isActive={false}
+                              count={post.prayers}
+                              icon={PrayerHandsIcon}
+                              label="Pray"
+                              onClick={() => {}}
+                              colorClass="text-indigo-600 bg-indigo-50"
+                              hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
+                              fillOnActive={false}
+                            />
+                          </div>
+                          <button
+                            className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
+                            onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
+                          >
+                            <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
+                            {post.comments.length} comments
+                          </button>
+                        </div>
+  
+                        <AnimatePresence>
+                          {expandedComments === post.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <WorkerCommentSection
+                                comments={post.comments}
+                                canManageComments={true}
+                                onAddComment={(text, parentId) => {
+                                  const newComment = {
+                                    id: Date.now().toString(),
+                                    author: 'You',
+                                    text,
+                                    time: 'Just now',
+                                    avatar: 'ME',
+                                    replies: [],
                                   }
-                                  return { ...p, comments: [...p.comments, newComment] }
-                              }
-                              return p
-                            }))
-                            toast.success('Comment published')
-                          }}
-                          onDeleteComment={(commentId, parentId) => handleDeleteComment(post.id, commentId, parentId)}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                                  setPosts(prev => prev.map(p => {
+                                    if (p.id === post.id) {
+                                        if (parentId) {
+                                            return { ...p, comments: p.comments.map(c => c.id === parentId ? { ...c, replies: [...c.replies, newComment] } : c) }
+                                        }
+                                        return { ...p, comments: [...p.comments, newComment] }
+                                    }
+                                    return p
+                                  }))
+                                  toast.success('Comment published')
+                                }}
+                                onDeleteComment={(commentId, parentId) => handleDeleteComment(post.id, commentId, parentId)}
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
         </div>
 
         {/* RIGHT COLUMN: Follower Management (span 3) */}
