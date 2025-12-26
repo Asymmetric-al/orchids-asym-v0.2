@@ -249,81 +249,143 @@ const FollowerRequestItem = ({
   )
 }
 
-const PrayerHandsIcon = ({ className, ...props }: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    {...props}
-  >
-    <path d="M12.5 2C12.5 2 17.5 7 17.5 12C17.5 16 15 20 12 22C9 20 6.5 16 6.5 12C6.5 7 11.5 2 11.5 2" />
-    <path d="M12 2V22" />
+// --- Icons ---
+
+const HeartIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+    <defs>
+      <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#f43f5e" />
+        <stop offset="100%" stopColor="#e11d48" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+      fill={isActive ? "url(#heartGradient)" : "currentColor"}
+      stroke={isActive ? "none" : "currentColor"}
+      strokeWidth="2"
+    />
+  </svg>
+)
+
+const FireIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+    <defs>
+      <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#fbbf24" />
+        <stop offset="50%" stopColor="#f59e0b" />
+        <stop offset="100%" stopColor="#ef4444" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M12 2C12 2 12 7 9 9C6 11 6 15 8 18C10 21 14 22 17 19C20 16 20 11 17 8C16 7 14 6 14 6C14 6 15 5 15 4C15 3 14 2 12 2Z"
+      fill={isActive ? "url(#fireGradient)" : "currentColor"}
+      stroke={isActive ? "none" : "currentColor"}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+const PrayerIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+    <defs>
+      <linearGradient id="prayerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#818cf8" />
+        <stop offset="100%" stopColor="#4f46e5" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M12 3C12 3 17 8 17 12C17 16 15 20 12 22C9 20 7 16 7 12C7 8 12 3 12 3Z"
+      fill={isActive ? "url(#prayerGradient)" : "currentColor"}
+      stroke={isActive ? "none" : "currentColor"}
+      strokeWidth="2"
+    />
+    <path
+      d="M12 3V22"
+      stroke={isActive ? "rgba(255,255,255,0.4)" : "currentColor"}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
   </svg>
 )
 
 const ReactionButton = ({
   isActive,
   count,
-  icon: Icon,
+  type,
   label,
   onClick,
-  colorClass,
-  hoverClass,
-  fillOnActive = true,
-}: any) => {
-  const [isPopping, setIsPopping] = useState(false)
+}: {
+  isActive: boolean
+  count: number
+  type: 'heart' | 'fire' | 'prayer'
+  label: string
+  onClick: () => void
+}) => {
+  const [isHovered, setIsHovered] = useState(false)
 
-  const handleClick = () => {
-    if (!isActive) {
-      setIsPopping(true)
-      setTimeout(() => setIsPopping(false), 400)
-    }
-    onClick()
+  const config = {
+    heart: { icon: HeartIcon, activeColor: "text-rose-600", bg: "bg-rose-50", hoverBg: "hover:bg-rose-50" },
+    fire: { icon: FireIcon, activeColor: "text-amber-600", bg: "bg-amber-50", hoverBg: "hover:bg-amber-100" },
+    prayer: { icon: PrayerIcon, activeColor: "text-indigo-600", bg: "bg-indigo-50", hoverBg: "hover:bg-indigo-50" },
   }
 
+  const { icon: Icon, activeColor, bg, hoverBg } = config[type]
+
   return (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+    <motion.button
+      whileHover={{ scale: 1.1, y: -2 }}
+      whileTap={{ scale: 0.9 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      className={cn(
+        "relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-black text-[11px] uppercase tracking-wider overflow-hidden group",
+        isActive ? cn(bg, activeColor) : "text-slate-400 hover:text-slate-600",
+        !isActive && hoverBg
+      )}
     >
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleClick}
-        className={cn(
-          'flex items-center gap-2 transition-all duration-300 px-3 h-9 rounded-full relative overflow-hidden group font-black text-[10px] uppercase tracking-wider',
-          isActive ? colorClass : cn('text-slate-500', hoverClass)
+      <div className="w-5 h-5 relative z-10">
+        <Icon isActive={isActive} />
+        {isActive && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 2.5, opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0 rounded-full bg-current opacity-20 pointer-events-none"
+          />
         )}
-      >
-        <div
-          className={cn(
-            'transition-transform duration-300',
-            isPopping ? 'scale-150 rotate-[-12deg]' : 'scale-100 rotate-0'
-          )}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={count}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="relative z-10 tabular-nums min-w-[1ch]"
         >
-          <Icon className={cn('h-4 w-4 transition-all duration-300', isActive && fillOnActive ? 'fill-current' : '')} />
-        </div>
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={count}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={cn('tabular-nums', count > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}
-          >
-            {count > 0 ? count : label}
-          </motion.span>
-        </AnimatePresence>
-      </Button>
-    </motion.div>
+          {count > 0 ? count : label}
+        </motion.span>
+      </AnimatePresence>
+
+      {/* Floating particles effect on hover/active */}
+      <AnimatePresence>
+        {isHovered && !isActive && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-white/40 pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+    </motion.button>
   )
 }
 
@@ -644,6 +706,47 @@ export default function WorkerFeed() {
     toast.success(approved ? 'Follower accepted' : 'Request removed')
   }
 
+  const handleReaction = async (postId: string, type: 'heart' | 'fire' | 'prayer') => {
+    const post = [...posts, ...drafts].find(p => p.id === postId)
+    if (!post) return
+
+    const endpointMap = { heart: 'like', fire: 'fire', prayer: 'prayer' }
+    const statusKeyMap = { heart: 'user_liked', fire: 'user_fired', prayer: 'user_prayed' }
+    const countKeyMap = { heart: 'likes_count', fire: 'fires_count', prayer: 'prayers_count' }
+    
+    const endpoint = endpointMap[type]
+    const statusKey = statusKeyMap[type] as keyof Post
+    const countKey = countKeyMap[type] as keyof Post
+    
+    const isActive = post[statusKey]
+    const method = isActive ? 'DELETE' : 'POST'
+
+    // Optimistic update
+    const updatePosts = (prev: Post[]) => prev.map(p => {
+      if (p.id === postId) {
+        return {
+          ...p,
+          [statusKey]: !isActive,
+          [countKey]: Math.max(0, (Number(p[countKey]) || 0) + (isActive ? -1 : 1))
+        }
+      }
+      return p
+    })
+
+    setPosts(updatePosts)
+    setDrafts(updatePosts)
+
+    try {
+      const res = await fetch(`/api/posts/${postId}/${endpoint}`, { method })
+      if (!res.ok) throw new Error('Failed to update reaction')
+    } catch (err) {
+      // Revert optimistic update
+      fetchPosts('published')
+      fetchPosts('draft')
+      toast.error('Failed to update reaction')
+    }
+  }
+
   const handleDeleteComment = async (postId: string, commentId: string) => {
     // API for comments not fully implemented in this snippet, but would go here
     toast.success('Comment deleted')
@@ -892,16 +995,26 @@ export default function WorkerFeed() {
               <TabsContent value="published" className="mt-0">
                 <motion.div layout className="space-y-16">
                   <AnimatePresence mode="popLayout">
-                    {isLoading ? (
-                      <div className="flex flex-col items-center justify-center py-24 gap-4">
-                        <Loader2 className="h-12 w-12 animate-spin text-slate-200" />
-                        <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-300">Loading Feed...</p>
-                      </div>
-                    ) : posts.length > 0 ? (
-                      posts.map((post) => (
-                        <PostCard key={post.id} post={post} onEdit={() => handleEditDraft(post)} onDelete={() => handleDeletePost(post.id)} setPosts={setPosts} expandedComments={expandedComments} setExpandedComments={setExpandedComments} />
-                      ))
-                    ) : (
+                      {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-24 gap-4">
+                          <Loader2 className="h-12 w-12 animate-spin text-slate-200" />
+                          <p className="font-black text-xs uppercase tracking-[0.2em] text-slate-300">Loading Feed...</p>
+                        </div>
+                      ) : posts.length > 0 ? (
+                        posts.map((post) => (
+                          <PostCard 
+                            key={post.id} 
+                            post={post} 
+                            onEdit={() => handleEditDraft(post)} 
+                            onDelete={() => handleDeletePost(post.id)} 
+                            onReaction={(type: 'heart' | 'fire' | 'prayer') => handleReaction(post.id, type)}
+                            setPosts={setPosts} 
+                            expandedComments={expandedComments} 
+                            setExpandedComments={setExpandedComments} 
+                          />
+                        ))
+                      ) : (
+
                       <div className="text-center py-32 bg-slate-50/30 rounded-[4rem] border-4 border-dashed border-slate-100">
                          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
                             <Globe className="h-8 w-8 text-slate-200" />
@@ -1015,8 +1128,8 @@ export default function WorkerFeed() {
   )
 }
 
-function PostCard({ post, onEdit, onDelete, setPosts, expandedComments, setExpandedComments }: any) {
-  const authorName = post.author ? `${post.author.first_name} ${post.author.last_name}` : 'The Miller Family'
+function PostCard({ post, onEdit, onDelete, onReaction, setPosts, expandedComments, setExpandedComments }: any) {
+  const authorName = post.author ? `${post.author.first_name} ${post.author.last_name}` : 'Marcus Miller'
   const authorAvatar = post.author?.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80"
   
   return (
@@ -1091,44 +1204,37 @@ function PostCard({ post, onEdit, onDelete, setPosts, expandedComments, setExpan
   
           <div className="px-8 py-4 border-t border-slate-50 bg-slate-50/20 flex items-center justify-between">
             <div className="flex gap-2">
-
               <ReactionButton
                 isActive={post.user_liked}
                 count={post.likes_count || 0}
-                icon={Heart}
+                type="heart"
                 label="Love"
-                onClick={() => {}}
-                colorClass="text-rose-600 bg-rose-50"
-                hoverClass="hover:text-rose-600 hover:bg-rose-50"
+                onClick={() => onReaction('heart')}
               />
               <ReactionButton
-                isActive={false}
+                isActive={post.user_fired}
                 count={post.fires_count || 0}
-                icon={Flame}
+                type="fire"
                 label="Hot"
-                onClick={() => {}}
-                colorClass="text-orange-500 bg-orange-50"
-                hoverClass="hover:text-orange-500 hover:bg-orange-50"
+                onClick={() => onReaction('fire')}
               />
               <ReactionButton
                 isActive={post.user_prayed}
                 count={post.prayers_count || 0}
-                icon={PrayerHandsIcon}
+                type="prayer"
                 label="Pray"
-                onClick={() => {}}
-                colorClass="text-indigo-600 bg-indigo-50"
-                hoverClass="hover:text-indigo-600 hover:bg-indigo-50"
-                fillOnActive={false}
+                onClick={() => onReaction('prayer')}
               />
             </div>
-            <button
-              className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
-              onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
-            >
-              <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
-              {(post.comments || []).length} comments
-            </button>
-          </div>
+              <button
+                className="flex items-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all group/comm"
+                onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
+              >
+                <MessageCircle className="h-5 w-5 text-slate-300 group-hover/comm:scale-125 transition-transform" />
+                {(post.comments || []).length} comments
+              </button>
+            </div>
+
 
           <AnimatePresence>
             {expandedComments === post.id && (

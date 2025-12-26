@@ -48,20 +48,29 @@ export async function GET(request: NextRequest) {
       .in('post_id', postIds)
       .eq('user_id', ctx.userId)
 
-    const { data: prayers } = await supabaseAdmin
-      .from('post_prayers')
-      .select('post_id')
-      .in('post_id', postIds)
-      .eq('user_id', ctx.userId)
+      const { data: prayers } = await supabaseAdmin
+        .from('post_prayers')
+        .select('post_id')
+        .in('post_id', postIds)
+        .eq('user_id', ctx.userId)
 
-    const likedSet = new Set((likes || []).map((l: { post_id: string }) => l.post_id))
-    const prayedSet = new Set((prayers || []).map((p: { post_id: string }) => p.post_id))
+      const { data: fires } = await supabaseAdmin
+        .from('post_fires')
+        .select('post_id')
+        .in('post_id', postIds)
+        .eq('user_id', ctx.userId)
 
-    const postsWithStatus = (posts || []).map((post: { id: string }) => ({
-      ...post,
-      user_liked: likedSet.has(post.id),
-      user_prayed: prayedSet.has(post.id),
-    }))
+      const likedSet = new Set((likes || []).map((l: { post_id: string }) => l.post_id))
+      const prayedSet = new Set((prayers || []).map((p: { post_id: string }) => p.post_id))
+      const firedSet = new Set((fires || []).map((f: { post_id: string }) => f.post_id))
+
+      const postsWithStatus = (posts || []).map((post: { id: string }) => ({
+        ...post,
+        user_liked: likedSet.has(post.id),
+        user_prayed: prayedSet.has(post.id),
+        user_fired: firedSet.has(post.id),
+      }))
+
 
     return NextResponse.json({ posts: postsWithStatus })
   } catch (e) {
