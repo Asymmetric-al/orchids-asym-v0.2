@@ -251,19 +251,45 @@ const FollowerRequestItem = ({
 
 // --- Icons ---
 
+const FloatingEmoji = ({ emoji, color }: { emoji: React.ReactNode, color: string }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0, y: 0, x: 0 }}
+      animate={{ 
+        opacity: [0, 1, 1, 0], 
+        scale: [0, 1.5, 1, 0.5], 
+        y: -100,
+        x: (Math.random() - 0.5) * 50,
+        rotate: (Math.random() - 0.5) * 45
+      }}
+      transition={{ duration: 1.5, ease: "easeOut" }}
+      className="absolute pointer-events-none z-50"
+      style={{ color }}
+    >
+      {emoji}
+    </motion.div>
+  )
+}
+
 const HeartIcon = ({ isActive }: { isActive: boolean }) => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
     <defs>
       <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#f43f5e" />
-        <stop offset="100%" stopColor="#e11d48" />
+        <stop offset="0%" stopColor="#ff1e56" />
+        <stop offset="100%" stopColor="#c70039" />
       </linearGradient>
+      <filter id="heartGlow">
+        <feGaussianBlur stdDeviation="1.5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
     </defs>
     <path
       d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-      fill={isActive ? "url(#heartGradient)" : "currentColor"}
+      fill={isActive ? "url(#heartGradient)" : "transparent"}
       stroke={isActive ? "none" : "currentColor"}
       strokeWidth="2"
+      filter={isActive ? "url(#heartGlow)" : "none"}
+      style={{ transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
     />
   </svg>
 )
@@ -272,18 +298,29 @@ const FireIcon = ({ isActive }: { isActive: boolean }) => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
     <defs>
       <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#fbbf24" />
-        <stop offset="50%" stopColor="#f59e0b" />
-        <stop offset="100%" stopColor="#ef4444" />
+        <stop offset="0%" stopColor="#ffea00" />
+        <stop offset="50%" stopColor="#ff9100" />
+        <stop offset="100%" stopColor="#ff3d00" />
       </linearGradient>
+      <filter id="fireGlow">
+        <feGaussianBlur stdDeviation="2" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
     </defs>
-    <path
+    <motion.path
+      animate={isActive ? { 
+        d: [
+          "M12 2C12 2 12 7 9 9C6 11 6 15 8 18C10 21 14 22 17 19C20 16 20 11 17 8C16 7 14 6 14 6C14 6 15 5 15 4C15 3 14 2 12 2Z",
+          "M12 2.5C12 2.5 12 7.5 9.5 9.5C7 11.5 7 15.5 9 18.5C11 21.5 15 22.5 18 19.5C21 16.5 21 11.5 18 8.5C17 7.5 15 6.5 15 6.5C15 6.5 16 5.5 16 4.5C16 3.5 15 2.5 12 2.5Z",
+          "M12 2C12 2 12 7 9 9C6 11 6 15 8 18C10 21 14 22 17 19C20 16 20 11 17 8C16 7 14 6 14 6C14 6 15 5 15 4C15 3 14 2 12 2Z"
+        ]
+      } : {}}
+      transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
       d="M12 2C12 2 12 7 9 9C6 11 6 15 8 18C10 21 14 22 17 19C20 16 20 11 17 8C16 7 14 6 14 6C14 6 15 5 15 4C15 3 14 2 12 2Z"
-      fill={isActive ? "url(#fireGradient)" : "currentColor"}
+      fill={isActive ? "url(#fireGradient)" : "transparent"}
       stroke={isActive ? "none" : "currentColor"}
       strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      filter={isActive ? "url(#fireGlow)" : "none"}
     />
   </svg>
 )
@@ -292,20 +329,28 @@ const PrayerIcon = ({ isActive }: { isActive: boolean }) => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
     <defs>
       <linearGradient id="prayerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#818cf8" />
-        <stop offset="100%" stopColor="#4f46e5" />
+        <stop offset="0%" stopColor="#a5b4fc" />
+        <stop offset="50%" stopColor="#6366f1" />
+        <stop offset="100%" stopColor="#4338ca" />
       </linearGradient>
+      <filter id="prayerGlow">
+        <feGaussianBlur stdDeviation="1" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
     </defs>
     <path
       d="M12 3C12 3 17 8 17 12C17 16 15 20 12 22C9 20 7 16 7 12C7 8 12 3 12 3Z"
-      fill={isActive ? "url(#prayerGradient)" : "currentColor"}
+      fill={isActive ? "url(#prayerGradient)" : "transparent"}
       stroke={isActive ? "none" : "currentColor"}
       strokeWidth="2"
+      filter={isActive ? "url(#prayerGlow)" : "none"}
     />
-    <path
+    <motion.path
+      animate={isActive ? { opacity: [0.4, 1, 0.4], y: [-1, 1, -1] } : {}}
+      transition={{ repeat: Infinity, duration: 2 }}
       d="M12 3V22"
-      stroke={isActive ? "rgba(255,255,255,0.4)" : "currentColor"}
-      strokeWidth="1.5"
+      stroke={isActive ? "rgba(255,255,255,0.8)" : "currentColor"}
+      strokeWidth="2"
       strokeLinecap="round"
     />
   </svg>
@@ -325,67 +370,83 @@ const ReactionButton = ({
   onClick: () => void
 }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const [particles, setParticles] = useState<{ id: number, emoji: React.ReactNode }[]>([])
 
   const config = {
-    heart: { icon: HeartIcon, activeColor: "text-rose-600", bg: "bg-rose-50", hoverBg: "hover:bg-rose-50" },
-    fire: { icon: FireIcon, activeColor: "text-amber-600", bg: "bg-amber-50", hoverBg: "hover:bg-amber-100" },
-    prayer: { icon: PrayerIcon, activeColor: "text-indigo-600", bg: "bg-indigo-50", hoverBg: "hover:bg-indigo-50" },
+    heart: { icon: HeartIcon, activeColor: "text-rose-600", bg: "bg-rose-50/80", hoverBg: "hover:bg-rose-50", particle: "❤️" },
+    fire: { icon: FireIcon, activeColor: "text-amber-600", bg: "bg-amber-50/80", hoverBg: "hover:bg-amber-100", particle: "🔥" },
+    prayer: { icon: PrayerIcon, activeColor: "text-indigo-600", bg: "bg-indigo-50/80", hoverBg: "hover:bg-indigo-50", particle: "🙏" },
   }
 
-  const { icon: Icon, activeColor, bg, hoverBg } = config[type]
+  const { icon: Icon, activeColor, bg, hoverBg, particle } = config[type]
+
+  const handleClick = () => {
+    if (!isActive) {
+      const newParticles = Array.from({ length: 6 }).map((_, i) => ({
+        id: Date.now() + i,
+        emoji: particle
+      }))
+      setParticles(prev => [...prev, ...newParticles])
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)))
+      }, 1500)
+    }
+    onClick()
+  }
 
   return (
-    <motion.button
-      whileHover={{ scale: 1.1, y: -2 }}
-      whileTap={{ scale: 0.9 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-      className={cn(
-        "relative flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 font-black text-[11px] uppercase tracking-wider overflow-hidden group",
-        isActive ? cn(bg, activeColor) : "text-slate-400 hover:text-slate-600",
-        !isActive && hoverBg
-      )}
-    >
-      <div className="w-5 h-5 relative z-10">
-        <Icon isActive={isActive} />
+    <div className="relative">
+      {particles.map(p => (
+        <FloatingEmoji key={p.id} emoji={p.emoji} color="currentColor" />
+      ))}
+      <motion.button
+        whileHover={{ scale: 1.05, y: -2 }}
+        whileTap={{ scale: 0.95 }}
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+        onClick={(e) => {
+          e.stopPropagation()
+          handleClick()
+        }}
+        className={cn(
+          "relative flex items-center gap-2.5 px-5 py-2.5 rounded-2xl transition-all duration-500 font-black text-[12px] uppercase tracking-widest overflow-hidden group",
+          isActive ? cn(bg, activeColor, "shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] ring-1 ring-black/5") : "text-slate-400 hover:text-slate-600 bg-white border border-slate-100",
+          !isActive && hoverBg
+        )}
+      >
+        <div className="w-5 h-5 relative z-10 transition-transform duration-500 group-hover:scale-110">
+          <Icon isActive={isActive} />
+          {isActive && (
+            <motion.div
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: 3, opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute inset-0 rounded-full bg-current opacity-30 pointer-events-none"
+            />
+          )}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={count}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="relative z-10 tabular-nums min-w-[1ch]"
+          >
+            {count > 0 ? count : label}
+          </motion.span>
+        </AnimatePresence>
+
         {isActive && (
           <motion.div
-            initial={{ scale: 0, opacity: 1 }}
-            animate={{ scale: 2.5, opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="absolute inset-0 rounded-full bg-current opacity-20 pointer-events-none"
+            layoutId={`active-bg-${type}`}
+            className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none"
           />
         )}
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.span
-          key={count}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="relative z-10 tabular-nums min-w-[1ch]"
-        >
-          {count > 0 ? count : label}
-        </motion.span>
-      </AnimatePresence>
-
-      {/* Floating particles effect on hover/active */}
-      <AnimatePresence>
-        {isHovered && !isActive && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-white/40 pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-    </motion.button>
+      </motion.button>
+    </div>
   )
 }
 
