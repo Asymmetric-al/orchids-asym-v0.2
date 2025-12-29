@@ -50,7 +50,6 @@ export function Editor({
     immediatelyRender: false,
   })
 
-  // Update content if value changes externally
   React.useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value)
@@ -60,7 +59,7 @@ export function Editor({
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden rounded-md border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring flex flex-col',
+        'relative w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring flex flex-col transition-all',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -68,7 +67,7 @@ export function Editor({
       {toolbarPosition === 'top' && <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />}
       <EditorContent editor={editor} className="flex-1" />
       {toolbarPosition === 'bottom' && (
-        <div className="border-t border-slate-100 bg-slate-50/30">
+        <div className="border-t border-border">
           <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />
         </div>
       )}

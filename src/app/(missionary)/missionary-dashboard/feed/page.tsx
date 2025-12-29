@@ -1108,139 +1108,136 @@ export default function WorkerFeed() {
                       contentClassName="py-4 sm:py-6 px-4 sm:px-6 text-base sm:text-lg text-foreground placeholder:text-muted-foreground min-h-[150px] sm:min-h-[200px] leading-relaxed"
                       toolbarPosition="bottom"
                       proseInvert={false}
-                      actions={
-                        <div className="flex flex-col gap-3 sm:gap-4 w-full">
-                          {selectedMedia.length > 0 && (
-                            <div className="flex gap-3 sm:gap-4 px-4 sm:px-6 pb-3 sm:pb-4 overflow-x-auto no-scrollbar">
-                              {selectedMedia.map((item, idx) => (
-                                <div key={idx} className="relative group/img shrink-0">
-                                  <img
-                                    src={item.url}
-                                    className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-xl border-2 border-background shadow-md"
-                                  />
-                                  <button
-                                    onClick={() => setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))}
-                                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2 w-full px-4 sm:px-6 pb-4">
-                            {lastSaved && (
-                              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mr-2 animate-in fade-in duration-500 hidden sm:inline-block">
-                                Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                        actions={
+                          <div className="flex flex-col gap-3 w-full">
+                            {selectedMedia.length > 0 && (
+                              <div className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2">
+                                {selectedMedia.map((item, idx) => (
+                                  <div key={idx} className="relative group/img shrink-0">
+                                    <img
+                                      src={item.url}
+                                      alt={`Attached media ${idx + 1}`}
+                                      className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
+                                    />
+                                    <button
+                                      onClick={() => setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))}
+                                      className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
                             )}
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={isUploading}
-                              onClick={simulateUpload}
-                              className="h-9 sm:h-10 text-muted-foreground gap-1.5 sm:gap-2 font-bold text-[10px] uppercase tracking-wider hover:bg-muted rounded-xl px-3 border border-border transition-all active:scale-95"
-                            >
-                              {isUploading ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <ImageIcon className="h-3.5 w-3.5" />
+                            <div className="flex flex-wrap items-center gap-2 w-full">
+                              {lastSaved && (
+                                <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider animate-in fade-in duration-500 hidden md:inline-block">
+                                  Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
                               )}
-                              <span className="hidden xs:inline">Add Media</span>
-                            </Button>
 
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-9 sm:h-10 text-muted-foreground gap-1.5 sm:gap-2 font-bold text-[10px] uppercase tracking-wider hover:bg-muted rounded-xl px-3 border border-border transition-all active:scale-95"
-                                >
-                                  {postPrivacy === 'public' ? (
-                                    <Globe className="h-3.5 w-3.5" />
-                                  ) : postPrivacy === 'partners' ? (
-                                    <Users className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <Lock className="h-3.5 w-3.5" />
-                                  )}
-                                  <span className="hidden sm:inline">
-                                    {postPrivacy === 'partners' ? 'Partners' : postPrivacy}
-                                  </span>
-                                  <ChevronDown className="h-3 w-3 opacity-30" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="end"
-                                className="rounded-xl border-border shadow-lg p-2 min-w-[180px] sm:min-w-[200px] animate-in slide-in-from-top-2 duration-300"
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={isUploading}
+                                onClick={simulateUpload}
+                                className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all active:scale-95"
                               >
-                                <DropdownMenuItem
-                                  onClick={() => setPostPrivacy('public')}
-                                  className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
+                                {isUploading ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <ImageIcon className="h-3 w-3" />
+                                )}
+                                <span className="hidden sm:inline">Media</span>
+                              </Button>
+
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all active:scale-95"
+                                  >
+                                    {postPrivacy === 'public' ? (
+                                      <Globe className="h-3 w-3" />
+                                    ) : postPrivacy === 'partners' ? (
+                                      <Users className="h-3 w-3" />
+                                    ) : (
+                                      <Lock className="h-3 w-3" />
+                                    )}
+                                    <span className="hidden sm:inline capitalize">
+                                      {postPrivacy === 'partners' ? 'Partners' : postPrivacy}
+                                    </span>
+                                    <ChevronDown className="h-2.5 w-2.5 opacity-40" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="start"
+                                  className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px] animate-in slide-in-from-top-2 duration-200"
                                 >
-                                  <div className="p-1.5 bg-muted rounded-full">
+                                  <DropdownMenuItem
+                                    onClick={() => setPostPrivacy('public')}
+                                    className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+                                  >
                                     <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                                  </div>
-                                  Public Feed
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setPostPrivacy('partners')}
-                                  className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
-                                >
-                                  <div className="p-1.5 bg-muted rounded-full">
+                                    Public
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setPostPrivacy('partners')}
+                                    className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+                                  >
                                     <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                  </div>
-                                  Partners Only
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setPostPrivacy('private')}
-                                  className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3"
-                                >
-                                  <div className="p-1.5 bg-muted rounded-full">
+                                    Partners Only
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setPostPrivacy('private')}
+                                    className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+                                  >
                                     <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                                  </div>
-                                  Private Update
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                    Private
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
 
-                            <div className="flex-1 min-w-[10px]" />
+                              <div className="flex-1" />
 
-                            <Button
-                              onClick={() => handlePost('draft')}
-                              variant="maia-outline"
-                              disabled={
-                                isSaving ||
-                                isUploading ||
-                                ((!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') &&
-                                  selectedMedia.length === 0)
-                              }
-                              className="h-9 sm:h-10 px-3 sm:px-5 text-[10px] uppercase tracking-wider rounded-xl border-border"
-                            >
-                              {isSaving ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Save className="h-3.5 w-3.5 sm:mr-2" />
-                              )}
-                              <span className="hidden sm:inline">Save Draft</span>
-                            </Button>
+                              <Button
+                                onClick={() => handlePost('draft')}
+                                variant="maia-outline"
+                                size="sm"
+                                disabled={
+                                  isSaving ||
+                                  isUploading ||
+                                  ((!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') &&
+                                    selectedMedia.length === 0)
+                                }
+                                className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
+                              >
+                                {isSaving ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Save className="h-3 w-3 sm:mr-1.5" />
+                                )}
+                                <span className="hidden sm:inline">Draft</span>
+                              </Button>
 
-                            <Button
-                              onClick={() => handlePost('published')}
-                              variant="maia"
-                              disabled={
-                                isSaving ||
-                                isUploading ||
-                                ((!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') &&
-                                  selectedMedia.length === 0)
-                              }
-                              className="h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg"
-                            >
-                              {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
-                            </Button>
+                              <Button
+                                onClick={() => handlePost('published')}
+                                variant="maia"
+                                size="sm"
+                                disabled={
+                                  isSaving ||
+                                  isUploading ||
+                                  ((!postContent || postContent === '<p></p>' || postContent === '<p><br></p>') &&
+                                    selectedMedia.length === 0)
+                                }
+                                className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
+                              >
+                                {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      }
+                        }
                     />
                   </div>
                 </div>
