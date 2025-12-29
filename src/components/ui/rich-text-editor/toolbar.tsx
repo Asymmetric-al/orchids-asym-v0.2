@@ -13,7 +13,6 @@ import {
   Heading2,
   Link as LinkIcon,
   Image as ImageIcon,
-  MoreHorizontal,
 } from 'lucide-react'
 import { Toggle } from '@/components/ui/toggle'
 import { ToggleGroup } from '@/components/ui/toggle-group'
@@ -37,33 +36,33 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex flex-col gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-muted/30 backdrop-blur-sm">
-        <div className="flex flex-wrap items-center gap-1">
+      <div className="border-t border-border bg-muted/40">
+        <div className="flex flex-wrap items-center gap-0.5 px-3 sm:px-4 py-2.5">
           <ToggleGroup type="multiple" className="flex items-center gap-0.5">
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBold().run()}
               active={editor.isActive('bold')}
               tooltip="Bold"
             >
-              <Bold className="h-4 w-4" />
+              <Bold className="h-3.5 w-3.5" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleItalic().run()}
               active={editor.isActive('italic')}
               tooltip="Italic"
             >
-              <Italic className="h-4 w-4" />
+              <Italic className="h-3.5 w-3.5" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleUnderline().run()}
               active={editor.isActive('underline')}
               tooltip="Underline"
             >
-              <Underline className="h-4 w-4" />
+              <Underline className="h-3.5 w-3.5" />
             </ToolbarButton>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-5 mx-1 bg-border hidden sm:block" />
+          <Separator orientation="vertical" className="h-4 mx-1.5 bg-border/60" />
 
           <ToggleGroup type="multiple" className="flex items-center gap-0.5">
             <ToolbarButton
@@ -71,25 +70,25 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
               active={editor.isActive('heading', { level: 1 })}
               tooltip="Heading 1"
             >
-              <Heading1 className="h-4 w-4" />
+              <Heading1 className="h-3.5 w-3.5" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
               active={editor.isActive('heading', { level: 2 })}
               tooltip="Heading 2"
             >
-              <Heading2 className="h-4 w-4" />
+              <Heading2 className="h-3.5 w-3.5" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
               active={editor.isActive('blockquote')}
               tooltip="Quote"
             >
-              <Quote className="h-4 w-4" />
+              <Quote className="h-3.5 w-3.5" />
             </ToolbarButton>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-5 mx-1 bg-border hidden sm:block" />
+          <Separator orientation="vertical" className="h-4 mx-1.5 bg-border/60" />
 
           <ToggleGroup type="multiple" className="flex items-center gap-0.5">
             <ToolbarButton
@@ -97,18 +96,18 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
               active={editor.isActive('bulletList')}
               tooltip="Bullet List"
             >
-              <List className="h-4 w-4" />
+              <List className="h-3.5 w-3.5" />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               active={editor.isActive('orderedList')}
               tooltip="Numbered List"
             >
-              <ListOrdered className="h-4 w-4" />
+              <ListOrdered className="h-3.5 w-3.5" />
             </ToolbarButton>
           </ToggleGroup>
 
-          <Separator orientation="vertical" className="h-5 mx-1 bg-border hidden sm:block" />
+          <Separator orientation="vertical" className="h-4 mx-1.5 bg-border/60" />
 
           <div className="flex items-center gap-0.5">
             <LinkButton editor={editor} />
@@ -118,13 +117,13 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 w-8 p-0 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all" 
+                    className="h-7 w-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" 
                     onClick={onImageClick}
                   >
-                    <ImageIcon className="h-4 w-4" />
+                    <ImageIcon className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Image</TooltipContent>
+                <TooltipContent side="top" className="text-xs">Image</TooltipContent>
               </Tooltip>
             ) : (
               <ImageButton editor={editor} />
@@ -133,7 +132,7 @@ export function EditorToolbar({ editor, actions, onImageClick }: EditorToolbarPr
         </div>
         
         {actions && (
-          <div className="flex items-center w-full border-t border-border pt-3 -mb-1">
+          <div className="border-t border-border px-3 sm:px-4 py-3">
             {actions}
           </div>
         )}
@@ -163,9 +162,9 @@ function ToolbarButton({
           pressed={active}
           onPressedChange={onClick}
           className={cn(
-            'h-8 w-8 p-0 rounded-lg transition-all duration-200',
+            'h-7 w-7 p-0 rounded-md transition-colors',
             active 
-              ? 'bg-primary text-primary-foreground shadow-sm' 
+              ? 'bg-primary text-primary-foreground' 
               : 'hover:bg-muted text-muted-foreground hover:text-foreground',
             className
           )}
@@ -173,7 +172,7 @@ function ToolbarButton({
           {children}
         </Toggle>
       </TooltipTrigger>
-      <TooltipContent side="top" className="bg-foreground text-background border-none font-bold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-lg">
+      <TooltipContent side="top" className="text-xs">
         <p>{tooltip}</p>
       </TooltipContent>
     </Tooltip>
@@ -201,39 +200,39 @@ function LinkButton({ editor }: { editor: Editor }) {
               variant="ghost" 
               size="sm" 
               className={cn(
-                'h-8 w-8 p-0 rounded-lg transition-all',
+                'h-7 w-7 p-0 rounded-md transition-colors',
                 editor.isActive('link')
-                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  ? 'bg-primary text-primary-foreground'
                   : 'hover:bg-muted text-muted-foreground hover:text-foreground'
               )}
             >
-              <LinkIcon className="h-4 w-4" />
+              <LinkIcon className="h-3.5 w-3.5" />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent className="bg-foreground text-background border-none font-bold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-lg">Link</TooltipContent>
+        <TooltipContent side="top" className="text-xs">Link</TooltipContent>
       </Tooltip>
-      <PopoverContent className="w-72 p-3 rounded-xl border-border shadow-lg" align="start">
-        <div className="flex flex-col gap-2.5">
-          <div className="flex gap-2">
+      <PopoverContent className="w-64 p-2.5 rounded-xl border-border shadow-lg" align="start">
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-1.5">
             <Input
               placeholder="https://example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="h-9 rounded-lg border-border bg-muted/50 text-sm"
+              className="h-8 rounded-lg border-border bg-muted/30 text-sm"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSetLink()
               }}
             />
-            <Button size="sm" onClick={handleSetLink} variant="maia" className="h-9 px-3 rounded-lg text-[10px] uppercase tracking-wider">
-              Apply
+            <Button size="sm" onClick={handleSetLink} variant="maia" className="h-8 px-3 rounded-lg text-[10px] uppercase tracking-wider">
+              Add
             </Button>
           </div>
           {editor.isActive('link') && (
             <Button
-              variant="destructive"
+              variant="ghost"
               size="sm"
-              className="h-8 w-full rounded-lg text-[10px] uppercase tracking-wider font-bold"
+              className="h-7 w-full rounded-lg text-[10px] uppercase tracking-wider font-bold text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => {
                 editor.chain().focus().unsetLink().run()
                 setUrl('')
@@ -300,17 +299,17 @@ function ImageButton({ editor }: { editor: Editor }) {
             variant="ghost"
             size="sm"
             className={cn(
-              'h-8 w-8 p-0 rounded-lg transition-all',
+              'h-7 w-7 p-0 rounded-md transition-colors',
               'hover:bg-muted text-muted-foreground hover:text-foreground',
               isUploading && 'animate-pulse'
             )}
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
-            <ImageIcon className="h-4 w-4" />
+            <ImageIcon className="h-3.5 w-3.5" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-foreground text-background border-none font-bold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-lg">
+        <TooltipContent side="top" className="text-xs">
           {isUploading ? 'Uploading...' : 'Image'}
         </TooltipContent>
       </Tooltip>

@@ -59,7 +59,7 @@ export function Editor({
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring flex flex-col transition-all',
+        'relative w-full overflow-hidden flex flex-col',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -67,9 +67,7 @@ export function Editor({
       {toolbarPosition === 'top' && <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />}
       <EditorContent editor={editor} className="flex-1" />
       {toolbarPosition === 'bottom' && (
-        <div className="border-t border-border">
-          <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />
-        </div>
+        <EditorToolbar editor={editor} actions={actions} onImageClick={onImageClick} />
       )}
     </div>
   )
