@@ -18,8 +18,10 @@ import {
 import { cn } from '@/lib/utils';
 import { GivingBreakdownChart } from './giving-breakdown-chart';
 import { MetricTiles } from './metric-tiles';
+import { useAuth } from '@/hooks';
 
-// Mock data internal to component since constants.ts was not found
+const DEMO_MISSIONARY_ID = 'b378164f-8a6a-42c8-883f-59815d01e48c';
+
 const MOCK_TASKS = [
   { id: 1, title: "Call donor John Smith", completed: false, priority: 'high', dueDate: 'Today' },
   { id: 2, title: "Send newsletter draft", completed: false, priority: 'medium', dueDate: 'Tomorrow' },
@@ -35,9 +37,12 @@ const MOCK_POSTS = [
 
 interface DashboardHomeProps {
   setActiveTab?: (tab: string) => void;
+  missionaryId?: string;
 }
 
-export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab }) => {
+export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab, missionaryId }) => {
+  const { user } = useAuth();
+  const effectiveMissionaryId = missionaryId || user?.id || DEMO_MISSIONARY_ID;
   const alerts = [
       { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
       { id: 2, text: "Pledge from Church of Grace is past due", severity: "medium" }
@@ -56,8 +61,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab }) =>
         </div>
       </div>
 
-      {/* TOP METRIC TILES */}
-      <MetricTiles />
+        {/* TOP METRIC TILES */}
+        <MetricTiles missionaryId={effectiveMissionaryId} />
 
       {/* FULL WIDTH MAIN CHART */}
       <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
@@ -75,7 +80,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab }) =>
               )}
           </CardHeader>
           <CardContent className="pt-2 pb-1 px-0.5 md:px-4">
-              <GivingBreakdownChart />
+              <GivingBreakdownChart missionaryId={effectiveMissionaryId} />
           </CardContent>
       </Card>
 
@@ -217,16 +222,16 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab }) =>
                 </CardContent>
             </Card>
 
-            {/* Tips or Quick Links */}
-            <Card className="bg-white border-zinc-200 shadow-sm rounded-xl p-3 md:p-3.5">
-              <h4 className="text-[8px] font-black text-zinc-900 uppercase tracking-[0.2em] mb-1 leading-none">Ministry Tip</h4>
-              <p className="text-[9px] md:text-[10px] text-zinc-600 leading-tight font-medium">
-                "Missionaries who send updates twice a month see 15% higher donor retention."
-              </p>
-              <Button variant="link" className="p-0 h-auto text-[8px] font-black text-zinc-900 mt-1.5 hover:no-underline flex items-center gap-1 group uppercase tracking-wider">
-                Best practices <ArrowRight className="h-2 w-2 group-hover:translate-x-0.5 transition-transform" />
-              </Button>
-            </Card>
+              {/* Tips or Quick Links */}
+              <Card className="bg-white border-zinc-200 shadow-sm rounded-xl p-3 md:p-3.5">
+                <h4 className="text-[8px] font-black text-zinc-900 uppercase tracking-[0.2em] mb-1 leading-none">Ministry Tip</h4>
+                <p className="text-[9px] md:text-[10px] text-zinc-600 leading-tight font-medium">
+                  &ldquo;Missionaries who send updates twice a month see 15% higher donor retention.&rdquo;
+                </p>
+                <Button variant="link" className="p-0 h-auto text-[8px] font-black text-zinc-900 mt-1.5 hover:no-underline flex items-center gap-1 group uppercase tracking-wider">
+                  Best practices <ArrowRight className="h-2 w-2 group-hover:translate-x-0.5 transition-transform" />
+                </Button>
+              </Card>
 
         </div>
 
