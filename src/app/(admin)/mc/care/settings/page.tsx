@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { siteConfig } from '@/config/site';
+import { cn } from '@/lib/utils';
 
 export default function CareSettingsPage() {
   const [saving, setSaving] = React.useState(false);

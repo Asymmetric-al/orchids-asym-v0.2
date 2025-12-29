@@ -24,10 +24,12 @@ export async function POST(
     return NextResponse.json({ error: fireError.message }, { status: 500 })
   }
 
-  // Update count in posts table
+  const { data: postData } = await supabase.from('posts').select('fires_count').eq('id', postId).single()
+  const currentCount = postData?.fires_count ?? 0
+  
   await supabase
     .from('posts')
-    .update({ fires_count: (await supabase.from('posts').select('fires_count').eq('id', postId).single()).data.fires_count + 1 })
+    .update({ fires_count: currentCount + 1 })
     .eq('id', postId)
 
   return NextResponse.json({ success: true })
@@ -55,10 +57,12 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Update count in posts table
+  const { data: postData } = await supabase.from('posts').select('fires_count').eq('id', postId).single()
+  const currentCount = postData?.fires_count ?? 0
+  
   await supabase
     .from('posts')
-    .update({ fires_count: Math.max(0, (await supabase.from('posts').select('fires_count').eq('id', postId).single()).data.fires_count - 1) })
+    .update({ fires_count: Math.max(0, currentCount - 1) })
     .eq('id', postId)
 
   return NextResponse.json({ success: true })

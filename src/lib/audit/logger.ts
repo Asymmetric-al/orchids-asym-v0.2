@@ -14,7 +14,9 @@ export type AuditAction =
   | 'donation_refunded'
   | 'donation_initiated'
   | 'post_created'
+  | 'post_updated'
   | 'post_deleted'
+  | 'post_draft_created'
   | 'profile_updated'
 
 export interface AuditLogEntry {
@@ -88,7 +90,7 @@ export function createAuditLogger(context: AuthenticatedContext, request?: Reque
         userAgent,
       }),
 
-    logPost: (postId: string, action: 'post_created' | 'post_deleted') =>
+    logPost: (postId: string, action: 'post_created' | 'post_updated' | 'post_deleted' | 'post_draft_created') =>
       logAuditEvent({
         tenantId: context.tenantId,
         userId: context.userId,

@@ -67,7 +67,7 @@ type MenuSubItem = {
 }
 
 type MenuItem = {
-  icon: ComponentType
+  icon: ComponentType<{ className?: string }>
   label: string
 } & (
   | {

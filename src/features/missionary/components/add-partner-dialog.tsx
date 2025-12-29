@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Form,
@@ -43,19 +44,26 @@ const partnerSchema = z.object({
 
 type PartnerFormValues = z.infer<typeof partnerSchema>
 
-interface AddPartnerDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+export interface AddPartnerDialogProps {
   missionaryId: string
   onSuccess?: () => void
+  trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 export function AddPartnerDialog({
-  open,
-  onOpenChange,
   missionaryId,
   onSuccess,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: AddPartnerDialogProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const onOpenChange = isControlled ? controlledOnOpenChange : setInternalOpen
+  
   const supabase = React.useMemo(() => createClient(), [])
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -96,8 +104,8 @@ export function AddPartnerDialog({
       if (error) throw error
 
       toast.success('Partner added successfully')
-      form.reset()
-      onOpenChange(false)
+        form.reset()
+        onOpenChange?.(false)
       onSuccess?.()
     } catch (error: any) {
       console.error('Error adding partner:', error)
@@ -109,6 +117,7 @@ export function AddPartnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-zinc-100 p-0 overflow-hidden">
         <div className="bg-zinc-900 px-8 py-10 text-white">
           <DialogTitle className="text-3xl font-black tracking-tighter">Add New Partner</DialogTitle>
@@ -219,12 +228,12 @@ export function AddPartnerDialog({
                 />
               </div>
               <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest border-zinc-200"
-                >
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange?.(false)}
+                    className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest border-zinc-200"
+                  >
                   Cancel
                 </Button>
                 <Button
