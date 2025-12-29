@@ -48,7 +48,7 @@ function GivingBreakdownSkeleton() {
 }
 
 interface GivingBreakdownChartProps {
-  missionaryId?: string
+  missionaryId: string
 }
 
 export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps) {

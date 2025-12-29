@@ -124,7 +124,7 @@ function formatChange(change: number): string {
 }
 
 interface MetricTilesProps {
-  missionaryId?: string
+  missionaryId: string
 }
 
 export function MetricTiles({ missionaryId }: MetricTilesProps) {

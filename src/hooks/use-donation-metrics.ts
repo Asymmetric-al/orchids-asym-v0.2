@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from './use-auth'
 
 export interface ChartDataPoint {
   date: string
@@ -114,30 +113,21 @@ function calculateChange(current: number, previous: number): { change: number; t
   }
 }
 
-export function useDonationMetrics(missionaryId?: string): DonationMetrics {
-  const { user, loading: authLoading } = useAuth()
+export function useDonationMetrics(missionaryId: string): DonationMetrics {
   const [donations, setDonations] = useState<RawDonation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    const targetId = missionaryId || user?.id
-    
-    if (!targetId && !authLoading) {
+    if (!missionaryId) {
       setIsLoading(false)
       return
     }
+
+    let isMounted = true
     
-    if (!targetId) {
-      return
-    }
-
-    let cancelled = false
-
-    async function fetchData() {
+    const fetchDonations = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
         const supabase = createClient()
         
         const thirteenMonthsAgo = new Date()
@@ -146,29 +136,33 @@ export function useDonationMetrics(missionaryId?: string): DonationMetrics {
         const { data, error: fetchError } = await supabase
           .from('donations')
           .select('id, amount, donation_type, created_at, status')
-          .eq('missionary_id', targetId)
+          .eq('missionary_id', missionaryId)
           .gte('created_at', thirteenMonthsAgo.toISOString())
           .order('created_at', { ascending: true })
 
-        if (cancelled) return
-        if (fetchError) throw fetchError
-        setDonations(data || [])
+        if (!isMounted) return
+        
+        if (fetchError) {
+          setError(new Error(fetchError.message))
+        } else {
+          setDonations(data || [])
+        }
       } catch (e) {
-        if (cancelled) return
+        if (!isMounted) return
         setError(e instanceof Error ? e : new Error('Failed to fetch donations'))
       } finally {
-        if (!cancelled) {
+        if (isMounted) {
           setIsLoading(false)
         }
       }
     }
 
-    fetchData()
+    fetchDonations()
     
     return () => {
-      cancelled = true
+      isMounted = false
     }
-  }, [missionaryId, user?.id, authLoading])
+  }, [missionaryId])
 
   const metrics = useMemo((): Omit<DonationMetrics, 'isLoading' | 'error'> => {
     const now = new Date()
