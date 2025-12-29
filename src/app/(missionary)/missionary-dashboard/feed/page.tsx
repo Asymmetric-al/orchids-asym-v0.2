@@ -60,6 +60,7 @@ import {
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import dynamic from 'next/dynamic'
+import { PageHeader } from '@/components/page-header'
 
 const RichTextEditor = dynamic(
   () => import('@/components/ui/RichTextEditor').then((mod) => mod.RichTextEditor),
@@ -954,21 +955,16 @@ export default function WorkerFeed() {
   }
 
   return (
-    <div className="max-w-[1500px] mx-auto pb-20 px-4 sm:px-6 lg:px-8 pt-4">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tight">My Feed</h1>
-          <p className="text-muted-foreground font-medium mt-1 sm:mt-2 text-sm sm:text-base uppercase tracking-wider opacity-70">
-            Your journey, shared.
-          </p>
-        </div>
-
+    <div className="max-w-[1500px] mx-auto pb-20">
+      <PageHeader 
+        title="Feed" 
+        description="Share updates with your supporters and stay connected."
+      >
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="maia-outline" className="h-10 sm:h-11 px-4 sm:px-6 text-[10px] uppercase tracking-wider font-bold">
+            <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
               <ShieldCheck className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Security & Access</span>
-              <span className="sm:hidden">Security</span>
+              Security & Access
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px] rounded-2xl sm:rounded-3xl p-0 overflow-hidden border-border shadow-xl mx-4 sm:mx-0">
@@ -1060,7 +1056,7 @@ export default function WorkerFeed() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10">
         <div className="lg:col-span-9 space-y-6 sm:space-y-8 lg:space-y-10">

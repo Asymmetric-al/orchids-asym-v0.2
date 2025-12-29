@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PageHeader } from '@/components/page-header';
 import { 
   ArrowUpRight, 
   TrendingUp, 
@@ -57,24 +58,21 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab, miss
       { id: 2, text: "Pledge from Church of Grace is past due", severity: "medium" }
   ];
 
-  return (
-    <div className="space-y-2.5 md:space-y-3 animate-in fade-in duration-700">
-      
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-1 px-1">
-        <div>
-            <h1 className="text-xl md:text-2xl font-black tracking-tight text-zinc-900 leading-none">Dashboard</h1>
-            <p className="text-zinc-500 text-[10px] md:text-xs mt-0.5">Your ministry support at a glance.</p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-             <Button variant="outline" className="flex-1 md:flex-none h-7 text-[10px] bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-700 shadow-sm transition-all px-3">Download Report</Button>
-        </div>
-      </div>
+    return (
+      <div className="space-y-4 animate-in fade-in duration-500">
+        <PageHeader 
+          title="Dashboard" 
+          description="Your ministry support at a glance."
+        >
+          <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
+            Download Report
+          </Button>
+        </PageHeader>
 
         {/* TOP METRIC TILES */}
         <MetricTiles missionaryId={effectiveMissionaryId} />
 
-      {/* FULL WIDTH MAIN CHART */}
-      <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
+        <Card className="border-zinc-200 shadow-sm bg-white overflow-hidden rounded-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-0.5 border-b border-zinc-50 space-y-0 px-3 md:px-4 pt-2.5">
               <div>
                   <CardTitle className="text-sm md:text-base font-bold text-zinc-900 leading-none">Giving Breakdown</CardTitle>

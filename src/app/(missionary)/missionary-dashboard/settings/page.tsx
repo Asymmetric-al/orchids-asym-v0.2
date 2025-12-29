@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
 import {
   Bell,
   Mail,
@@ -107,21 +108,21 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-full space-y-10">
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-zinc-900 lg:text-5xl">Settings</h1>
-          <p className="mt-2 text-sm font-medium text-zinc-500 leading-relaxed">Manage your account, notifications, and ministry preferences.</p>
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <PageHeader 
+        title="Settings" 
+        description="Manage your account, notifications, and ministry preferences."
+      >
         <Button 
           disabled={!hasChanges}
           onClick={() => setHasChanges(false)}
-          className="h-11 bg-zinc-900 rounded-2xl px-6 text-xs font-bold text-white hover:bg-zinc-800 shadow-xl shadow-zinc-200/50 uppercase tracking-widest transition-all disabled:opacity-50"
+          size="sm"
+          className="h-9 px-4 text-xs font-medium disabled:opacity-50"
         >
           <Save className="mr-2 h-4 w-4" />
           Save Preferences
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="grid gap-10 lg:grid-cols-12">
         <div className="lg:col-span-8 space-y-10">

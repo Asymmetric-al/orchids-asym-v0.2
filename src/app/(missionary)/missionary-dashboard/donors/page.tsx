@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { PageHeader } from '@/components/page-header'
 import {
   Search,
   Mail,
@@ -146,30 +147,28 @@ export default function DonorsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-10 lg:h-[calc(100vh-12rem)] lg:flex-row">
+    <div className="flex flex-col gap-6 lg:h-[calc(100vh-10rem)] lg:flex-row">
       <div className={cn(
-        "flex flex-col gap-6 lg:w-96 lg:shrink-0",
+        "flex flex-col gap-4 lg:w-80 lg:shrink-0",
         selectedDonorId && "hidden lg:flex"
       )}>
-        <div className="flex items-end justify-between">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-black tracking-tighter text-zinc-900">Partners</h1>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-              {loading ? 'Loading...' : `${donors.length} partners in ministry`}
-            </p>
-          </div>
+        <PageHeader 
+          title="Partners" 
+          description={loading ? 'Loading...' : `${donors.length} partners in ministry`}
+          className="pb-0"
+        >
           {profile?.id && (
             <AddPartnerDialog 
               missionaryId={profile.id} 
               onSuccess={fetchDonors}
               trigger={
-                <Button size="icon" className="h-10 w-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200">
-                  <Plus className="h-5 w-5 text-white" />
+                <Button size="icon" className="h-9 w-9 rounded-lg">
+                  <Plus className="h-4 w-4" />
                 </Button>
               }
             />
           )}
-        </div>
+        </PageHeader>
         
         <div className="relative group">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 transition-colors" />

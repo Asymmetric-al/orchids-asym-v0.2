@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
 import {
   Select,
   SelectContent,
@@ -104,30 +105,20 @@ function StatCard({ title, value, subtitle, trend, trendValue, icon: Icon }: {
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between pb-6 border-b border-zinc-100">
-        <div>
-          <h1 className="text-3xl font-black tracking-tighter text-zinc-900 lg:text-4xl">Analytics</h1>
-          <p className="mt-1 text-xs font-bold text-zinc-400 uppercase tracking-wider leading-relaxed">Detailed insights into your support network and trends.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 rounded-lg border-zinc-200 px-4 text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
-          >
-            <Download className="mr-1.5 h-3.5 w-3.5" />
-            Download
-          </Button>
-          <Button
-            size="sm"
-            className="h-9 gap-2 bg-zinc-900 rounded-lg px-4 text-[10px] font-bold uppercase tracking-wider text-white"
-          >
-            <Sparkles className="size-3.5" />
-            Insights
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <PageHeader 
+        title="Analytics" 
+        description="Detailed insights into your support network and trends."
+      >
+        <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
+          <Download className="mr-2 h-4 w-4" />
+          Download
+        </Button>
+        <Button size="sm" className="h-9 px-4 text-xs font-medium">
+          <Sparkles className="mr-2 h-4 w-4" />
+          Insights
+        </Button>
+      </PageHeader>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 

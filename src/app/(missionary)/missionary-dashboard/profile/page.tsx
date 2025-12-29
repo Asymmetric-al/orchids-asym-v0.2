@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
+import { PageHeader } from '@/components/page-header'
 import {
   Camera,
   Upload,
@@ -195,35 +196,33 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-full space-y-10">
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-zinc-900 lg:text-5xl">Profile</h1>
-          <p className="mt-2 text-sm font-medium text-zinc-500 leading-relaxed">Manage your public presence and ministry details.</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="h-11 rounded-2xl border-zinc-200 px-6 text-xs font-bold text-zinc-600 hover:text-zinc-900 shadow-sm uppercase tracking-widest">
-            <Eye className="mr-2 h-4 w-4" />
-            Live Site
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={isSaving}
-            className="h-11 bg-zinc-900 rounded-2xl px-6 text-xs font-bold text-white hover:bg-zinc-800 shadow-xl shadow-zinc-200/50 uppercase tracking-widest min-w-[140px]"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isEditing ? (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Profile
-              </>
-            ) : (
-              <>Edit Profile</>
-            )}
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <PageHeader 
+        title="Profile" 
+        description="Manage your public presence and ministry details."
+      >
+        <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
+          <Eye className="mr-2 h-4 w-4" />
+          Live Site
+        </Button>
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          size="sm"
+          className="h-9 px-4 text-xs font-medium min-w-[100px]"
+        >
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isEditing ? (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Save
+            </>
+          ) : (
+            'Edit Profile'
+          )}
+        </Button>
+      </PageHeader>
 
       <div className="grid gap-10 lg:grid-cols-12">
         <div className="lg:col-span-7 space-y-10">

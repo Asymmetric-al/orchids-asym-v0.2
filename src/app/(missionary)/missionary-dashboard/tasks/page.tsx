@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageHeader } from '@/components/page-header'
 import {
   Dialog,
   DialogContent,
@@ -184,30 +185,24 @@ export default function TasksPage() {
   const completedCount = taskList.filter(t => t.status === 'completed').length
 
   return (
-    <div className="min-h-full space-y-10">
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-zinc-900 lg:text-5xl">Tasks</h1>
-          <p className="mt-2 text-sm font-medium text-zinc-500 leading-relaxed">Stay on top of donor follow-ups and ministry administration.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-11 rounded-2xl border-zinc-200 px-6 text-xs font-bold text-zinc-600 hover:text-zinc-900 shadow-sm uppercase tracking-widest"
-            onClick={() => setTaskList(prev => prev.filter(t => t.status !== 'completed'))}
-          >
-            Clear Completed
-          </Button>
-          <Button
-            size="sm"
-            className="h-11 gap-3 bg-zinc-900 rounded-2xl px-6 text-xs font-bold text-white hover:bg-zinc-800 shadow-xl shadow-zinc-200/50 uppercase tracking-widest"
-          >
-            <Plus className="size-4" />
-            New Task
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <PageHeader 
+        title="Tasks" 
+        description="Stay on top of donor follow-ups and ministry administration."
+      >
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 px-4 text-xs font-medium"
+          onClick={() => setTaskList(prev => prev.filter(t => t.status !== 'completed'))}
+        >
+          Clear Completed
+        </Button>
+        <Button size="sm" className="h-9 px-4 text-xs font-medium">
+          <Plus className="mr-2 h-4 w-4" />
+          New Task
+        </Button>
+      </PageHeader>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="w-full sm:w-auto">
