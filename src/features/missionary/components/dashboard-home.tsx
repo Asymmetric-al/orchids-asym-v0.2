@@ -52,8 +52,6 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab, miss
     effectiveMissionaryId = DEMO_MISSIONARY_ID;
   }
   
-  console.log('[DashboardHome] effectiveMissionaryId:', effectiveMissionaryId)
-  
   const alerts = [
       { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
       { id: 2, text: "Pledge from Church of Grace is past due", severity: "medium" }

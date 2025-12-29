@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 
 export interface ChartDataPoint {
   date: string
@@ -128,25 +127,24 @@ export function useDonationMetrics(missionaryId: string): DonationMetrics {
     
     const fetchDonations = async () => {
       try {
-        const supabase = createClient()
+        setIsLoading(true)
+        setError(null)
         
-        const thirteenMonthsAgo = new Date()
-        thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13)
+        const response = await fetch(`/api/missionaries/${missionaryId}/metrics`)
         
-        const { data, error: fetchError } = await supabase
-          .from('donations')
-          .select('id, amount, donation_type, created_at, status')
-          .eq('missionary_id', missionaryId)
-          .gte('created_at', thirteenMonthsAgo.toISOString())
-          .order('created_at', { ascending: true })
-
         if (!isMounted) return
         
-        if (fetchError) {
-          setError(new Error(fetchError.message))
-        } else {
-          setDonations(data || [])
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
+        
+        const result = await response.json()
+        
+        if (result.error) {
+          throw new Error(result.error)
+        }
+        
+        setDonations(result.donations || [])
       } catch (e) {
         if (!isMounted) return
         setError(e instanceof Error ? e : new Error('Failed to fetch donations'))
