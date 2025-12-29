@@ -11,7 +11,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/page-header'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -74,12 +73,25 @@ import {
   Star,
   Home,
   Gift,
+  Loader2,
 } from 'lucide-react'
 import { format, formatDistanceToNow, differenceInMonths } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 import { AddPartnerDialog } from '@/features/missionary/components/add-partner-dialog'
 import { toast } from 'sonner'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 type ActivityType = 'gift' | 'note' | 'call' | 'email' | 'meeting' | 'pledge_started' | 'pledge_completed'
 type GiftType = 'Online' | 'Check' | 'Cash' | 'Bank Transfer' | 'Stock' | 'In-Kind'
@@ -93,22 +105,22 @@ interface Activity {
   description?: string
   amount?: number
   status?: string
-  giftType?: GiftType
+  gift_type?: GiftType
   note?: string
 }
 
 interface Pledge {
   id: string
   amount: number
-  frequency: 'Monthly' | 'Quarterly' | 'Annually'
+  frequency: string
   status: PledgeStatus
-  startDate: string
-  endDate?: string
-  nextPaymentDate?: string
-  totalPaid: number
-  totalExpected: number
-  paymentsCompleted: number
-  paymentsRemaining: number
+  start_date: string
+  end_date?: string
+  next_payment_date?: string
+  total_paid: number
+  total_expected: number
+  payments_completed: number
+  payments_remaining: number
 }
 
 interface Address {
@@ -129,16 +141,16 @@ interface Donor {
   total_given: number
   last_gift_date: string | null
   last_gift_amount: number | null
-  frequency: 'Monthly' | 'One-Time' | 'Annually' | 'Irregular' | 'Quarterly'
+  frequency: string
   email: string
   phone: string
   mobile?: string
-  workPhone?: string
-  preferredContact: 'email' | 'phone' | 'text'
+  work_phone?: string
+  preferred_contact: 'email' | 'phone' | 'text'
   avatar_url?: string
   location: string
   address: Address
-  workAddress?: Address
+  work_address?: Address
   website?: string
   organization?: string
   title?: string
@@ -151,7 +163,7 @@ interface Donor {
   score: number
   activities: Activity[]
   pledges: Pledge[]
-  hasActivePledge: boolean
+  has_active_pledge: boolean
 }
 
 const AVAILABLE_TAGS = [
@@ -165,400 +177,9 @@ const AVAILABLE_TAGS = [
   { id: 'legacy-giver', label: 'Legacy Giver', color: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
   { id: 'volunteer', label: 'Volunteer', color: 'bg-orange-50 text-orange-700 border-orange-200' },
   { id: 'board-member', label: 'Board Member', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-  { id: 'vip', label: 'VIP', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
   { id: 'needs-followup', label: 'Needs Follow-up', color: 'bg-red-50 text-red-700 border-red-200' },
-]
-
-const MOCK_DONORS: Donor[] = [
-  {
-    id: '1',
-    name: 'Sarah & Michael Johnson',
-    initials: 'SJ',
-    type: 'Individual',
-    status: 'Active',
-    total_given: 24500,
-    last_gift_date: '2024-12-15T10:30:00Z',
-    last_gift_amount: 500,
-    frequency: 'Monthly',
-    email: 'sarah.johnson@email.com',
-    phone: '(555) 123-4567',
-    mobile: '(555) 987-6543',
-    preferredContact: 'email',
-    location: 'Denver, CO',
-    address: {
-      street: '1234 Mountain View Dr',
-      street2: 'Unit 5B',
-      city: 'Denver',
-      state: 'CO',
-      zip: '80202',
-      country: 'United States',
-    },
-    spouse: 'Michael Johnson',
-    birthday: '1985-03-15',
-    anniversary: '2010-06-20',
-    joined_date: '2020-01-15',
-    tags: ['monthly-partner', 'major-donor', 'prayer-partner'],
-    score: 95,
-    hasActivePledge: true,
-    pledges: [
-      {
-        id: 'p1',
-        amount: 500,
-        frequency: 'Monthly',
-        status: 'active',
-        startDate: '2023-01-01',
-        nextPaymentDate: '2025-01-15',
-        totalPaid: 12000,
-        totalExpected: 18000,
-        paymentsCompleted: 24,
-        paymentsRemaining: 12,
-      },
-    ],
-    activities: [
-      { id: 'a1', type: 'gift', date: '2024-12-15T10:30:00Z', title: 'Monthly Gift', amount: 500, status: 'Succeeded', giftType: 'Online' },
-      { id: 'a2', type: 'call', date: '2024-12-10T14:00:00Z', title: 'Phone Call', description: 'Discussed upcoming mission trip. They expressed interest in joining the prayer team.' },
-      { id: 'a3', type: 'gift', date: '2024-11-15T10:30:00Z', title: 'Monthly Gift', amount: 500, status: 'Succeeded', giftType: 'Online' },
-      { id: 'a4', type: 'email', date: '2024-11-01T09:00:00Z', title: 'Thank You Email', description: 'Sent personalized thank you for their continued support.' },
-      { id: 'a5', type: 'gift', date: '2024-10-15T10:30:00Z', title: 'Monthly Gift', amount: 500, status: 'Succeeded', giftType: 'Online' },
-      { id: 'a6', type: 'meeting', date: '2024-09-20T18:00:00Z', title: 'Dinner Meeting', description: 'Met for dinner to share ministry updates. Great conversation about future goals.' },
-      { id: 'a7', type: 'gift', date: '2024-09-15T10:30:00Z', title: 'Monthly Gift', amount: 500, status: 'Succeeded', giftType: 'Online' },
-      { id: 'a8', type: 'gift', date: '2024-08-15T10:30:00Z', title: 'Monthly Gift', amount: 500, status: 'Succeeded', giftType: 'Online' },
-    ],
-  },
-  {
-    id: '2',
-    name: 'First Baptist Church',
-    initials: 'FB',
-    type: 'Church',
-    status: 'Active',
-    total_given: 36000,
-    last_gift_date: '2024-12-01T00:00:00Z',
-    last_gift_amount: 1500,
-    frequency: 'Monthly',
-    email: 'missions@firstbaptist.org',
-    phone: '(555) 234-5678',
-    workPhone: '(555) 234-5679',
-    preferredContact: 'email',
-    website: 'www.firstbaptist.org',
-    location: 'Austin, TX',
-    address: {
-      street: '500 Church Street',
-      city: 'Austin',
-      state: 'TX',
-      zip: '78701',
-      country: 'United States',
-    },
-    organization: 'First Baptist Church',
-    title: 'Missions Committee',
-    joined_date: '2019-06-01',
-    tags: ['church-contact', 'monthly-partner', 'major-donor'],
-    score: 98,
-    hasActivePledge: true,
-    pledges: [
-      {
-        id: 'p2',
-        amount: 1500,
-        frequency: 'Monthly',
-        status: 'active',
-        startDate: '2022-01-01',
-        nextPaymentDate: '2025-01-01',
-        totalPaid: 36000,
-        totalExpected: 54000,
-        paymentsCompleted: 24,
-        paymentsRemaining: 12,
-      },
-    ],
-    activities: [
-      { id: 'b1', type: 'gift', date: '2024-12-01T00:00:00Z', title: 'Monthly Support', amount: 1500, status: 'Succeeded', giftType: 'Check' },
-      { id: 'b2', type: 'meeting', date: '2024-11-15T19:00:00Z', title: 'Missions Committee Presentation', description: 'Presented ministry update to missions committee. Very positive response.' },
-      { id: 'b3', type: 'gift', date: '2024-11-01T00:00:00Z', title: 'Monthly Support', amount: 1500, status: 'Succeeded', giftType: 'Check' },
-      { id: 'b4', type: 'gift', date: '2024-10-01T00:00:00Z', title: 'Monthly Support', amount: 1500, status: 'Succeeded', giftType: 'Check' },
-    ],
-  },
-  {
-    id: '3',
-    name: 'Robert Williams',
-    initials: 'RW',
-    type: 'Individual',
-    status: 'At Risk',
-    total_given: 8500,
-    last_gift_date: '2024-08-20T00:00:00Z',
-    last_gift_amount: 250,
-    frequency: 'Irregular',
-    email: 'robert.w@gmail.com',
-    phone: '(555) 345-6789',
-    preferredContact: 'phone',
-    location: 'Phoenix, AZ',
-    address: {
-      street: '789 Desert Bloom Ave',
-      city: 'Phoenix',
-      state: 'AZ',
-      zip: '85001',
-      country: 'United States',
-    },
-    joined_date: '2021-03-10',
-    birthday: '1972-11-08',
-    tags: ['needs-followup', 'friend'],
-    score: 45,
-    hasActivePledge: false,
-    pledges: [
-      {
-        id: 'p3',
-        amount: 250,
-        frequency: 'Monthly',
-        status: 'paused',
-        startDate: '2023-06-01',
-        totalPaid: 3500,
-        totalExpected: 6000,
-        paymentsCompleted: 14,
-        paymentsRemaining: 10,
-      },
-    ],
-    activities: [
-      { id: 'c1', type: 'gift', date: '2024-08-20T00:00:00Z', title: 'One-Time Gift', amount: 250, status: 'Succeeded', giftType: 'Online' },
-      { id: 'c2', type: 'note', date: '2024-10-15T00:00:00Z', title: 'Follow-up Needed', description: 'Haven\'t heard from Robert in a while. Need to reach out and check in.' },
-      { id: 'c3', type: 'call', date: '2024-07-10T00:00:00Z', title: 'Voicemail Left', description: 'Called but got voicemail. Left message about upcoming newsletter.' },
-      { id: 'c4', type: 'gift', date: '2024-05-15T00:00:00Z', title: 'Monthly Gift', amount: 250, status: 'Succeeded', giftType: 'Online' },
-    ],
-  },
-  {
-    id: '4',
-    name: 'Grace Community Foundation',
-    initials: 'GC',
-    type: 'Organization',
-    status: 'Active',
-    total_given: 50000,
-    last_gift_date: '2024-06-30T00:00:00Z',
-    last_gift_amount: 25000,
-    frequency: 'Annually',
-    email: 'grants@gracefoundation.org',
-    phone: '(555) 456-7890',
-    workPhone: '(555) 456-7891',
-    preferredContact: 'email',
-    website: 'www.gracefoundation.org',
-    location: 'Chicago, IL',
-    address: {
-      street: '100 Foundation Plaza',
-      street2: 'Suite 400',
-      city: 'Chicago',
-      state: 'IL',
-      zip: '60601',
-      country: 'United States',
-    },
-    organization: 'Grace Community Foundation',
-    title: 'Grants Department',
-    joined_date: '2022-01-01',
-    tags: ['major-donor', 'legacy-giver'],
-    score: 90,
-    hasActivePledge: true,
-    pledges: [
-      {
-        id: 'p4',
-        amount: 25000,
-        frequency: 'Annually',
-        status: 'active',
-        startDate: '2022-01-01',
-        nextPaymentDate: '2025-06-30',
-        totalPaid: 50000,
-        totalExpected: 75000,
-        paymentsCompleted: 2,
-        paymentsRemaining: 1,
-      },
-    ],
-    activities: [
-      { id: 'd1', type: 'gift', date: '2024-06-30T00:00:00Z', title: 'Annual Grant', amount: 25000, status: 'Succeeded', giftType: 'Bank Transfer', note: 'Second year of 3-year grant commitment' },
-      { id: 'd2', type: 'meeting', date: '2024-05-15T10:00:00Z', title: 'Grant Review Meeting', description: 'Annual review with program officer. Discussed impact metrics and future funding.' },
-      { id: 'd3', type: 'email', date: '2024-04-01T00:00:00Z', title: 'Grant Report Submitted', description: 'Submitted annual progress report with photos and testimonials.' },
-      { id: 'd4', type: 'gift', date: '2023-06-30T00:00:00Z', title: 'Annual Grant', amount: 25000, status: 'Succeeded', giftType: 'Bank Transfer', note: 'First year of 3-year grant commitment' },
-    ],
-  },
-  {
-    id: '5',
-    name: 'Emily Chen',
-    initials: 'EC',
-    type: 'Individual',
-    status: 'New',
-    total_given: 150,
-    last_gift_date: '2024-12-20T00:00:00Z',
-    last_gift_amount: 150,
-    frequency: 'One-Time',
-    email: 'emily.chen@outlook.com',
-    phone: '(555) 567-8901',
-    mobile: '(555) 567-8902',
-    preferredContact: 'text',
-    location: 'Seattle, WA',
-    address: {
-      street: '456 Pine Street',
-      street2: 'Apt 12',
-      city: 'Seattle',
-      state: 'WA',
-      zip: '98101',
-      country: 'United States',
-    },
-    joined_date: '2024-12-20',
-    birthday: '1995-07-22',
-    tags: ['first-time-giver'],
-    score: 60,
-    hasActivePledge: false,
-    pledges: [],
-    activities: [
-      { id: 'e1', type: 'gift', date: '2024-12-20T00:00:00Z', title: 'First Gift', amount: 150, status: 'Succeeded', giftType: 'Online', note: 'Found us through social media' },
-      { id: 'e2', type: 'email', date: '2024-12-21T00:00:00Z', title: 'Welcome Email Sent', description: 'Sent welcome package and thank you email.' },
-    ],
-  },
-  {
-    id: '6',
-    name: 'David & Lisa Thompson',
-    initials: 'DT',
-    type: 'Individual',
-    status: 'Lapsed',
-    total_given: 12000,
-    last_gift_date: '2023-12-15T00:00:00Z',
-    last_gift_amount: 1000,
-    frequency: 'Monthly',
-    email: 'thompson.family@email.com',
-    phone: '(555) 678-9012',
-    preferredContact: 'email',
-    location: 'Portland, OR',
-    address: {
-      street: '321 Oak Lane',
-      city: 'Portland',
-      state: 'OR',
-      zip: '97201',
-      country: 'United States',
-    },
-    spouse: 'Lisa Thompson',
-    joined_date: '2018-09-01',
-    birthday: '1968-02-14',
-    anniversary: '1995-08-12',
-    tags: ['family', 'prayer-partner'],
-    score: 30,
-    hasActivePledge: false,
-    pledges: [
-      {
-        id: 'p6',
-        amount: 200,
-        frequency: 'Monthly',
-        status: 'cancelled',
-        startDate: '2020-01-01',
-        endDate: '2023-12-31',
-        totalPaid: 9600,
-        totalExpected: 9600,
-        paymentsCompleted: 48,
-        paymentsRemaining: 0,
-      },
-    ],
-    activities: [
-      { id: 'f1', type: 'gift', date: '2023-12-15T00:00:00Z', title: 'Year-End Gift', amount: 1000, status: 'Succeeded', giftType: 'Check' },
-      { id: 'f2', type: 'note', date: '2024-03-01T00:00:00Z', title: 'Status Update', description: 'David mentioned job transition. May need to pause giving temporarily.' },
-      { id: 'f3', type: 'call', date: '2024-01-15T00:00:00Z', title: 'Check-in Call', description: 'Spoke briefly. They are dealing with some family health issues.' },
-    ],
-  },
-  {
-    id: '7',
-    name: 'James Martinez',
-    initials: 'JM',
-    type: 'Individual',
-    status: 'Active',
-    total_given: 3600,
-    last_gift_date: '2024-12-25T00:00:00Z',
-    last_gift_amount: 100,
-    frequency: 'Monthly',
-    email: 'jmartinez@company.com',
-    phone: '(555) 789-0123',
-    workPhone: '(555) 789-0124',
-    preferredContact: 'email',
-    location: 'San Diego, CA',
-    address: {
-      street: '555 Harbor View Blvd',
-      city: 'San Diego',
-      state: 'CA',
-      zip: '92101',
-      country: 'United States',
-    },
-    workAddress: {
-      street: '1000 Corporate Center Dr',
-      street2: 'Floor 15',
-      city: 'San Diego',
-      state: 'CA',
-      zip: '92121',
-    },
-    organization: 'Tech Solutions Inc.',
-    title: 'Senior Engineer',
-    joined_date: '2022-01-01',
-    birthday: '1988-09-30',
-    tags: ['monthly-partner', 'volunteer'],
-    score: 80,
-    hasActivePledge: true,
-    pledges: [
-      {
-        id: 'p7',
-        amount: 100,
-        frequency: 'Monthly',
-        status: 'active',
-        startDate: '2022-01-01',
-        nextPaymentDate: '2025-01-25',
-        totalPaid: 3600,
-        totalExpected: 4800,
-        paymentsCompleted: 36,
-        paymentsRemaining: 12,
-      },
-    ],
-    activities: [
-      { id: 'g1', type: 'gift', date: '2024-12-25T00:00:00Z', title: 'Monthly Gift', amount: 100, status: 'Succeeded', giftType: 'Online' },
-      { id: 'g2', type: 'gift', date: '2024-11-25T00:00:00Z', title: 'Monthly Gift', amount: 100, status: 'Succeeded', giftType: 'Online' },
-      { id: 'g3', type: 'gift', date: '2024-10-25T00:00:00Z', title: 'Monthly Gift', amount: 100, status: 'Succeeded', giftType: 'Online' },
-      { id: 'g4', type: 'meeting', date: '2024-10-05T12:00:00Z', title: 'Lunch Meeting', description: 'Caught up over lunch. James shared about his church small group.' },
-    ],
-  },
-  {
-    id: '8',
-    name: 'Bethel Church International',
-    initials: 'BC',
-    type: 'Church',
-    status: 'Active',
-    total_given: 18000,
-    last_gift_date: '2024-10-01T00:00:00Z',
-    last_gift_amount: 3000,
-    frequency: 'Quarterly',
-    email: 'outreach@bethelchurch.org',
-    phone: '(555) 890-1234',
-    preferredContact: 'email',
-    website: 'www.bethelchurch.org',
-    location: 'Nashville, TN',
-    address: {
-      street: '2000 Worship Way',
-      city: 'Nashville',
-      state: 'TN',
-      zip: '37201',
-      country: 'United States',
-    },
-    organization: 'Bethel Church International',
-    title: 'Global Outreach',
-    joined_date: '2021-04-01',
-    tags: ['church-contact', 'vip'],
-    score: 88,
-    hasActivePledge: true,
-    pledges: [
-      {
-        id: 'p8',
-        amount: 3000,
-        frequency: 'Quarterly',
-        status: 'active',
-        startDate: '2023-01-01',
-        nextPaymentDate: '2025-01-01',
-        totalPaid: 18000,
-        totalExpected: 24000,
-        paymentsCompleted: 6,
-        paymentsRemaining: 2,
-      },
-    ],
-    activities: [
-      { id: 'h1', type: 'gift', date: '2024-10-01T00:00:00Z', title: 'Quarterly Support', amount: 3000, status: 'Succeeded', giftType: 'Bank Transfer' },
-      { id: 'h2', type: 'gift', date: '2024-07-01T00:00:00Z', title: 'Quarterly Support', amount: 3000, status: 'Succeeded', giftType: 'Bank Transfer' },
-      { id: 'h3', type: 'meeting', date: '2024-06-15T10:00:00Z', title: 'Video Call with Pastor', description: 'Discussed partnership renewal and potential for increased support.' },
-    ],
-  },
+  { id: 'young-professional', label: 'Young Professional', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+  { id: 'lapsed-donor', label: 'Lapsed Donor', color: 'bg-gray-100 text-gray-600 border-gray-200' },
 ]
 
 const formatCurrency = (value: number | null | undefined) => {
@@ -630,7 +251,7 @@ const getActivityBg = (type: ActivityType) => {
   }
 }
 
-const getGiftTypeIcon = (type: GiftType) => {
+const getGiftTypeIcon = (type: GiftType | string | undefined) => {
   switch(type) {
     case 'Online': return <CreditCard className="h-3.5 w-3.5" />
     case 'Check': return <Mail className="h-3.5 w-3.5" />
@@ -649,7 +270,7 @@ const getTagStyle = (tagId: string) => {
 
 const getTagLabel = (tagId: string) => {
   const tag = AVAILABLE_TAGS.find(t => t.id === tagId)
-  return tag?.label || tagId
+  return tag?.label || tagId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
 function DonorListSkeleton() {
@@ -684,11 +305,36 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
   )
 }
 
+const editDonorSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  mobile: z.string().optional(),
+  work_phone: z.string().optional(),
+  preferred_contact: z.enum(['email', 'phone', 'text']),
+  type: z.enum(['Individual', 'Organization', 'Church']),
+  status: z.enum(['Active', 'Lapsed', 'New', 'At Risk']),
+  frequency: z.string(),
+  location: z.string().optional(),
+  website: z.string().optional(),
+  organization: z.string().optional(),
+  title: z.string().optional(),
+  spouse: z.string().optional(),
+  notes: z.string().optional(),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zip: z.string().optional(),
+})
+
+type EditDonorFormValues = z.infer<typeof editDonorSchema>
+
 type SortOption = 'name' | 'last_gift' | 'total_given' | 'joined_date'
 
 export default function DonorsPage() {
-  const { profile } = useAuth()
-  const [donors, setDonors] = React.useState<Donor[]>(MOCK_DONORS)
+  const { profile, loading: authLoading } = useAuth()
+  const supabase = React.useMemo(() => createClient(), [])
+  const [donors, setDonors] = React.useState<Donor[]>([])
   const [selectedDonorId, setSelectedDonorId] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState<string>('All')
@@ -696,17 +342,123 @@ export default function DonorsPage() {
   const [pledgeFilter, setPledgeFilter] = React.useState<string>('All')
   const [sortBy, setSortBy] = React.useState<SortOption>('last_gift')
   const [sortAsc, setSortAsc] = React.useState(false)
-  const [loading] = React.useState(false)
-  const [error] = React.useState<string | null>(null)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [activeTab, setActiveTab] = React.useState('overview')
   const [noteInput, setNoteInput] = React.useState('')
   const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false)
   const [isTagDialogOpen, setIsTagDialogOpen] = React.useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
   const [selectedTags, setSelectedTags] = React.useState<string[]>([])
+  const [isSavingTags, setIsSavingTags] = React.useState(false)
+  const [isSavingNote, setIsSavingNote] = React.useState(false)
+  const [isSavingEdit, setIsSavingEdit] = React.useState(false)
+  const [activityType, setActivityType] = React.useState<'note' | 'call' | 'meeting' | 'email'>('note')
 
-  const fetchDonors = React.useCallback(() => {
-    setDonors(MOCK_DONORS)
-  }, [])
+  const editForm = useForm<EditDonorFormValues>({
+    resolver: zodResolver(editDonorSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      mobile: '',
+      work_phone: '',
+      preferred_contact: 'email',
+      type: 'Individual',
+      status: 'Active',
+      frequency: 'Monthly',
+      location: '',
+      website: '',
+      organization: '',
+      title: '',
+      spouse: '',
+      notes: '',
+      street: '',
+      city: '',
+      state: '',
+      zip: '',
+    },
+  })
+
+  const fetchDonors = React.useCallback(async () => {
+    if (!profile?.id) {
+      setLoading(false)
+      return
+    }
+    
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const { data: donorsData, error: donorsError } = await supabase
+        .from('donors')
+        .select('*')
+        .eq('missionary_id', profile.id)
+        .order('name', { ascending: true })
+
+      if (donorsError) throw donorsError
+
+      const donorIds = (donorsData || []).map(d => d.id)
+
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from('donor_activities')
+        .select('*')
+        .in('donor_id', donorIds)
+        .order('date', { ascending: false })
+
+      if (activitiesError) throw activitiesError
+
+      const { data: pledgesData, error: pledgesError } = await supabase
+        .from('donor_pledges')
+        .select('*')
+        .in('donor_id', donorIds)
+        .order('start_date', { ascending: false })
+
+      if (pledgesError) throw pledgesError
+
+      const activitiesByDonor = (activitiesData || []).reduce((acc, activity) => {
+        if (!acc[activity.donor_id]) acc[activity.donor_id] = []
+        acc[activity.donor_id].push(activity)
+        return acc
+      }, {} as Record<string, Activity[]>)
+
+      const pledgesByDonor = (pledgesData || []).reduce((acc, pledge) => {
+        if (!acc[pledge.donor_id]) acc[pledge.donor_id] = []
+        acc[pledge.donor_id].push(pledge)
+        return acc
+      }, {} as Record<string, Pledge[]>)
+
+      const formattedDonors: Donor[] = (donorsData || []).map(d => ({
+        ...d,
+        initials: d.name ? d.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : '??',
+        activities: activitiesByDonor[d.id] || [],
+        pledges: pledgesByDonor[d.id] || [],
+        address: d.address || {},
+        work_address: d.work_address || {},
+        tags: d.tags || [],
+        total_given: Number(d.total_given) || 0,
+        last_gift_amount: d.last_gift_amount ? Number(d.last_gift_amount) : null,
+        score: Number(d.score) || 0,
+      }))
+
+      setDonors(formattedDonors)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load donors'
+      setError(errorMessage)
+      toast.error('Failed to load donors')
+      console.error('Donors fetch error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [profile?.id, supabase])
+
+  React.useEffect(() => {
+    if (!authLoading && profile?.id) {
+      fetchDonors()
+    } else if (!authLoading) {
+      setLoading(false)
+    }
+  }, [fetchDonors, authLoading, profile?.id])
 
   const filteredDonors = React.useMemo(() => {
     let result = donors.filter(donor => {
@@ -717,8 +469,8 @@ export default function DonorsPage() {
       const matchesStatus = statusFilter === 'All' || donor.status === statusFilter
       const matchesTags = tagFilter.length === 0 || tagFilter.some(t => donor.tags.includes(t))
       const matchesPledge = pledgeFilter === 'All' || 
-                            (pledgeFilter === 'Active' && donor.hasActivePledge) ||
-                            (pledgeFilter === 'Inactive' && !donor.hasActivePledge)
+                            (pledgeFilter === 'Active' && donor.has_active_pledge) ||
+                            (pledgeFilter === 'Inactive' && !donor.has_active_pledge)
       return matchesSearch && matchesStatus && matchesTags && matchesPledge
     })
 
@@ -754,7 +506,7 @@ export default function DonorsPage() {
 
   React.useEffect(() => {
     if (selectedDonor) {
-      setSelectedTags(selectedDonor.tags)
+      setSelectedTags(selectedDonor.tags || [])
     }
   }, [selectedDonor])
 
@@ -763,21 +515,66 @@ export default function DonorsPage() {
     toast.success(`${label} copied to clipboard`)
   }, [])
 
-  const handleAddNote = React.useCallback(() => {
+  const handleAddNote = React.useCallback(async () => {
     if (!selectedDonor || !noteInput.trim()) return
-    toast.success('Note added successfully')
-    setNoteInput('')
-    setIsNoteDialogOpen(false)
-  }, [selectedDonor, noteInput])
+    
+    setIsSavingNote(true)
+    try {
+      const titleMap = {
+        note: 'Note',
+        call: 'Phone Call',
+        meeting: 'Meeting',
+        email: 'Email',
+      }
+      
+      const { error: insertError } = await supabase
+        .from('donor_activities')
+        .insert({
+          donor_id: selectedDonor.id,
+          type: activityType,
+          title: titleMap[activityType],
+          description: noteInput.trim(),
+          date: new Date().toISOString(),
+        })
+      
+      if (insertError) throw insertError
+      
+      toast.success('Activity logged successfully')
+      setNoteInput('')
+      setIsNoteDialogOpen(false)
+      fetchDonors()
+    } catch (err) {
+      toast.error('Failed to add activity')
+      console.error(err)
+    } finally {
+      setIsSavingNote(false)
+    }
+  }, [selectedDonor, noteInput, activityType, supabase, fetchDonors])
 
-  const handleSaveTags = React.useCallback(() => {
+  const handleSaveTags = React.useCallback(async () => {
     if (!selectedDonor) return
-    setDonors(prev => prev.map(d => 
-      d.id === selectedDonor.id ? { ...d, tags: selectedTags } : d
-    ))
-    toast.success('Tags updated successfully')
-    setIsTagDialogOpen(false)
-  }, [selectedDonor, selectedTags])
+    
+    setIsSavingTags(true)
+    try {
+      const { error: updateError } = await supabase
+        .from('donors')
+        .update({ tags: selectedTags, updated_at: new Date().toISOString() })
+        .eq('id', selectedDonor.id)
+      
+      if (updateError) throw updateError
+      
+      setDonors(prev => prev.map(d => 
+        d.id === selectedDonor.id ? { ...d, tags: selectedTags } : d
+      ))
+      toast.success('Tags updated successfully')
+      setIsTagDialogOpen(false)
+    } catch (err) {
+      toast.error('Failed to update tags')
+      console.error(err)
+    } finally {
+      setIsSavingTags(false)
+    }
+  }, [selectedDonor, selectedTags, supabase])
 
   const toggleTag = React.useCallback((tagId: string) => {
     setSelectedTags(prev => 
@@ -785,9 +582,118 @@ export default function DonorsPage() {
     )
   }, [])
 
+  const openEditDialog = React.useCallback(() => {
+    if (!selectedDonor) return
+    editForm.reset({
+      name: selectedDonor.name || '',
+      email: selectedDonor.email || '',
+      phone: selectedDonor.phone || '',
+      mobile: selectedDonor.mobile || '',
+      work_phone: selectedDonor.work_phone || '',
+      preferred_contact: selectedDonor.preferred_contact || 'email',
+      type: selectedDonor.type || 'Individual',
+      status: selectedDonor.status || 'Active',
+      frequency: selectedDonor.frequency || 'Monthly',
+      location: selectedDonor.location || '',
+      website: selectedDonor.website || '',
+      organization: selectedDonor.organization || '',
+      title: selectedDonor.title || '',
+      spouse: selectedDonor.spouse || '',
+      notes: selectedDonor.notes || '',
+      street: selectedDonor.address?.street || '',
+      city: selectedDonor.address?.city || '',
+      state: selectedDonor.address?.state || '',
+      zip: selectedDonor.address?.zip || '',
+    })
+    setIsEditDialogOpen(true)
+  }, [selectedDonor, editForm])
+
+  const handleSaveEdit = React.useCallback(async (values: EditDonorFormValues) => {
+    if (!selectedDonor) return
+    
+    setIsSavingEdit(true)
+    try {
+      const { error: updateError } = await supabase
+        .from('donors')
+        .update({
+          name: values.name,
+          email: values.email,
+          phone: values.phone || null,
+          mobile: values.mobile || null,
+          work_phone: values.work_phone || null,
+          preferred_contact: values.preferred_contact,
+          type: values.type,
+          status: values.status,
+          frequency: values.frequency,
+          location: values.location || null,
+          website: values.website || null,
+          organization: values.organization || null,
+          title: values.title || null,
+          spouse: values.spouse || null,
+          notes: values.notes || null,
+          address: {
+            street: values.street || '',
+            city: values.city || '',
+            state: values.state || '',
+            zip: values.zip || '',
+            country: 'USA',
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedDonor.id)
+      
+      if (updateError) throw updateError
+      
+      toast.success('Partner updated successfully')
+      setIsEditDialogOpen(false)
+      fetchDonors()
+    } catch (err) {
+      toast.error('Failed to update partner')
+      console.error(err)
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }, [selectedDonor, supabase, fetchDonors])
+
+  const handleStatCardClick = React.useCallback((filterType: 'atRisk' | 'activePledge' | 'lapsed' | 'new') => {
+    setSearchTerm('')
+    setTagFilter([])
+    
+    switch (filterType) {
+      case 'atRisk':
+        setStatusFilter('At Risk')
+        setPledgeFilter('All')
+        break
+      case 'activePledge':
+        setStatusFilter('All')
+        setPledgeFilter('Active')
+        break
+      case 'lapsed':
+        setStatusFilter('Lapsed')
+        setPledgeFilter('All')
+        break
+      case 'new':
+        setStatusFilter('New')
+        setPledgeFilter('All')
+        break
+    }
+    setSelectedDonorId(null)
+  }, [])
+
+  const clearAllFilters = React.useCallback(() => {
+    setStatusFilter('All')
+    setTagFilter([])
+    setPledgeFilter('All')
+    setSearchTerm('')
+  }, [])
+
+  const isLoading = authLoading || loading
+
   const activeCount = donors.filter(d => d.status === 'Active').length
   const atRiskCount = donors.filter(d => d.status === 'At Risk').length
-  const activePledgeCount = donors.filter(d => d.hasActivePledge).length
+  const lapsedCount = donors.filter(d => d.status === 'Lapsed').length
+  const activePledgeCount = donors.filter(d => d.has_active_pledge).length
+  const totalGiven = donors.reduce((sum, d) => sum + (d.total_given || 0), 0)
   const monthlyPledgeTotal = donors.reduce((sum, d) => {
     const activePledge = d.pledges.find(p => p.status === 'active')
     if (!activePledge) return sum
@@ -803,9 +709,11 @@ export default function DonorsPage() {
     if (address.street2) parts.push(address.street2)
     const cityLine = [address.city, address.state, address.zip].filter(Boolean).join(', ')
     if (cityLine) parts.push(cityLine)
-    if (address.country && address.country !== 'United States') parts.push(address.country)
+    if (address.country && address.country !== 'United States' && address.country !== 'USA') parts.push(address.country)
     return parts
   }
+
+  const hasActiveFilters = statusFilter !== 'All' || tagFilter.length > 0 || pledgeFilter !== 'All' || searchTerm.length > 0
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -851,7 +759,7 @@ export default function DonorsPage() {
             <div className="flex items-start justify-between">
               <div className="space-y-0.5">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Given</p>
-                <p className="text-xl font-bold tracking-tight text-zinc-900">{formatCurrency(donors.reduce((sum, d) => sum + (d.total_given || 0), 0))}</p>
+                <p className="text-xl font-bold tracking-tight text-zinc-900">{formatCurrency(totalGiven)}</p>
                 <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Lifetime</span>
               </div>
               <div className="h-9 w-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center">
@@ -860,34 +768,50 @@ export default function DonorsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-zinc-200 bg-white shadow-sm hover:border-zinc-300 transition-all rounded-xl">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Active Pledges</p>
-                <p className="text-xl font-bold tracking-tight text-zinc-900">{activePledgeCount}</p>
-                <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-wider">{formatCurrency(monthlyPledgeTotal)}/mo</span>
+        <button 
+          onClick={() => handleStatCardClick('activePledge')}
+          className="text-left w-full"
+        >
+          <Card className={cn(
+            'border-zinc-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all rounded-xl cursor-pointer',
+            pledgeFilter === 'Active' && 'border-blue-400 ring-2 ring-blue-100'
+          )}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Active Pledges</p>
+                  <p className="text-xl font-bold tracking-tight text-zinc-900">{activePledgeCount}</p>
+                  <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-wider">{formatCurrency(monthlyPledgeTotal)}/mo</span>
+                </div>
+                <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                </div>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
-                <Calendar className="h-4 w-4 text-blue-600" />
+            </CardContent>
+          </Card>
+        </button>
+        <button 
+          onClick={() => handleStatCardClick('atRisk')}
+          className="text-left w-full"
+        >
+          <Card className={cn(
+            'border-zinc-200 bg-white shadow-sm hover:border-amber-300 hover:shadow-md transition-all rounded-xl cursor-pointer',
+            statusFilter === 'At Risk' && 'border-amber-400 ring-2 ring-amber-100'
+          )}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Needs Attention</p>
+                  <p className="text-xl font-bold tracking-tight text-zinc-900">{atRiskCount + lapsedCount}</p>
+                  <span className="text-[10px] font-medium text-amber-500 uppercase tracking-wider">{atRiskCount} at risk, {lapsedCount} lapsed</span>
+                </div>
+                <div className="h-9 w-9 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-zinc-200 bg-white shadow-sm hover:border-zinc-300 transition-all rounded-xl">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">At Risk</p>
-                <p className="text-xl font-bold tracking-tight text-zinc-900">{atRiskCount}</p>
-                <span className="text-[10px] font-medium text-amber-500 uppercase tracking-wider">Needs attention</span>
-              </div>
-              <div className="h-9 w-9 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -895,7 +819,9 @@ export default function DonorsPage() {
           <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-zinc-100 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Partner List</h2>
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  Partner List {hasActiveFilters && <span className="text-blue-600">({filteredDonors.length})</span>}
+                </h2>
                 <div className="flex gap-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -933,11 +859,11 @@ export default function DonorsPage() {
                   </DropdownMenu>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className={cn('h-8 w-8 rounded-lg', (statusFilter !== 'All' || tagFilter.length > 0 || pledgeFilter !== 'All') ? 'text-blue-600 bg-blue-50' : 'text-zinc-400 hover:text-zinc-900')}>
+                      <Button variant="ghost" size="icon" className={cn('h-8 w-8 rounded-lg', hasActiveFilters ? 'text-blue-600 bg-blue-50' : 'text-zinc-400 hover:text-zinc-900')}>
                         <Filter className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 rounded-xl border-zinc-100 shadow-xl">
+                    <DropdownMenuContent align="end" className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto">
                       <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Filter by Status</DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       {['All', 'Active', 'New', 'Lapsed', 'At Risk'].map(s => (
@@ -966,7 +892,7 @@ export default function DonorsPage() {
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Filter by Tag</DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
-                      {AVAILABLE_TAGS.slice(0, 6).map(tag => (
+                      {AVAILABLE_TAGS.map(tag => (
                         <DropdownMenuCheckboxItem
                           key={tag.id}
                           checked={tagFilter.includes(tag.id)}
@@ -978,11 +904,11 @@ export default function DonorsPage() {
                           {tag.label}
                         </DropdownMenuCheckboxItem>
                       ))}
-                      {(statusFilter !== 'All' || tagFilter.length > 0 || pledgeFilter !== 'All') && (
+                      {hasActiveFilters && (
                         <>
                           <DropdownMenuSeparator className="bg-zinc-100" />
                           <DropdownMenuItem 
-                            onClick={() => { setStatusFilter('All'); setTagFilter([]); setPledgeFilter('All') }}
+                            onClick={clearAllFilters}
                             className="text-xs font-medium text-rose-600"
                           >
                             Clear All Filters
@@ -1002,7 +928,7 @@ export default function DonorsPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              {(tagFilter.length > 0 || statusFilter !== 'All' || pledgeFilter !== 'All') && (
+              {hasActiveFilters && (
                 <div className="flex flex-wrap gap-1.5">
                   {statusFilter !== 'All' && (
                     <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200">
@@ -1028,6 +954,12 @@ export default function DonorsPage() {
                       </button>
                     </Badge>
                   ))}
+                  <button 
+                    onClick={clearAllFilters}
+                    className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
+                  >
+                    Clear All
+                  </button>
                 </div>
               )}
             </div>
@@ -1035,7 +967,7 @@ export default function DonorsPage() {
             <ScrollArea className="h-[calc(100vh-30rem)]">
               {error ? (
                 <ErrorState message={error} onRetry={fetchDonors} />
-              ) : loading ? (
+              ) : isLoading ? (
                 <DonorListSkeleton />
               ) : filteredDonors.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center p-6">
@@ -1043,7 +975,19 @@ export default function DonorsPage() {
                     <Search className="h-6 w-6 text-zinc-300" />
                   </div>
                   <p className="text-sm font-bold text-zinc-900">No partners found</p>
-                  <p className="text-xs text-zinc-400 mt-1">Try adjusting your search or filters</p>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    {hasActiveFilters ? 'Try adjusting your filters' : 'Add your first partner to get started'}
+                  </p>
+                  {hasActiveFilters && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={clearAllFilters}
+                      className="mt-4 h-8 rounded-xl text-xs"
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="p-2 space-y-1">
@@ -1073,7 +1017,7 @@ export default function DonorsPage() {
                           <span className={cn('font-bold text-sm truncate', selectedDonorId === donor.id ? 'text-white' : 'text-zinc-900')}>
                             {donor.name}
                           </span>
-                          {donor.hasActivePledge && (
+                          {donor.has_active_pledge && (
                             <div className={cn('h-2 w-2 rounded-full shrink-0 ml-1', selectedDonorId === donor.id ? 'bg-emerald-400' : 'bg-emerald-500')} title="Active pledge" />
                           )}
                         </div>
@@ -1127,11 +1071,11 @@ export default function DonorsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" onClick={() => setIsNoteDialogOpen(true)}>
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" onClick={() => { setActivityType('note'); setIsNoteDialogOpen(true) }}>
                       <Pencil className="h-3.5 w-3.5 mr-1.5" /> Note
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" asChild>
-                      <a href={`tel:${selectedDonor.phone}`}>
+                      <a href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}>
                         <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
                       </a>
                     </Button>
@@ -1149,11 +1093,21 @@ export default function DonorsPage() {
                       <DropdownMenuContent align="end" className="rounded-xl border-zinc-100 shadow-xl">
                         <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator className="bg-zinc-100" />
+                        <DropdownMenuItem onClick={openEditDialog} className="text-xs font-medium">
+                          <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Profile
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setIsTagDialogOpen(true)} className="text-xs font-medium">
                           <Tag className="h-3.5 w-3.5 mr-2" /> Manage Tags
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-xs font-medium">
-                          <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Profile
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        <DropdownMenuItem onClick={() => { setActivityType('call'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
+                          <Phone className="h-3.5 w-3.5 mr-2" /> Log Call
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setActivityType('meeting'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
+                          <Briefcase className="h-3.5 w-3.5 mr-2" /> Log Meeting
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setActivityType('email'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
+                          <Mail className="h-3.5 w-3.5 mr-2" /> Log Email
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1181,7 +1135,7 @@ export default function DonorsPage() {
                     <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Frequency</p>
                     <div className="flex items-center gap-1.5">
                       <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
-                      <p className="text-sm font-bold text-zinc-900">{selectedDonor.frequency}</p>
+                      <p className="text-sm font-bold text-zinc-900">{selectedDonor.frequency || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
@@ -1191,7 +1145,7 @@ export default function DonorsPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1.5 mt-4">
-                  {selectedDonor.tags.map(tag => (
+                  {(selectedDonor.tags || []).map(tag => (
                     <Badge key={tag} variant="outline" className={cn('text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border', getTagStyle(tag))}>
                       {getTagLabel(tag)}
                     </Badge>
@@ -1249,15 +1203,38 @@ export default function DonorsPage() {
                         />
                         <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-100">
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest", activityType === 'call' ? 'bg-blue-50 text-blue-600' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
+                              onClick={() => setActivityType('call')}
+                            >
                               <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest", activityType === 'meeting' ? 'bg-emerald-50 text-emerald-600' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
+                              onClick={() => setActivityType('meeting')}
+                            >
                               <Briefcase className="h-3.5 w-3.5 mr-1.5" /> Meeting
                             </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest hidden sm:flex", activityType === 'note' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
+                              onClick={() => setActivityType('note')}
+                            >
+                              <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Note
+                            </Button>
                           </div>
-                          <Button size="sm" className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest" onClick={handleAddNote} disabled={!noteInput.trim()}>
-                            Post <Send className="h-3 w-3 ml-1.5" />
+                          <Button 
+                            size="sm" 
+                            className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest" 
+                            onClick={handleAddNote} 
+                            disabled={!noteInput.trim() || isSavingNote}
+                          >
+                            {isSavingNote ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Post <Send className="h-3 w-3 ml-1.5" /></>}
                           </Button>
                         </div>
                       </div>
@@ -1278,9 +1255,9 @@ export default function DonorsPage() {
                             <div key={activity.id} className="relative pl-10 group">
                               <div className={cn(
                                 'absolute left-0 top-1 h-8 w-8 rounded-xl flex items-center justify-center shadow-sm z-10 transition-transform group-hover:scale-110',
-                                getActivityBg(activity.type)
+                                getActivityBg(activity.type as ActivityType)
                               )}>
-                                {getActivityIcon(activity.type)}
+                                {getActivityIcon(activity.type as ActivityType)}
                               </div>
                               
                               <div className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-200/40 transition-all">
@@ -1298,10 +1275,10 @@ export default function DonorsPage() {
                                           {formatCurrency(activity.amount)}
                                         </Badge>
                                       )}
-                                      {activity.giftType && (
+                                      {activity.gift_type && (
                                         <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-400">
-                                          {getGiftTypeIcon(activity.giftType)}
-                                          {activity.giftType}
+                                          {getGiftTypeIcon(activity.gift_type)}
+                                          {activity.gift_type}
                                         </span>
                                       )}
                                       {activity.status === 'Failed' && (
@@ -1341,16 +1318,18 @@ export default function DonorsPage() {
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Email</p>
-                                    {selectedDonor.preferredContact === 'email' && (
+                                    {selectedDonor.preferred_contact === 'email' && (
                                       <Badge className="bg-blue-50 text-blue-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.email}</p>
+                                  <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.email || 'N/A'}</p>
                                 </div>
                               </div>
-                              <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl" onClick={() => copyToClipboard(selectedDonor.email, 'Email')}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
+                              {selectedDonor.email && (
+                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl" onClick={() => copyToClipboard(selectedDonor.email, 'Email')}>
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
                               <div className="flex items-center gap-3">
@@ -1360,7 +1339,7 @@ export default function DonorsPage() {
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Phone</p>
-                                    {selectedDonor.preferredContact === 'phone' && (
+                                    {selectedDonor.preferred_contact === 'phone' && (
                                       <Badge className="bg-emerald-50 text-emerald-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
                                     )}
                                   </div>
@@ -1382,7 +1361,7 @@ export default function DonorsPage() {
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                       <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Mobile</p>
-                                      {selectedDonor.preferredContact === 'text' && (
+                                      {selectedDonor.preferred_contact === 'text' && (
                                         <Badge className="bg-purple-50 text-purple-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
                                       )}
                                     </div>
@@ -1394,7 +1373,7 @@ export default function DonorsPage() {
                                 </Button>
                               </div>
                             )}
-                            {selectedDonor.workPhone && (
+                            {selectedDonor.work_phone && (
                               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
                                 <div className="flex items-center gap-3">
                                   <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-600 flex items-center justify-center">
@@ -1402,10 +1381,10 @@ export default function DonorsPage() {
                                   </div>
                                   <div className="min-w-0">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Work Phone</p>
-                                    <p className="text-sm font-medium text-zinc-900">{selectedDonor.workPhone}</p>
+                                    <p className="text-sm font-medium text-zinc-900">{selectedDonor.work_phone}</p>
                                   </div>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl" onClick={() => copyToClipboard(selectedDonor.workPhone!, 'Work Phone')}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl" onClick={() => copyToClipboard(selectedDonor.work_phone!, 'Work Phone')}>
                                   <Copy className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -1422,7 +1401,7 @@ export default function DonorsPage() {
                                   </div>
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl" asChild>
-                                  <a href={`https://${selectedDonor.website}`} target="_blank" rel="noopener noreferrer">
+                                  <a href={selectedDonor.website.startsWith('http') ? selectedDonor.website : `https://${selectedDonor.website}`} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="h-4 w-4" />
                                   </a>
                                 </Button>
@@ -1440,7 +1419,7 @@ export default function DonorsPage() {
                                   <Home className="h-4 w-4" />
                                 </div>
                                 <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Home Address</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Address</p>
                                   {selectedDonor.address?.street ? (
                                     formatAddress(selectedDonor.address).map((line, i) => (
                                       <p key={i} className={cn('text-sm', i === 0 ? 'font-medium text-zinc-900' : 'text-zinc-500')}>{line}</p>
@@ -1459,29 +1438,6 @@ export default function DonorsPage() {
                               )}
                             </div>
                           </div>
-
-                          {selectedDonor.workAddress?.street && (
-                            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-start gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
-                                    <Building2 className="h-4 w-4" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Work Address</p>
-                                    {formatAddress(selectedDonor.workAddress).map((line, i) => (
-                                      <p key={i} className={cn('text-sm', i === 0 ? 'font-medium text-zinc-900' : 'text-zinc-500')}>{line}</p>
-                                    ))}
-                                  </div>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl" asChild>
-                                  <a href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.workAddress).join(', '))}`} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              </div>
-                            </div>
-                          )}
 
                           {(selectedDonor.organization || selectedDonor.title) && (
                             <>
@@ -1529,7 +1485,7 @@ export default function DonorsPage() {
                                       </div>
                                       <div>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Birthday</p>
-                                        <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.birthday), 'MMMM d, yyyy')}</p>
+                                        <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.birthday), 'MMMM d')}</p>
                                       </div>
                                     </div>
                                   </div>
@@ -1542,11 +1498,20 @@ export default function DonorsPage() {
                                       </div>
                                       <div>
                                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Anniversary</p>
-                                        <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.anniversary), 'MMMM d, yyyy')}</p>
+                                        <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.anniversary), 'MMMM d')}</p>
                                       </div>
                                     </div>
                                   </div>
                                 )}
+                              </div>
+                            </>
+                          )}
+
+                          {selectedDonor.notes && (
+                            <>
+                              <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-6">Notes</h3>
+                              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                <p className="text-sm text-zinc-600">{selectedDonor.notes}</p>
                               </div>
                             </>
                           )}
@@ -1562,9 +1527,6 @@ export default function DonorsPage() {
                           </div>
                           <p className="text-sm font-bold text-zinc-900">No pledges recorded</p>
                           <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">When this partner makes a pledge commitment, it will appear here.</p>
-                          <Button className="mt-6 h-10 px-6 rounded-xl" size="sm">
-                            <Plus className="h-4 w-4 mr-2" /> Record Pledge
-                          </Button>
                         </div>
                       ) : (
                         <div className="space-y-4">
@@ -1578,18 +1540,18 @@ export default function DonorsPage() {
                               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                                 <div>
                                   <div className="flex items-center gap-3 mb-1">
-                                    <h4 className="text-lg font-bold text-zinc-900">{formatCurrency(pledge.amount)}/{pledge.frequency.toLowerCase()}</h4>
-                                    {getPledgeStatusBadge(pledge.status)}
+                                    <h4 className="text-lg font-bold text-zinc-900">{formatCurrency(Number(pledge.amount))}/{pledge.frequency.toLowerCase()}</h4>
+                                    {getPledgeStatusBadge(pledge.status as PledgeStatus)}
                                   </div>
                                   <p className="text-xs text-zinc-500">
-                                    Started {format(new Date(pledge.startDate), 'MMMM d, yyyy')}
-                                    {pledge.endDate && ` • Ends ${format(new Date(pledge.endDate), 'MMMM d, yyyy')}`}
+                                    Started {format(new Date(pledge.start_date), 'MMMM d, yyyy')}
+                                    {pledge.end_date && ` • Ends ${format(new Date(pledge.end_date), 'MMMM d, yyyy')}`}
                                   </p>
                                 </div>
-                                {pledge.status === 'active' && pledge.nextPaymentDate && (
+                                {pledge.status === 'active' && pledge.next_payment_date && (
                                   <div className="text-right">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Next Payment</p>
-                                    <p className="text-sm font-bold text-zinc-900">{format(new Date(pledge.nextPaymentDate), 'MMM d, yyyy')}</p>
+                                    <p className="text-sm font-bold text-zinc-900">{format(new Date(pledge.next_payment_date), 'MMM d, yyyy')}</p>
                                   </div>
                                 )}
                               </div>
@@ -1597,26 +1559,26 @@ export default function DonorsPage() {
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 <div>
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Total Paid</p>
-                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(pledge.totalPaid)}</p>
+                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(Number(pledge.total_paid))}</p>
                                 </div>
                                 <div>
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Expected</p>
-                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(pledge.totalExpected)}</p>
+                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(Number(pledge.total_expected))}</p>
                                 </div>
                                 <div>
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Completed</p>
-                                  <p className="text-sm font-bold text-zinc-900">{pledge.paymentsCompleted} payments</p>
+                                  <p className="text-sm font-bold text-zinc-900">{pledge.payments_completed} payments</p>
                                 </div>
                                 <div>
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Remaining</p>
-                                  <p className="text-sm font-bold text-zinc-900">{pledge.paymentsRemaining} payments</p>
+                                  <p className="text-sm font-bold text-zinc-900">{pledge.payments_remaining} payments</p>
                                 </div>
                               </div>
 
                               <div className="mt-4">
                                 <div className="flex items-center justify-between mb-1.5">
                                   <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Progress</span>
-                                  <span className="text-xs font-bold text-zinc-600">{Math.round((pledge.totalPaid / pledge.totalExpected) * 100)}%</span>
+                                  <span className="text-xs font-bold text-zinc-600">{Math.round((Number(pledge.total_paid) / Number(pledge.total_expected)) * 100)}%</span>
                                 </div>
                                 <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
                                   <div 
@@ -1625,7 +1587,7 @@ export default function DonorsPage() {
                                       pledge.status === 'active' ? 'bg-emerald-500' : 
                                       pledge.status === 'completed' ? 'bg-blue-500' : 'bg-zinc-400'
                                     )}
-                                    style={{ width: `${Math.min((pledge.totalPaid / pledge.totalExpected) * 100, 100)}%` }}
+                                    style={{ width: `${Math.min((Number(pledge.total_paid) / Number(pledge.total_expected)) * 100, 100)}%` }}
                                   />
                                 </div>
                               </div>
@@ -1645,7 +1607,6 @@ export default function DonorsPage() {
                               <th className="px-6 py-4">Method</th>
                               <th className="px-6 py-4">Amount</th>
                               <th className="px-6 py-4">Status</th>
-                              <th className="px-6 py-4">Note</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-zinc-100">
@@ -1660,8 +1621,8 @@ export default function DonorsPage() {
                                   </td>
                                   <td className="px-6 py-4">
                                     <span className="flex items-center gap-1.5 text-zinc-500">
-                                      {gift.giftType && getGiftTypeIcon(gift.giftType)}
-                                      {gift.giftType || 'Unknown'}
+                                      {gift.gift_type && getGiftTypeIcon(gift.gift_type)}
+                                      {gift.gift_type || 'Online'}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4 font-bold text-zinc-900">
@@ -1677,14 +1638,11 @@ export default function DonorsPage() {
                                       {gift.status || 'Succeeded'}
                                     </Badge>
                                   </td>
-                                  <td className="px-6 py-4 text-zinc-400 text-xs max-w-[200px] truncate">
-                                    {gift.note || '—'}
-                                  </td>
                                 </tr>
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={6}>
+                                <td colSpan={5}>
                                   <div className="p-16 text-center">
                                     <div className="h-14 w-14 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                       <History className="h-6 w-6 text-zinc-300" />
@@ -1730,20 +1688,24 @@ export default function DonorsPage() {
       <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
         <DialogContent className="sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">Add Note</DialogTitle>
-            <DialogDescription className="text-sm text-zinc-500">Add a private note to {selectedDonor?.name}&apos;s timeline.</DialogDescription>
+            <DialogTitle className="text-lg font-bold tracking-tight">
+              {activityType === 'note' ? 'Add Note' : activityType === 'call' ? 'Log Call' : activityType === 'meeting' ? 'Log Meeting' : 'Log Email'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-zinc-500">Add to {selectedDonor?.name}&apos;s timeline.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Textarea
               value={noteInput}
               onChange={(e) => setNoteInput(e.target.value)}
-              placeholder="Type your note here..."
+              placeholder={activityType === 'call' ? 'What did you discuss?' : activityType === 'meeting' ? 'Meeting notes...' : 'Type your note here...'}
               className="min-h-[150px] resize-none rounded-xl border-zinc-200"
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setIsNoteDialogOpen(false)} className="h-10 px-6 rounded-xl border-zinc-200">Cancel</Button>
-            <Button onClick={handleAddNote} disabled={!noteInput.trim()} className="h-10 px-6 rounded-xl">Save Note</Button>
+            <Button onClick={handleAddNote} disabled={!noteInput.trim() || isSavingNote} className="h-10 px-6 rounded-xl">
+              {isSavingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1775,8 +1737,282 @@ export default function DonorsPage() {
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setIsTagDialogOpen(false)} className="h-10 px-6 rounded-xl border-zinc-200">Cancel</Button>
-            <Button onClick={handleSaveTags} className="h-10 px-6 rounded-xl">Save Tags</Button>
+            <Button onClick={handleSaveTags} disabled={isSavingTags} className="h-10 px-6 rounded-xl">
+              {isSavingTags ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Tags'}
+            </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold tracking-tight">Edit Partner</DialogTitle>
+            <DialogDescription className="text-sm text-zinc-500">Update {selectedDonor?.name}&apos;s information.</DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleSaveEdit)} className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Phone</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="mobile"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Mobile</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="preferred_contact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Preferred Contact</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
+                          <SelectItem value="text">Text</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="Individual">Individual</SelectItem>
+                          <SelectItem value="Church">Church</SelectItem>
+                          <SelectItem value="Organization">Organization</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="Lapsed">Lapsed</SelectItem>
+                          <SelectItem value="At Risk">At Risk</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="City, State" {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="street"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Street Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">City</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">State</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="zip"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">ZIP</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={editForm.control}
+                  name="organization"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Organization</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="spouse"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Spouse</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Website</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Internal Notes</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} className="min-h-[80px] resize-none bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} className="h-10 px-6 rounded-xl border-zinc-200">Cancel</Button>
+                <Button type="submit" disabled={isSavingEdit} className="h-10 px-6 rounded-xl">
+                  {isSavingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
