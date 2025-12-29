@@ -14,7 +14,6 @@ export async function GET() {
     requireAuth(auth)
     const ctx = auth as AuthenticatedContext
 
-    // Fetch base profile
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('*')
@@ -26,13 +25,25 @@ export async function GET() {
 
     let profileData = { ...profile }
 
-    // If missionary, fetch missionary specific data
     if (ctx.role === 'missionary') {
-      const { data: missionary, error: missionaryError } = await supabaseAdmin
+      let { data: missionary, error: missionaryError } = await supabaseAdmin
         .from('missionaries')
         .select('*')
         .eq('profile_id', ctx.profileId)
         .single()
+
+      if (missionaryError && missionaryError.code === 'PGRST116') {
+        const { data: newMissionary, error: createError } = await supabaseAdmin
+          .from('missionaries')
+          .insert({ profile_id: ctx.profileId })
+          .select()
+          .single()
+        
+        if (!createError && newMissionary) {
+          missionary = newMissionary
+          missionaryError = null
+        }
+      }
 
       if (!missionaryError && missionary) {
         profileData = { ...profileData, missionary }
@@ -58,11 +69,11 @@ export async function PATCH(request: NextRequest) {
       firstName, 
       lastName, 
       avatarUrl,
-      // Missionary fields
       bio,
       tagline,
       location,
       phone,
+      coverUrl,
       socialLinks
     } = body
 
@@ -86,14 +97,15 @@ export async function PATCH(request: NextRequest) {
 
     // Update missionary record if applicable
     if (ctx.role === 'missionary') {
-      const missionaryUpdates: Record<string, any> = { updated_at: new Date().toISOString() }
-      if (bio !== undefined) missionaryUpdates.bio = bio
-      if (tagline !== undefined) missionaryUpdates.tagline = tagline
-      if (location !== undefined) missionaryUpdates.location = location
-      if (phone !== undefined) missionaryUpdates.phone = phone
-      if (socialLinks !== undefined) missionaryUpdates.social_links = socialLinks
+        const missionaryUpdates: Record<string, any> = { updated_at: new Date().toISOString() }
+        if (bio !== undefined) missionaryUpdates.bio = bio
+        if (tagline !== undefined) missionaryUpdates.tagline = tagline
+        if (location !== undefined) missionaryUpdates.location = location
+        if (phone !== undefined) missionaryUpdates.phone = phone
+        if (coverUrl !== undefined) missionaryUpdates.cover_url = coverUrl
+        if (socialLinks !== undefined) missionaryUpdates.social_links = socialLinks
 
-      if (Object.keys(missionaryUpdates).length > 1) { // more than just updated_at
+        if (Object.keys(missionaryUpdates).length > 1) {
         const { data: missionary, error: missionaryError } = await supabaseAdmin
           .from('missionaries')
           .update(missionaryUpdates)
