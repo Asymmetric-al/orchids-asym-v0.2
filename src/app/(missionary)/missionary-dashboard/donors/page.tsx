@@ -74,6 +74,8 @@ import {
   Home,
   Gift,
   Loader2,
+  Repeat,
+  Ban,
 } from 'lucide-react'
 import { format, formatDistanceToNow, differenceInMonths } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -95,7 +97,7 @@ import * as z from 'zod'
 
 type ActivityType = 'gift' | 'note' | 'call' | 'email' | 'meeting' | 'pledge_started' | 'pledge_completed'
 type GiftType = 'Online' | 'Check' | 'Cash' | 'Bank Transfer' | 'Stock' | 'In-Kind'
-type PledgeStatus = 'active' | 'completed' | 'paused' | 'cancelled'
+type RecurringStatus = 'active' | 'completed' | 'paused' | 'cancelled'
 
 interface Activity {
   id: string
@@ -109,11 +111,11 @@ interface Activity {
   note?: string
 }
 
-interface Pledge {
+interface RecurringDonation {
   id: string
   amount: number
   frequency: string
-  status: PledgeStatus
+  status: RecurringStatus
   start_date: string
   end_date?: string
   next_payment_date?: string
@@ -121,6 +123,7 @@ interface Pledge {
   total_expected: number
   payments_completed: number
   payments_remaining: number
+  payment_method?: string
 }
 
 interface Address {
@@ -162,7 +165,7 @@ interface Donor {
   tags: string[]
   score: number
   activities: Activity[]
-  pledges: Pledge[]
+  recurring_donations: RecurringDonation[]
   has_active_pledge: boolean
 }
 
@@ -178,7 +181,6 @@ const AVAILABLE_TAGS = [
   { id: 'volunteer', label: 'Volunteer', color: 'bg-orange-50 text-orange-700 border-orange-200' },
   { id: 'board-member', label: 'Board Member', color: 'bg-slate-100 text-slate-700 border-slate-200' },
   { id: 'needs-followup', label: 'Needs Follow-up', color: 'bg-red-50 text-red-700 border-red-200' },
-  { id: 'young-professional', label: 'Young Professional', color: 'bg-teal-50 text-teal-700 border-teal-200' },
   { id: 'lapsed-donor', label: 'Lapsed Donor', color: 'bg-gray-100 text-gray-600 border-gray-200' },
 ]
 
@@ -211,8 +213,8 @@ const getStatusBadge = (status: string) => {
   )
 }
 
-const getPledgeStatusBadge = (status: PledgeStatus) => {
-  const styles: Record<PledgeStatus, string> = {
+const getRecurringStatusBadge = (status: RecurringStatus) => {
+  const styles: Record<RecurringStatus, string> = {
     active: 'bg-emerald-50 text-emerald-700 border-emerald-100',
     completed: 'bg-blue-50 text-blue-700 border-blue-100',
     paused: 'bg-amber-50 text-amber-700 border-amber-100',
@@ -263,6 +265,17 @@ const getGiftTypeIcon = (type: GiftType | string | undefined) => {
   }
 }
 
+const getPaymentMethodIcon = (method: string | undefined) => {
+  switch(method) {
+    case 'Credit Card':
+    case 'Online': return <CreditCard className="h-4 w-4" />
+    case 'Check': return <Mail className="h-4 w-4" />
+    case 'Bank Transfer':
+    case 'ACH': return <Building2 className="h-4 w-4" />
+    default: return <CreditCard className="h-4 w-4" />
+  }
+}
+
 const getTagStyle = (tagId: string) => {
   const tag = AVAILABLE_TAGS.find(t => t.id === tagId)
   return tag?.color || 'bg-zinc-100 text-zinc-600 border-zinc-200'
@@ -276,9 +289,9 @@ const getTagLabel = (tagId: string) => {
 function DonorListSkeleton() {
   return (
     <div className="p-3 space-y-2">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-zinc-100">
-          <Skeleton className="h-11 w-11 rounded-full" />
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-zinc-100">
+          <Skeleton className="h-10 w-10 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
@@ -322,9 +335,12 @@ const editDonorSchema = z.object({
   spouse: z.string().optional(),
   notes: z.string().optional(),
   street: z.string().optional(),
+  street2: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   zip: z.string().optional(),
+  birthday: z.string().optional(),
+  anniversary: z.string().optional(),
 })
 
 type EditDonorFormValues = z.infer<typeof editDonorSchema>
@@ -374,9 +390,12 @@ export default function DonorsPage() {
       spouse: '',
       notes: '',
       street: '',
+      street2: '',
       city: '',
       state: '',
       zip: '',
+      birthday: '',
+      anniversary: '',
     },
   })
 
@@ -426,13 +445,13 @@ export default function DonorsPage() {
         if (!acc[pledge.donor_id]) acc[pledge.donor_id] = []
         acc[pledge.donor_id].push(pledge)
         return acc
-      }, {} as Record<string, Pledge[]>)
+      }, {} as Record<string, RecurringDonation[]>)
 
       const formattedDonors: Donor[] = (donorsData || []).map(d => ({
         ...d,
         initials: d.name ? d.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : '??',
         activities: activitiesByDonor[d.id] || [],
-        pledges: pledgesByDonor[d.id] || [],
+        recurring_donations: pledgesByDonor[d.id] || [],
         address: d.address || {},
         work_address: d.work_address || {},
         tags: d.tags || [],
@@ -601,9 +620,12 @@ export default function DonorsPage() {
       spouse: selectedDonor.spouse || '',
       notes: selectedDonor.notes || '',
       street: selectedDonor.address?.street || '',
+      street2: selectedDonor.address?.street2 || '',
       city: selectedDonor.address?.city || '',
       state: selectedDonor.address?.state || '',
       zip: selectedDonor.address?.zip || '',
+      birthday: selectedDonor.birthday || '',
+      anniversary: selectedDonor.anniversary || '',
     })
     setIsEditDialogOpen(true)
   }, [selectedDonor, editForm])
@@ -613,6 +635,9 @@ export default function DonorsPage() {
     
     setIsSavingEdit(true)
     try {
+      const locationParts = [values.city, values.state].filter(Boolean)
+      const location = locationParts.length > 0 ? locationParts.join(', ') : values.location
+      
       const { error: updateError } = await supabase
         .from('donors')
         .update({
@@ -625,14 +650,17 @@ export default function DonorsPage() {
           type: values.type,
           status: values.status,
           frequency: values.frequency,
-          location: values.location || null,
+          location: location || null,
           website: values.website || null,
           organization: values.organization || null,
           title: values.title || null,
           spouse: values.spouse || null,
           notes: values.notes || null,
+          birthday: values.birthday || null,
+          anniversary: values.anniversary || null,
           address: {
             street: values.street || '',
+            street2: values.street2 || '',
             city: values.city || '',
             state: values.state || '',
             zip: values.zip || '',
@@ -695,7 +723,7 @@ export default function DonorsPage() {
   const activePledgeCount = donors.filter(d => d.has_active_pledge).length
   const totalGiven = donors.reduce((sum, d) => sum + (d.total_given || 0), 0)
   const monthlyPledgeTotal = donors.reduce((sum, d) => {
-    const activePledge = d.pledges.find(p => p.status === 'active')
+    const activePledge = d.recurring_donations.find(p => p.status === 'active')
     if (!activePledge) return sum
     const monthly = activePledge.frequency === 'Monthly' ? activePledge.amount :
                     activePledge.frequency === 'Quarterly' ? activePledge.amount / 3 :
@@ -779,12 +807,12 @@ export default function DonorsPage() {
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Active Pledges</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Recurring</p>
                   <p className="text-xl font-bold tracking-tight text-zinc-900">{activePledgeCount}</p>
                   <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-wider">{formatCurrency(monthlyPledgeTotal)}/mo</span>
                 </div>
                 <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
-                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <Repeat className="h-4 w-4 text-blue-600" />
                 </div>
               </div>
             </CardContent>
@@ -814,10 +842,10 @@ export default function DonorsPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-4 xl:col-span-3">
-          <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-zinc-100 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-22rem)]">
+        <div className="lg:col-span-4 xl:col-span-3 flex flex-col">
+          <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm flex-1 flex flex-col">
+            <div className="p-4 border-b border-zinc-100 space-y-4 shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                   Partner List {hasActiveFilters && <span className="text-blue-600">({filteredDonors.length})</span>}
@@ -877,7 +905,7 @@ export default function DonorsPage() {
                         </DropdownMenuCheckboxItem>
                       ))}
                       <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Filter by Pledge</DropdownMenuLabel>
+                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Recurring Donations</DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       {['All', 'Active', 'Inactive'].map(p => (
                         <DropdownMenuCheckboxItem
@@ -886,7 +914,7 @@ export default function DonorsPage() {
                           onCheckedChange={() => setPledgeFilter(p)}
                           className="text-xs font-medium"
                         >
-                          {p === 'Active' ? 'Has Active Pledge' : p === 'Inactive' ? 'No Active Pledge' : 'All'}
+                          {p === 'Active' ? 'Has Recurring' : p === 'Inactive' ? 'No Recurring' : 'All'}
                         </DropdownMenuCheckboxItem>
                       ))}
                       <DropdownMenuSeparator className="bg-zinc-100" />
@@ -940,7 +968,7 @@ export default function DonorsPage() {
                   )}
                   {pledgeFilter !== 'All' && (
                     <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200">
-                      {pledgeFilter === 'Active' ? 'Has Pledge' : 'No Pledge'}
+                      {pledgeFilter === 'Active' ? 'Has Recurring' : 'No Recurring'}
                       <button onClick={() => setPledgeFilter('All')} className="ml-1 hover:text-blue-900">
                         <X className="h-2.5 w-2.5" />
                       </button>
@@ -964,7 +992,7 @@ export default function DonorsPage() {
               )}
             </div>
 
-            <ScrollArea className="h-[calc(100vh-30rem)]">
+            <ScrollArea className="flex-1">
               {error ? (
                 <ErrorState message={error} onRetry={fetchDonors} />
               ) : isLoading ? (
@@ -1018,7 +1046,7 @@ export default function DonorsPage() {
                             {donor.name}
                           </span>
                           {donor.has_active_pledge && (
-                            <div className={cn('h-2 w-2 rounded-full shrink-0 ml-1', selectedDonorId === donor.id ? 'bg-emerald-400' : 'bg-emerald-500')} title="Active pledge" />
+                            <div className={cn('h-2 w-2 rounded-full shrink-0 ml-1', selectedDonorId === donor.id ? 'bg-emerald-400' : 'bg-emerald-500')} title="Active recurring donation" />
                           )}
                         </div>
                         <div className="flex items-center justify-between">
@@ -1039,10 +1067,10 @@ export default function DonorsPage() {
           </Card>
         </div>
 
-        <div className="lg:col-span-8 xl:col-span-9">
+        <div className="lg:col-span-8 xl:col-span-9 flex flex-col">
           {selectedDonor ? (
-            <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm">
-              <div className="border-b border-zinc-100 p-6">
+            <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm flex-1 flex flex-col">
+              <div className="border-b border-zinc-100 p-6 shrink-0">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100" onClick={() => setSelectedDonorId(null)}>
@@ -1161,8 +1189,8 @@ export default function DonorsPage() {
                 </div>
               </div>
 
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="px-6 py-4 border-b border-zinc-100">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+                <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
                   <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-4 sm:flex">
                     <TabsTrigger 
                       value="overview" 
@@ -1177,10 +1205,10 @@ export default function DonorsPage() {
                       Contact
                     </TabsTrigger>
                     <TabsTrigger 
-                      value="pledges" 
+                      value="recurring" 
                       className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
                     >
-                      Pledges
+                      Recurring
                     </TabsTrigger>
                     <TabsTrigger 
                       value="giving" 
@@ -1191,7 +1219,7 @@ export default function DonorsPage() {
                   </TabsList>
                 </div>
 
-                <ScrollArea className="h-[calc(100vh-42rem)]">
+                <ScrollArea className="flex-1">
                   <div className="p-6">
                     <TabsContent value="overview" className="mt-0 space-y-6">
                       <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
@@ -1306,9 +1334,15 @@ export default function DonorsPage() {
                     </TabsContent>
 
                     <TabsContent value="contact" className="mt-0 space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Contact Information</h3>
+                        <Button variant="outline" size="sm" onClick={openEditDialog} className="h-8 px-3 text-[10px] font-black uppercase tracking-widest rounded-lg">
+                          <Pencil className="h-3 w-3 mr-1.5" /> Edit
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="space-y-4">
-                          <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Contact Information</h3>
                           <div className="space-y-3">
                             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
                               <div className="flex items-center gap-3">
@@ -1322,7 +1356,7 @@ export default function DonorsPage() {
                                       <Badge className="bg-blue-50 text-blue-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.email || 'N/A'}</p>
+                                  <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.email || 'Not provided'}</p>
                                 </div>
                               </div>
                               {selectedDonor.email && (
@@ -1331,6 +1365,7 @@ export default function DonorsPage() {
                                 </Button>
                               )}
                             </div>
+                            
                             <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
                               <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -1343,7 +1378,7 @@ export default function DonorsPage() {
                                       <Badge className="bg-emerald-50 text-emerald-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
                                     )}
                                   </div>
-                                  <p className="text-sm font-medium text-zinc-900">{selectedDonor.phone || 'N/A'}</p>
+                                  <p className="text-sm font-medium text-zinc-900">{selectedDonor.phone || 'Not provided'}</p>
                                 </div>
                               </div>
                               {selectedDonor.phone && (
@@ -1352,27 +1387,29 @@ export default function DonorsPage() {
                                 </Button>
                               )}
                             </div>
-                            {selectedDonor.mobile && (
-                              <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                                    <MessageSquare className="h-4 w-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Mobile</p>
-                                      {selectedDonor.preferred_contact === 'text' && (
-                                        <Badge className="bg-purple-50 text-purple-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
-                                      )}
-                                    </div>
-                                    <p className="text-sm font-medium text-zinc-900">{selectedDonor.mobile}</p>
-                                  </div>
+                            
+                            <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                                  <MessageSquare className="h-4 w-4" />
                                 </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Mobile</p>
+                                    {selectedDonor.preferred_contact === 'text' && (
+                                      <Badge className="bg-purple-50 text-purple-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm font-medium text-zinc-900">{selectedDonor.mobile || 'Not provided'}</p>
+                                </div>
+                              </div>
+                              {selectedDonor.mobile && (
                                 <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl" onClick={() => copyToClipboard(selectedDonor.mobile!, 'Mobile')}>
                                   <Copy className="h-4 w-4" />
                                 </Button>
-                              </div>
-                            )}
+                              )}
+                            </div>
+                            
                             {selectedDonor.work_phone && (
                               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
                                 <div className="flex items-center gap-3">
@@ -1389,6 +1426,7 @@ export default function DonorsPage() {
                                 </Button>
                               </div>
                             )}
+                            
                             {selectedDonor.website && (
                               <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
                                 <div className="flex items-center gap-3">
@@ -1410,38 +1448,40 @@ export default function DonorsPage() {
                           </div>
                         </div>
 
-                        <div className="space-y-4">
-                          <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Address</h3>
-                          <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
-                                  <Home className="h-4 w-4" />
+                        <div className="space-y-6">
+                          <div className="space-y-4">
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Address</h4>
+                            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                  <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                    <Home className="h-4 w-4" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Home Address</p>
+                                    {selectedDonor.address?.street ? (
+                                      formatAddress(selectedDonor.address).map((line, i) => (
+                                        <p key={i} className={cn('text-sm', i === 0 ? 'font-medium text-zinc-900' : 'text-zinc-500')}>{line}</p>
+                                      ))
+                                    ) : (
+                                      <p className="text-sm text-zinc-400">No address on file</p>
+                                    )}
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Address</p>
-                                  {selectedDonor.address?.street ? (
-                                    formatAddress(selectedDonor.address).map((line, i) => (
-                                      <p key={i} className={cn('text-sm', i === 0 ? 'font-medium text-zinc-900' : 'text-zinc-500')}>{line}</p>
-                                    ))
-                                  ) : (
-                                    <p className="text-sm text-zinc-500">No address on file</p>
-                                  )}
-                                </div>
+                                {selectedDonor.address?.street && (
+                                  <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl" asChild>
+                                    <a href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(', '))}`} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
                               </div>
-                              {selectedDonor.address?.street && (
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl" asChild>
-                                  <a href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(', '))}`} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              )}
                             </div>
                           </div>
 
                           {(selectedDonor.organization || selectedDonor.title) && (
-                            <>
-                              <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-6">Organization</h3>
+                            <div className="space-y-4">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Organization</h4>
                               <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                                 <div className="flex items-start gap-3">
                                   <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
@@ -1457,12 +1497,12 @@ export default function DonorsPage() {
                                   </div>
                                 </div>
                               </div>
-                            </>
+                            </div>
                           )}
 
                           {(selectedDonor.spouse || selectedDonor.birthday || selectedDonor.anniversary) && (
-                            <>
-                              <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-6">Personal Details</h3>
+                            <div className="space-y-4">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Personal Details</h4>
                               <div className="space-y-3">
                                 {selectedDonor.spouse && (
                                   <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
@@ -1504,92 +1544,141 @@ export default function DonorsPage() {
                                   </div>
                                 )}
                               </div>
-                            </>
+                            </div>
                           )}
 
                           {selectedDonor.notes && (
-                            <>
-                              <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-6">Notes</h3>
+                            <div className="space-y-4">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Notes</h4>
                               <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
                                 <p className="text-sm text-zinc-600">{selectedDonor.notes}</p>
                               </div>
-                            </>
+                            </div>
                           )}
                         </div>
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="pledges" className="mt-0 space-y-6">
-                      {selectedDonor.pledges.length === 0 ? (
+                    <TabsContent value="recurring" className="mt-0 space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-bold text-zinc-900">Recurring Donations</h3>
+                          <p className="text-xs text-zinc-500 mt-0.5">Manage scheduled giving commitments</p>
+                        </div>
+                      </div>
+                      
+                      {selectedDonor.recurring_donations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                           <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4">
-                            <TrendingUp className="h-7 w-7 text-zinc-300" />
+                            <Repeat className="h-7 w-7 text-zinc-300" />
                           </div>
-                          <p className="text-sm font-bold text-zinc-900">No pledges recorded</p>
-                          <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">When this partner makes a pledge commitment, it will appear here.</p>
+                          <p className="text-sm font-bold text-zinc-900">No recurring donations</p>
+                          <p className="text-xs text-zinc-400 mt-1 max-w-[300px]">When this partner sets up a recurring donation, it will appear here with all the details.</p>
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          {selectedDonor.pledges.map((pledge) => (
-                            <div key={pledge.id} className={cn(
-                              'p-5 rounded-2xl border transition-all',
-                              pledge.status === 'active' 
-                                ? 'bg-emerald-50/50 border-emerald-200' 
-                                : 'bg-zinc-50 border-zinc-200'
+                          {selectedDonor.recurring_donations.map((donation) => (
+                            <div key={donation.id} className={cn(
+                              'rounded-2xl border transition-all overflow-hidden',
+                              donation.status === 'active' 
+                                ? 'bg-white border-emerald-200' 
+                                : donation.status === 'cancelled'
+                                ? 'bg-zinc-50 border-zinc-200'
+                                : 'bg-white border-zinc-200'
                             )}>
-                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                                <div>
-                                  <div className="flex items-center gap-3 mb-1">
-                                    <h4 className="text-lg font-bold text-zinc-900">{formatCurrency(Number(pledge.amount))}/{pledge.frequency.toLowerCase()}</h4>
-                                    {getPledgeStatusBadge(pledge.status as PledgeStatus)}
+                              <div className={cn(
+                                'px-5 py-4 border-b',
+                                donation.status === 'active' ? 'bg-emerald-50/50 border-emerald-100' : 'bg-zinc-50 border-zinc-100'
+                              )}>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                      'h-10 w-10 rounded-xl flex items-center justify-center',
+                                      donation.status === 'active' ? 'bg-emerald-100 text-emerald-600' : 
+                                      donation.status === 'cancelled' ? 'bg-zinc-200 text-zinc-500' : 'bg-amber-100 text-amber-600'
+                                    )}>
+                                      {donation.status === 'cancelled' ? <Ban className="h-5 w-5" /> : <Repeat className="h-5 w-5" />}
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-lg font-bold text-zinc-900">{formatCurrency(Number(donation.amount))}</span>
+                                        <span className="text-sm text-zinc-500">/ {donation.frequency.toLowerCase()}</span>
+                                        {getRecurringStatusBadge(donation.status as RecurringStatus)}
+                                      </div>
+                                    </div>
                                   </div>
-                                  <p className="text-xs text-zinc-500">
-                                    Started {format(new Date(pledge.start_date), 'MMMM d, yyyy')}
-                                    {pledge.end_date && ` • Ends ${format(new Date(pledge.end_date), 'MMMM d, yyyy')}`}
-                                  </p>
+                                  {donation.status === 'active' && donation.next_payment_date && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Calendar className="h-4 w-4 text-zinc-400" />
+                                      <span className="text-zinc-500">Next:</span>
+                                      <span className="font-medium text-zinc-900">{format(new Date(donation.next_payment_date), 'MMM d, yyyy')}</span>
+                                    </div>
+                                  )}
                                 </div>
-                                {pledge.status === 'active' && pledge.next_payment_date && (
-                                  <div className="text-right">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Next Payment</p>
-                                    <p className="text-sm font-bold text-zinc-900">{format(new Date(pledge.next_payment_date), 'MMM d, yyyy')}</p>
-                                  </div>
-                                )}
                               </div>
                               
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Total Paid</p>
-                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(Number(pledge.total_paid))}</p>
+                              <div className="p-5 space-y-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                  <div className="p-3 bg-zinc-50 rounded-xl">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Started</p>
+                                    <p className="text-sm font-medium text-zinc-900">{format(new Date(donation.start_date), 'MMM d, yyyy')}</p>
+                                  </div>
+                                  <div className="p-3 bg-zinc-50 rounded-xl">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{donation.end_date ? 'Ends' : 'End Date'}</p>
+                                    <p className="text-sm font-medium text-zinc-900">
+                                      {donation.end_date ? format(new Date(donation.end_date), 'MMM d, yyyy') : 'No end date'}
+                                    </p>
+                                  </div>
+                                  <div className="p-3 bg-zinc-50 rounded-xl">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Payment Method</p>
+                                    <div className="flex items-center gap-1.5">
+                                      {getPaymentMethodIcon(donation.payment_method)}
+                                      <p className="text-sm font-medium text-zinc-900">{donation.payment_method || 'Online'}</p>
+                                    </div>
+                                  </div>
+                                  <div className="p-3 bg-zinc-50 rounded-xl">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Cadence</p>
+                                    <p className="text-sm font-medium text-zinc-900">{donation.frequency}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Expected</p>
-                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(Number(pledge.total_expected))}</p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Completed</p>
-                                  <p className="text-sm font-bold text-zinc-900">{pledge.payments_completed} payments</p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Remaining</p>
-                                  <p className="text-sm font-bold text-zinc-900">{pledge.payments_remaining} payments</p>
-                                </div>
-                              </div>
 
-                              <div className="mt-4">
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Progress</span>
-                                  <span className="text-xs font-bold text-zinc-600">{Math.round((Number(pledge.total_paid) / Number(pledge.total_expected)) * 100)}%</span>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-zinc-100">
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Total Paid</p>
+                                    <p className="text-lg font-bold text-zinc-900">{formatCurrency(Number(donation.total_paid))}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Expected Total</p>
+                                    <p className="text-lg font-bold text-zinc-900">{formatCurrency(Number(donation.total_expected))}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Payments Made</p>
+                                    <p className="text-lg font-bold text-zinc-900">{donation.payments_completed}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Remaining</p>
+                                    <p className="text-lg font-bold text-zinc-900">{donation.payments_remaining || 'Ongoing'}</p>
+                                  </div>
                                 </div>
-                                <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
-                                  <div 
-                                    className={cn(
-                                      'h-full rounded-full transition-all',
-                                      pledge.status === 'active' ? 'bg-emerald-500' : 
-                                      pledge.status === 'completed' ? 'bg-blue-500' : 'bg-zinc-400'
-                                    )}
-                                    style={{ width: `${Math.min((Number(pledge.total_paid) / Number(pledge.total_expected)) * 100, 100)}%` }}
-                                  />
-                                </div>
+
+                                {donation.total_expected > 0 && (
+                                  <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Progress</span>
+                                      <span className="text-xs font-bold text-zinc-600">{Math.round((Number(donation.total_paid) / Number(donation.total_expected)) * 100)}%</span>
+                                    </div>
+                                    <div className="h-2.5 bg-zinc-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className={cn(
+                                          'h-full rounded-full transition-all',
+                                          donation.status === 'active' ? 'bg-emerald-500' : 
+                                          donation.status === 'completed' ? 'bg-blue-500' : 'bg-zinc-400'
+                                        )}
+                                        style={{ width: `${Math.min((Number(donation.total_paid) / Number(donation.total_expected)) * 100, 100)}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -1661,13 +1750,13 @@ export default function DonorsPage() {
               </Tabs>
             </Card>
           ) : (
-            <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-[500px] flex items-center justify-center">
+            <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] flex-1 flex items-center justify-center">
               <CardContent className="p-16 text-center">
                 <div className="h-20 w-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8">
                   <User className="h-10 w-10 text-zinc-200" />
                 </div>
                 <h3 className="font-black text-2xl text-zinc-900 tracking-tight">Select a Partner</h3>
-                <p className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto">Choose a donor from the list to view their profile, pledges, and giving history.</p>
+                <p className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto">Choose a donor from the list to view their profile, recurring donations, and giving history.</p>
                 {profile?.id && (
                   <AddPartnerDialog
                     missionaryId={profile.id}
@@ -1745,179 +1834,22 @@ export default function DonorsPage() {
       </Dialog>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-2xl">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold tracking-tight">Edit Partner</DialogTitle>
             <DialogDescription className="text-sm text-zinc-500">Update {selectedDonor?.name}&apos;s information.</DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleSaveEdit)} className="space-y-6 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Phone</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="mobile"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Mobile</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="preferred_contact"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Preferred Contact</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Phone</SelectItem>
-                          <SelectItem value="text">Text</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="Individual">Individual</SelectItem>
-                          <SelectItem value="Church">Church</SelectItem>
-                          <SelectItem value="Organization">Organization</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="Active">Active</SelectItem>
-                          <SelectItem value="New">New</SelectItem>
-                          <SelectItem value="Lapsed">Lapsed</SelectItem>
-                          <SelectItem value="At Risk">At Risk</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Location</FormLabel>
-                      <FormControl>
-                        <Input placeholder="City, State" {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="street"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Street Address</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">City</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Basic Information</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
-                    name="state"
+                    name="name"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">State</FormLabel>
+                      <FormItem className="col-span-2">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Full Name</FormLabel>
                         <FormControl>
                           <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
                         </FormControl>
@@ -1927,10 +1859,135 @@ export default function DonorsPage() {
                   />
                   <FormField
                     control={editForm.control}
-                    name="zip"
+                    name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">ZIP</FormLabel>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="Individual">Individual</SelectItem>
+                            <SelectItem value="Church">Church</SelectItem>
+                            <SelectItem value="Organization">Organization</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="New">New</SelectItem>
+                            <SelectItem value="Lapsed">Lapsed</SelectItem>
+                            <SelectItem value="At Risk">At Risk</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-zinc-100">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Contact Information</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Phone</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="mobile"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Mobile</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="work_phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Work Phone</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="preferred_contact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Preferred Contact</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="phone">Phone</SelectItem>
+                            <SelectItem value="text">Text</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="website"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Website</FormLabel>
                         <FormControl>
                           <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
                         </FormControl>
@@ -1939,73 +1996,166 @@ export default function DonorsPage() {
                     )}
                   />
                 </div>
-                <FormField
-                  control={editForm.control}
-                  name="organization"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Organization</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Title</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="spouse"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Spouse</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Website</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Internal Notes</FormLabel>
-                      <FormControl>
-                        <Textarea {...field} className="min-h-[80px] resize-none bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
+
+              <div className="space-y-4 pt-4 border-t border-zinc-100">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Address</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="street"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Street Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="123 Main Street" className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="street2"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Address Line 2</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Apt, Suite, Unit, etc." className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">City</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={editForm.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">State</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={editForm.control}
+                      name="zip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">ZIP</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-zinc-100">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Personal Details</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="spouse"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Spouse</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="birthday"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Birthday</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="date" className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="anniversary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Anniversary</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="date" className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="organization"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Organization</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Title / Role</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="h-11 bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Internal Notes</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="Private notes about this partner..." className="min-h-[80px] resize-none bg-zinc-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-zinc-900/5 transition-all font-medium" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-zinc-100">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} className="h-10 px-6 rounded-xl border-zinc-200">Cancel</Button>
                 <Button type="submit" disabled={isSavingEdit} className="h-10 px-6 rounded-xl">
                   {isSavingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Changes'}
