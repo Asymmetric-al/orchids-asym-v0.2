@@ -2,6 +2,10 @@
 
 import { useMemo, useState, useEffect } from 'react'
 
+/**
+ * Types for donation metrics and chart data
+ */
+
 export interface ChartDataPoint {
   date: string
   value: number
@@ -11,6 +15,7 @@ export interface MonthlyChartDataPoint {
   month: string
   recurring: number
   oneTime: number
+  offline: number
   total: number
 }
 
@@ -30,15 +35,24 @@ export interface DonationMetrics {
   error: Error | null
 }
 
+export type DonationType = 'recurring' | 'one_time' | 'offline'
+
 interface RawDonation {
   id: string
   amount: number
-  donation_type: 'one_time' | 'recurring'
+  donation_type: DonationType
   created_at: string
   status: string
 }
 
-function aggregateByDay(donations: RawDonation[], startDate: Date, endDate: Date): ChartDataPoint[] {
+/**
+ * Aggregates donations by day within a date range
+ */
+function aggregateByDay(
+  donations: RawDonation[], 
+  startDate: Date, 
+  endDate: Date
+): ChartDataPoint[] {
   const dayMap = new Map<string, number>()
   
   const current = new Date(startDate)
@@ -61,14 +75,21 @@ function aggregateByDay(donations: RawDonation[], startDate: Date, endDate: Date
     .map(([date, value]) => ({ date, value }))
 }
 
-function aggregateByMonth(donations: RawDonation[], months: number): MonthlyChartDataPoint[] {
+/**
+ * Aggregates donations by month with breakdown by type
+ * Returns data for the specified number of months ending at current month
+ */
+function aggregateByMonth(
+  donations: RawDonation[], 
+  months: number
+): MonthlyChartDataPoint[] {
   const now = new Date()
-  const monthMap = new Map<string, { recurring: number; oneTime: number }>()
+  const monthMap = new Map<string, { recurring: number; oneTime: number; offline: number }>()
   
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const key = d.toISOString().slice(0, 7)
-    monthMap.set(key, { recurring: 0, oneTime: 0 })
+    monthMap.set(key, { recurring: 0, oneTime: 0, offline: 0 })
   }
   
   donations.forEach(d => {
@@ -77,31 +98,48 @@ function aggregateByMonth(donations: RawDonation[], months: number): MonthlyChar
     const key = date.toISOString().slice(0, 7)
     const entry = monthMap.get(key)
     if (entry) {
-      if (d.donation_type === 'recurring') {
-        entry.recurring += Number(d.amount)
-      } else {
-        entry.oneTime += Number(d.amount)
+      const amount = Number(d.amount)
+      switch (d.donation_type) {
+        case 'recurring':
+          entry.recurring += amount
+          break
+        case 'one_time':
+          entry.oneTime += amount
+          break
+        case 'offline':
+          entry.offline += amount
+          break
       }
     }
   })
   
   return Array.from(monthMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, { recurring, oneTime }]) => ({
+    .map(([key, { recurring, oneTime, offline }]) => ({
       month: formatMonth(key),
       recurring,
       oneTime,
-      total: recurring + oneTime,
+      offline,
+      total: recurring + oneTime + offline,
     }))
 }
 
+/**
+ * Formats ISO month string (YYYY-MM) to short month name
+ */
 function formatMonth(isoMonth: string): string {
   const [year, month] = isoMonth.split('-')
   const date = new Date(parseInt(year), parseInt(month) - 1, 1)
   return date.toLocaleDateString('en-US', { month: 'short' })
 }
 
-function calculateChange(current: number, previous: number): { change: number; trend: 'up' | 'down' | 'neutral' } {
+/**
+ * Calculates percentage change between two values
+ */
+function calculateChange(
+  current: number, 
+  previous: number
+): { change: number; trend: 'up' | 'down' | 'neutral' } {
   if (previous === 0) {
     return { change: current > 0 ? 100 : 0, trend: current > 0 ? 'up' : 'neutral' }
   }
@@ -112,6 +150,12 @@ function calculateChange(current: number, previous: number): { change: number; t
   }
 }
 
+/**
+ * Hook for fetching and computing donation metrics for a missionary
+ * 
+ * @param missionaryId - The UUID of the missionary
+ * @returns Donation metrics including this month, last month, YTD totals, and monthly breakdown
+ */
 export function useDonationMetrics(missionaryId: string): DonationMetrics {
   const [donations, setDonations] = useState<RawDonation[]>([])
   const [isLoading, setIsLoading] = useState(true)

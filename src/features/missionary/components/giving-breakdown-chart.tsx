@@ -13,14 +13,22 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDonationMetrics } from '@/hooks'
 
+/**
+ * Chart configuration for donation type categories
+ * Colors use a cohesive palette based on zinc/slate tones
+ */
 const chartConfig = {
   recurring: {
     label: 'Recurring',
-    color: 'oklch(0.32 0.05 255.65)',
+    color: 'oklch(0.45 0.10 250)',
   },
   oneTime: {
     label: 'One-Time',
-    color: 'oklch(0.60 0.05 255.65)',
+    color: 'oklch(0.60 0.08 250)',
+  },
+  offline: {
+    label: 'Offline',
+    color: 'oklch(0.75 0.05 250)',
   },
 } satisfies ChartConfig
 
@@ -42,6 +50,7 @@ function GivingBreakdownSkeleton() {
       <div className="flex justify-center gap-4 pt-2">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-16" />
       </div>
     </div>
   )
@@ -51,6 +60,13 @@ interface GivingBreakdownChartProps {
   missionaryId: string
 }
 
+/**
+ * GivingBreakdownChart displays a stacked bar chart showing donation trends
+ * over 13 months, broken down by donation type:
+ * - Recurring: Monthly automated donations
+ * - One-Time: Single online donations
+ * - Offline: Checks, cash, and other offline gifts
+ */
 export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps) {
   const { monthlyBreakdown, isLoading, error } = useDonationMetrics(missionaryId)
 
@@ -114,13 +130,20 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
           content={
             <ChartTooltipContent 
               indicator="dot" 
-              className="bg-white/95 backdrop-blur-xl border-zinc-200 shadow-2xl rounded-xl p-2.5 min-w-[140px] text-[10px] font-bold"
-              formatter={(value, name) => (
-                <span className="flex items-center gap-2">
-                  <span className="capitalize">{name === 'oneTime' ? 'One-Time' : name}</span>
-                  <span className="font-black">${Number(value).toLocaleString()}</span>
-                </span>
-              )}
+              className="bg-white/95 backdrop-blur-xl border-zinc-200 shadow-2xl rounded-xl p-2.5 min-w-[160px] text-[10px] font-bold"
+              formatter={(value, name) => {
+                const labels: Record<string, string> = {
+                  recurring: 'Recurring',
+                  oneTime: 'One-Time',
+                  offline: 'Offline',
+                }
+                return (
+                  <span className="flex items-center gap-2">
+                    <span>{labels[name as string] || name}</span>
+                    <span className="font-black">${Number(value).toLocaleString()}</span>
+                  </span>
+                )
+              }}
             />
           }
         />
@@ -131,15 +154,22 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
         />
         <Bar
           dataKey="recurring"
-          stackId="a"
+          stackId="donations"
           fill="var(--color-recurring)"
           radius={[0, 0, 0, 0]}
           maxBarSize={48}
         />
         <Bar
           dataKey="oneTime"
-          stackId="a"
+          stackId="donations"
           fill="var(--color-oneTime)"
+          radius={[0, 0, 0, 0]}
+          maxBarSize={48}
+        />
+        <Bar
+          dataKey="offline"
+          stackId="donations"
+          fill="var(--color-offline)"
           radius={[4, 4, 0, 0]}
           maxBarSize={48}
         />
