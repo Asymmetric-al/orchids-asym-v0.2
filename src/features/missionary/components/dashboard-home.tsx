@@ -41,8 +41,17 @@ interface DashboardHomeProps {
 }
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({ setActiveTab, missionaryId }) => {
-  const { user } = useAuth();
-  const effectiveMissionaryId = missionaryId || user?.id || DEMO_MISSIONARY_ID;
+  const { user, loading } = useAuth();
+  
+  let effectiveMissionaryId: string;
+  if (missionaryId) {
+    effectiveMissionaryId = missionaryId;
+  } else if (!loading && user?.id) {
+    effectiveMissionaryId = user.id;
+  } else {
+    effectiveMissionaryId = DEMO_MISSIONARY_ID;
+  }
+  
   const alerts = [
       { id: 1, text: "3 recurring gifts failed this week", severity: "high" },
       { id: 2, text: "Pledge from Church of Grace is past due", severity: "medium" }

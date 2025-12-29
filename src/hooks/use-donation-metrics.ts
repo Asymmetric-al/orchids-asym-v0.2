@@ -115,22 +115,29 @@ function calculateChange(current: number, previous: number): { change: number; t
 }
 
 export function useDonationMetrics(missionaryId?: string): DonationMetrics {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [donations, setDonations] = useState<RawDonation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const effectiveMissionaryId = missionaryId || user?.id
-
   useEffect(() => {
-    if (!effectiveMissionaryId) {
+    const targetId = missionaryId || user?.id
+    
+    if (!targetId && !authLoading) {
       setIsLoading(false)
       return
     }
+    
+    if (!targetId) {
+      return
+    }
 
-    const fetchDonations = async () => {
+    let cancelled = false
+
+    async function fetchData() {
       try {
         setIsLoading(true)
+        setError(null)
         const supabase = createClient()
         
         const thirteenMonthsAgo = new Date()
@@ -139,21 +146,29 @@ export function useDonationMetrics(missionaryId?: string): DonationMetrics {
         const { data, error: fetchError } = await supabase
           .from('donations')
           .select('id, amount, donation_type, created_at, status')
-          .eq('missionary_id', effectiveMissionaryId)
+          .eq('missionary_id', targetId)
           .gte('created_at', thirteenMonthsAgo.toISOString())
           .order('created_at', { ascending: true })
 
+        if (cancelled) return
         if (fetchError) throw fetchError
         setDonations(data || [])
       } catch (e) {
+        if (cancelled) return
         setError(e instanceof Error ? e : new Error('Failed to fetch donations'))
       } finally {
-        setIsLoading(false)
+        if (!cancelled) {
+          setIsLoading(false)
+        }
       }
     }
 
-    fetchDonations()
-  }, [effectiveMissionaryId])
+    fetchData()
+    
+    return () => {
+      cancelled = true
+    }
+  }, [missionaryId, user?.id, authLoading])
 
   const metrics = useMemo((): Omit<DonationMetrics, 'isLoading' | 'error'> => {
     const now = new Date()
