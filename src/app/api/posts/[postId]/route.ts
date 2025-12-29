@@ -10,14 +10,14 @@ const supabaseAdmin = createClient(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
     const auth = await getAuthContext()
     requireRole(auth, ['missionary'])
     const ctx = auth as AuthenticatedContext
     const audit = createAuditLogger(ctx, request)
-    const { postId } = params
+    const { postId } = await params
 
     const body = await request.json()
     const { content, media, status, visibility, post_type } = body
@@ -78,14 +78,14 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
     const auth = await getAuthContext()
     requireRole(auth, ['missionary'])
     const ctx = auth as AuthenticatedContext
     const audit = createAuditLogger(ctx, request)
-    const { postId } = params
+    const { postId } = await params
 
     const { data: profile } = await supabaseAdmin
       .from('profiles')
