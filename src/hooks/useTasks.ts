@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
-import type { Task, TaskFormData, TaskFilters, TaskStatus, TaskPriority, TaskType } from '@/lib/missionary/types'
+import type { Task, TaskFormData, TaskFilters, TaskStatus } from '@/lib/missionary/types'
 import { toast } from 'sonner'
 
 interface UseTasksOptions {
@@ -39,6 +39,8 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
   const { donorId, autoFetch = true } = options
   const { profile } = useAuth()
   const supabase = useMemo(() => createClient(), [])
+  const mountedRef = useRef(true)
+  const initialFetchDone = useRef(false)
 
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,6 +52,13 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     donor_id: donorId || null,
     search: '',
   })
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   const fetchTasks = useCallback(async () => {
     if (!profile?.id) {
@@ -85,21 +94,30 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         donor: task.donor || null,
       }))
 
-      setTasks(formattedTasks)
+      if (mountedRef.current) {
+        setTasks(formattedTasks)
+        initialFetchDone.current = true
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch tasks'
-      setError(message)
+      if (mountedRef.current) {
+        setError(message)
+      }
       console.error('Tasks fetch error:', err)
     } finally {
-      setLoading(false)
+      if (mountedRef.current) {
+        setLoading(false)
+      }
     }
   }, [profile?.id, supabase, donorId])
 
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && profile?.id && !initialFetchDone.current) {
       fetchTasks()
+    } else if (!profile?.id && !initialFetchDone.current) {
+      setLoading(false)
     }
-  }, [fetchTasks, autoFetch])
+  }, [fetchTasks, autoFetch, profile?.id])
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -202,7 +220,9 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         donor: newTask.donor || null,
       }
 
-      setTasks(prev => [formattedTask, ...prev])
+      if (mountedRef.current) {
+        setTasks(prev => [formattedTask, ...prev])
+      }
       toast.success('Task created successfully')
       return formattedTask
     } catch (err) {
@@ -256,7 +276,9 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       if (deleteError) throw deleteError
 
-      setTasks(prev => prev.filter(t => t.id !== id))
+      if (mountedRef.current) {
+        setTasks(prev => prev.filter(t => t.id !== id))
+      }
       toast.success('Task deleted')
       return true
     } catch (err) {
@@ -280,11 +302,13 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       if (updateError) throw updateError
 
-      setTasks(prev => prev.map(t =>
-        t.id === id
-          ? { ...t, status: 'completed' as TaskStatus, completed_at: new Date().toISOString() }
-          : t
-      ))
+      if (mountedRef.current) {
+        setTasks(prev => prev.map(t =>
+          t.id === id
+            ? { ...t, status: 'completed' as TaskStatus, completed_at: new Date().toISOString() }
+            : t
+        ))
+      }
       toast.success('Task completed')
       return true
     } catch (err) {
@@ -308,11 +332,13 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       if (updateError) throw updateError
 
-      setTasks(prev => prev.map(t =>
-        t.id === id
-          ? { ...t, status: 'not_started' as TaskStatus, completed_at: null }
-          : t
-      ))
+      if (mountedRef.current) {
+        setTasks(prev => prev.map(t =>
+          t.id === id
+            ? { ...t, status: 'not_started' as TaskStatus, completed_at: null }
+            : t
+        ))
+      }
       toast.success('Task reopened')
       return true
     } catch (err) {
