@@ -13,10 +13,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDonationMetrics } from '@/hooks'
 
-/**
- * Chart configuration for donation type categories
- * Colors use a cohesive palette based on zinc/slate tones
- */
 const chartConfig = {
   recurring: {
     label: 'Recurring',
@@ -31,6 +27,75 @@ const chartConfig = {
     color: 'oklch(0.75 0.05 250)',
   },
 } satisfies ChartConfig
+
+const CORNER_RADIUS = 4
+
+interface MonthlyData {
+  recurring: number
+  oneTime: number
+  offline: number
+}
+
+function createRoundedBarShape(dataKey: 'recurring' | 'oneTime' | 'offline') {
+  return function RoundedBar(props: unknown): React.ReactElement {
+    const barProps = props as {
+      x?: number
+      y?: number
+      width?: number
+      height?: number
+      fill?: string
+      payload?: MonthlyData
+    }
+    
+    const { x, y, width, height, fill, payload } = barProps
+
+    if (x === undefined || y === undefined || !width || !height || height <= 0) {
+      return <></>
+    }
+
+    const recurring = payload?.recurring ?? 0
+    const oneTime = payload?.oneTime ?? 0
+    const offline = payload?.offline ?? 0
+
+    const isBottom = dataKey === 'recurring' || 
+      (dataKey === 'oneTime' && recurring === 0) ||
+      (dataKey === 'offline' && recurring === 0 && oneTime === 0)
+
+    const isTop = dataKey === 'offline' ||
+      (dataKey === 'oneTime' && offline === 0) ||
+      (dataKey === 'recurring' && oneTime === 0 && offline === 0)
+
+    const topLeft = isTop ? CORNER_RADIUS : 0
+    const topRight = isTop ? CORNER_RADIUS : 0
+    const bottomRight = isBottom ? CORNER_RADIUS : 0
+    const bottomLeft = isBottom ? CORNER_RADIUS : 0
+
+    const safeRadius = (r: number, w: number, h: number) => Math.min(r, w / 2, h / 2)
+    const tl = safeRadius(topLeft, width, height)
+    const tr = safeRadius(topRight, width, height)
+    const br = safeRadius(bottomRight, width, height)
+    const bl = safeRadius(bottomLeft, width, height)
+
+    const path = `
+      M ${x + tl},${y}
+      L ${x + width - tr},${y}
+      Q ${x + width},${y} ${x + width},${y + tr}
+      L ${x + width},${y + height - br}
+      Q ${x + width},${y + height} ${x + width - br},${y + height}
+      L ${x + bl},${y + height}
+      Q ${x},${y + height} ${x},${y + height - bl}
+      L ${x},${y + tl}
+      Q ${x},${y} ${x + tl},${y}
+      Z
+    `
+
+    return <path d={path} fill={fill} />
+  }
+}
+
+const RecurringBarShape = createRoundedBarShape('recurring')
+const OneTimeBarShape = createRoundedBarShape('oneTime')
+const OfflineBarShape = createRoundedBarShape('offline')
 
 const SKELETON_HEIGHTS = [45, 62, 38, 71, 55, 82, 48, 67, 41, 75, 58, 89, 52]
 
@@ -156,22 +221,22 @@ export function GivingBreakdownChart({ missionaryId }: GivingBreakdownChartProps
           dataKey="recurring"
           stackId="donations"
           fill="var(--color-recurring)"
-          radius={[0, 0, 0, 0]}
           maxBarSize={48}
+          shape={RecurringBarShape}
         />
         <Bar
           dataKey="oneTime"
           stackId="donations"
           fill="var(--color-oneTime)"
-          radius={[0, 0, 0, 0]}
           maxBarSize={48}
+          shape={OneTimeBarShape}
         />
         <Bar
           dataKey="offline"
           stackId="donations"
           fill="var(--color-offline)"
-          radius={[4, 4, 0, 0]}
           maxBarSize={48}
+          shape={OfflineBarShape}
         />
       </BarChart>
     </ChartContainer>
