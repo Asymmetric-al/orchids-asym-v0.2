@@ -74,16 +74,15 @@ type SecurityLevel = 'high' | 'medium' | 'low'
 type AccessLevel = 'view' | 'comment'
 type PostStatus = 'published' | 'draft'
 
-interface Follower {
+interface FollowerRequest {
   id: string
+  donor_id: string
   name: string
-  email: string
-  avatar: string
-  isDonor: boolean
-  accessLevel: AccessLevel
-  status: 'pending' | 'approved'
-  date: string
-  handle?: string
+  avatar_url: string | null
+  is_donor: boolean
+  access_level: AccessLevel
+  status: 'pending' | 'approved' | 'rejected'
+  created_at: string
   initials: string
 }
 
@@ -111,65 +110,57 @@ interface Post {
   }
 }
 
-const INITIAL_FOLLOWERS: Follower[] = [
-  {
-    id: 'f1',
-    name: 'Sarah Connor',
-    email: 'sarah@example.com',
-    avatar: 'https://picsum.photos/id/101/100/100',
-    isDonor: true,
-    accessLevel: 'comment',
-    status: 'approved',
-    date: '2 hours ago',
-    handle: '@wintersoldier',
-    initials: 'SC',
-  },
-  {
-    id: 'f2',
-    name: 'Kyle Reese',
-    email: 'kyle@future.org',
-    avatar: 'https://picsum.photos/id/102/100/100',
-    isDonor: false,
-    accessLevel: 'view',
-    status: 'pending',
-    date: '1 day ago',
-    handle: '@cap_america',
-    initials: 'KR',
-  },
-  {
-    id: 'f3',
-    name: 'John Doe',
-    email: 'john@unknown.com',
-    avatar: 'https://picsum.photos/id/103/100/100',
-    isDonor: false,
-    accessLevel: 'view',
-    status: 'pending',
-    date: '3 days ago',
-    handle: '@shield_maria',
-    initials: 'JD',
-  },
-]
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMins / 60)
+  const diffDays = Math.floor(diffHours / 24)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins} min ago`
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  return date.toLocaleDateString()
+}
 
 function FollowerRequestItem({
   request,
   onResolve,
 }: {
-  request: Follower
+  request: FollowerRequest
   onResolve: (id: string, approved: boolean) => void
 }) {
   const [status, setStatus] = useState<'pending' | 'processing' | 'approved' | 'ignored' | 'collapsing'>('pending')
 
   const handleAction = async (action: 'approve' | 'ignore') => {
     setStatus('processing')
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setStatus(action === 'approve' ? 'approved' : 'ignored')
+    
+    try {
+      const res = await fetch(`/api/follower-requests/${request.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status: action === 'approve' ? 'approved' : 'rejected' 
+        })
+      })
 
-    setTimeout(() => {
-      setStatus('collapsing')
+      if (!res.ok) throw new Error('Failed to update request')
+      
+      setStatus(action === 'approve' ? 'approved' : 'ignored')
+
       setTimeout(() => {
-        onResolve(request.id, action === 'approve')
-      }, 400)
-    }, 1500)
+        setStatus('collapsing')
+        setTimeout(() => {
+          onResolve(request.id, action === 'approve')
+        }, 400)
+      }, 1500)
+    } catch (error) {
+      console.error('Error resolving request:', error)
+      setStatus('pending')
+      toast.error('Failed to update request')
+    }
   }
 
   if (status === 'collapsing') {
@@ -186,7 +177,7 @@ function FollowerRequestItem({
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={request.avatar} />
+            <AvatarImage src={request.avatar_url || undefined} />
             <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
               {request.initials}
             </AvatarFallback>
@@ -195,11 +186,13 @@ function FollowerRequestItem({
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-bold text-foreground truncate">{request.name}</p>
-                <p className="text-[10px] text-muted-foreground truncate font-medium">
-                  {request.handle || request.email}
-                </p>
+                {request.is_donor && (
+                  <Badge variant="secondary" className="text-[8px] h-4 px-1.5 bg-emerald-50 text-emerald-700 border-none font-bold uppercase tracking-wider mt-1">
+                    Donor
+                  </Badge>
+                )}
               </div>
-              <span className="text-[10px] text-muted-foreground">{request.date}</span>
+              <span className="text-[10px] text-muted-foreground">{formatTimeAgo(request.created_at)}</span>
             </div>
           </div>
         </div>
@@ -768,9 +761,10 @@ export default function WorkerFeed() {
   const [selectedMedia, setSelectedMedia] = useState<any[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [securityLevel, setSecurityLevel] = useState<SecurityLevel>('medium')
-  const [followers, setFollowers] = useState<Follower[]>(INITIAL_FOLLOWERS)
+  const [followerRequests, setFollowerRequests] = useState<FollowerRequest[]>([])
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true)
 
-  const pendingRequests = useMemo(() => followers.filter((f) => f.status === 'pending'), [followers])
+  const pendingRequests = useMemo(() => followerRequests.filter((f) => f.status === 'pending'), [followerRequests])
 
   const simulateUpload = async () => {
     setIsUploading(true)
@@ -801,10 +795,24 @@ export default function WorkerFeed() {
     }
   }, [])
 
+  const fetchFollowerRequests = useCallback(async () => {
+    try {
+      setIsLoadingRequests(true)
+      const res = await fetch('/api/follower-requests?status=pending')
+      const data = await res.json()
+      setFollowerRequests(data.requests || [])
+    } catch (err) {
+      console.error('Failed to fetch follower requests:', err)
+    } finally {
+      setIsLoadingRequests(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchPosts('published')
     fetchPosts('draft')
-  }, [fetchPosts])
+    fetchFollowerRequests()
+  }, [fetchPosts, fetchFollowerRequests])
 
   useEffect(() => {
     if (
@@ -898,16 +906,7 @@ export default function WorkerFeed() {
   }
 
   const handleResolveRequest = (id: string, approved: boolean) => {
-    setFollowers((prev) =>
-      prev
-        .map((f) => {
-          if (f.id === id) {
-            return { ...f, status: approved ? ('approved' as const) : f.status }
-          }
-          return f
-        })
-        .filter((f) => approved || f.id !== id)
-    )
+    setFollowerRequests((prev) => prev.filter((f) => f.id !== id))
     toast.success(approved ? 'Follower accepted' : 'Request removed')
   }
 
@@ -1389,33 +1388,37 @@ export default function WorkerFeed() {
         </div>
 
         <div className="lg:col-span-3 space-y-6 sm:space-y-8 lg:space-y-10">
-          <Card className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card flex flex-col">
-            <div className="p-4 sm:p-6 border-b border-border bg-muted/30 flex flex-row items-center justify-between">
-              <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">Follow Requests</h3>
-              {pendingRequests.length > 0 && (
-                <Badge className="bg-destructive text-destructive-foreground border-none font-bold text-[10px] h-5 px-1.5 animate-pulse rounded-full">
-                  {pendingRequests.length}
-                </Badge>
-              )}
-            </div>
-            <CardContent className="p-0">
-              {pendingRequests.length > 0 ? (
-                <div className="divide-y divide-border">
-                  {pendingRequests.map((req) => (
-                    <FollowerRequestItem key={req.id} request={req} onResolve={handleResolveRequest} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-10 sm:py-12 px-4 sm:px-6">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-emerald-100">
-                    <Check className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" />
+            <Card className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card flex flex-col">
+              <div className="p-4 sm:p-6 border-b border-border bg-muted/30 flex flex-row items-center justify-between">
+                <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">Follow Requests</h3>
+                {pendingRequests.length > 0 && (
+                  <Badge className="bg-destructive text-destructive-foreground border-none font-bold text-[10px] h-5 px-1.5 animate-pulse rounded-full">
+                    {pendingRequests.length}
+                  </Badge>
+                )}
+              </div>
+              <CardContent className="p-0">
+                {isLoadingRequests ? (
+                  <div className="flex items-center justify-center py-10 sm:py-12">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">All caught up!</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                ) : pendingRequests.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    {pendingRequests.map((req) => (
+                      <FollowerRequestItem key={req.id} request={req} onResolve={handleResolveRequest} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10 sm:py-12 px-4 sm:px-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-emerald-100">
+                      <Check className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" />
+                    </div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">All caught up!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
       </div>
     </div>
   )
