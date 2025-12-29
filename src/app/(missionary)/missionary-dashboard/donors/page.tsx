@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -53,7 +53,7 @@ import {
   MoreHorizontal,
   ChevronRight,
 } from 'lucide-react'
-import { formatDistanceToNow, format } from 'date-fns'
+import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
@@ -174,8 +174,8 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       </div>
       <p className="text-sm font-bold text-zinc-900 mb-1">Something went wrong</p>
       <p className="text-xs text-zinc-500 mb-4">{message}</p>
-      <Button variant="outline" size="sm" onClick={onRetry} className="gap-2 rounded-xl h-9 text-[10px] font-black uppercase tracking-widest">
-        <RefreshCw className="h-3.5 w-3.5" />
+      <Button variant="outline" size="sm" onClick={onRetry} className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900">
+        <RefreshCw className="h-3.5 w-3.5 mr-2" />
         Try Again
       </Button>
     </div>
@@ -489,7 +489,7 @@ export default function DonorsPage() {
               <div className="border-b border-zinc-100 p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl" onClick={() => setSelectedDonorId(null)}>
+                    <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100" onClick={() => setSelectedDonorId(null)}>
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <Avatar className="h-14 w-14 border-2 border-white shadow-lg rounded-2xl">
@@ -509,18 +509,18 @@ export default function DonorsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 text-xs font-medium rounded-xl" onClick={() => setIsNoteDialogOpen(true)}>
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" onClick={() => setIsNoteDialogOpen(true)}>
                       <Pencil className="h-3.5 w-3.5 mr-1.5" /> Note
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 text-xs font-medium rounded-xl">
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50">
                       <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
                     </Button>
-                    <Button size="sm" className="flex-1 sm:flex-none h-9 text-xs font-medium rounded-xl">
+                    <Button size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl">
                       <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 rounded-xl">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100">
                           <MoreHorizontal className="h-5 w-5" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -571,25 +571,30 @@ export default function DonorsPage() {
               </div>
 
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="px-6 border-b border-zinc-100">
-                  <TabsList className="bg-transparent h-auto p-0 gap-6">
-                    {[
-                      { key: 'timeline', label: 'Timeline' },
-                      { key: 'contact', label: 'Contact' },
-                      { key: 'giving', label: 'Giving History' },
-                    ].map(tab => (
-                      <TabsTrigger
-                        key={tab.key}
-                        value={tab.key}
-                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-0 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all hover:text-zinc-600"
-                      >
-                        {tab.label}
-                      </TabsTrigger>
-                    ))}
+                <div className="px-6 py-4 border-b border-zinc-100">
+                  <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto">
+                    <TabsTrigger 
+                      value="timeline" 
+                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                    >
+                      Timeline
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="contact" 
+                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                    >
+                      Contact
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="giving" 
+                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                    >
+                      Giving
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
-                <ScrollArea className="h-[calc(100vh-36rem)]">
+                <ScrollArea className="h-[calc(100vh-40rem)]">
                   <div className="p-6">
                     <TabsContent value="timeline" className="mt-0 space-y-6">
                       <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
@@ -599,14 +604,14 @@ export default function DonorsPage() {
                         />
                         <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-100">
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" className="h-8 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg">
+                            <Button variant="ghost" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100">
                               <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg">
+                            <Button variant="ghost" size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100">
                               <Briefcase className="h-3.5 w-3.5 mr-1.5" /> Meeting
                             </Button>
                           </div>
-                          <Button size="sm" className="h-8 text-[10px] font-black uppercase tracking-widest rounded-lg px-4">
+                          <Button size="sm" className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest">
                             Post <Send className="h-3 w-3 ml-1.5" />
                           </Button>
                         </div>
@@ -815,7 +820,7 @@ export default function DonorsPage() {
                     missionaryId={profile.id}
                     onSuccess={fetchDonors}
                     trigger={
-                      <Button className="mt-10 h-12 px-10 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
+                      <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
                         <Plus className="h-4 w-4 mr-2" /> Add Partner
                       </Button>
                     }
@@ -842,8 +847,8 @@ export default function DonorsPage() {
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsNoteDialogOpen(false)} className="rounded-xl">Cancel</Button>
-            <Button onClick={handleAddNote} disabled={!noteInput.trim()} className="rounded-xl">Save Note</Button>
+            <Button variant="outline" onClick={() => setIsNoteDialogOpen(false)} className="h-10 px-6 rounded-xl border-zinc-200">Cancel</Button>
+            <Button onClick={handleAddNote} disabled={!noteInput.trim()} className="h-10 px-6 rounded-xl">Save Note</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
