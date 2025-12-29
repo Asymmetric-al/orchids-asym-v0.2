@@ -1,28 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useMemo } from 'react'
+import { motion, AnimatePresence, LayoutGroup, Reorder } from 'framer-motion'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageHeader } from '@/components/page-header'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +26,8 @@ import {
   User,
   Filter,
   Sparkles,
-  Check,
-  ChevronRight,
+  Trash2,
+  GripVertical,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -75,98 +61,377 @@ const taskTypeConfig = {
   custom: { label: 'Custom', icon: CheckCircle2, color: 'text-zinc-600 bg-zinc-100' },
 }
 
-function TaskRow({ task, onToggle }: { task: Task; onToggle: () => void }) {
+const springTransition = {
+  type: 'spring' as const,
+  stiffness: 400,
+  damping: 30,
+}
+
+const smoothTransition = {
+  duration: 0.25,
+  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+}
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
+}
+
+function CompletionConfetti() {
+  const id = React.useId()
+  return (
+    <motion.div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <motion.div
+          key={`${id}-confetti-${i}`}
+          initial={{ 
+            opacity: 0,
+            scale: 0,
+            x: '50%',
+            y: '50%',
+          }}
+          animate={{ 
+            opacity: [0, 1, 0],
+            scale: [0, 1, 0.5],
+            x: `${50 + (Math.random() - 0.5) * 100}%`,
+            y: `${50 + (Math.random() - 0.5) * 80}%`,
+          }}
+          transition={{
+            duration: 0.8,
+            ease: 'easeOut',
+            delay: i * 0.02,
+            times: [0, 0.3, 1],
+          }}
+          className="absolute w-2 h-2 rounded-full"
+          style={{
+            backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'][i % 5],
+          }}
+        />
+      ))}
+    </motion.div>
+  )
+}
+
+function TaskRow({ 
+  task, 
+  onToggle, 
+  onDismiss,
+  index 
+}: { 
+  task: Task
+  onToggle: () => void
+  onDismiss: () => void
+  index: number 
+}) {
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   const typeConfig = taskTypeConfig[task.taskType]
   const Icon = typeConfig.icon
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status === 'pending'
   const isDueToday = task.dueDate && new Date(task.dueDate).toDateString() === new Date().toDateString()
 
+  const handleToggle = () => {
+    if (task.status === 'pending') {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 1000)
+    }
+    onToggle()
+  }
+
   return (
-    <div className={cn(
-      "group flex items-start gap-4 p-6 border rounded-3xl transition-all",
-      task.status === 'completed' 
-        ? "bg-zinc-50/50 border-transparent opacity-60" 
-        : "bg-white border-zinc-200 hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40"
-    )}>
-      <div className="mt-1.5">
+    <Reorder.Item
+      value={task}
+      id={task.id}
+      dragListener={false}
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -100, transition: { duration: 0.3 } }}
+      transition={{ ...smoothTransition, delay: index * 0.05 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      className={cn(
+        "relative group flex items-start gap-4 p-5 sm:p-6 border rounded-3xl transition-colors",
+        task.status === 'completed' 
+          ? "bg-muted/30 border-transparent" 
+          : "bg-card border-border hover:border-muted-foreground/30"
+      )}
+      style={{
+        boxShadow: isHovered && task.status !== 'completed' 
+          ? '0 20px 40px -12px rgba(0,0,0,0.1)' 
+          : 'none',
+      }}
+    >
+      {showConfetti && <CompletionConfetti />}
+      
+      <motion.div 
+        className="mt-1.5 relative"
+        whileTap={{ scale: 0.9 }}
+      >
         <Checkbox
           checked={task.status === 'completed'}
-          onCheckedChange={() => onToggle()}
-          className="h-5 w-5 rounded-md border-zinc-200 data-[state=checked]:bg-zinc-900 data-[state=checked]:border-zinc-900 transition-all"
+          onCheckedChange={handleToggle}
+          className="h-5 w-5 rounded-md border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
         />
-      </div>
+        <AnimatePresence>
+          {task.status === 'completed' && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={springTransition}
+              className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center"
+            >
+              <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
       
-      <div className={cn("flex h-11 w-11 items-center justify-center rounded-2xl shrink-0 shadow-sm", typeConfig.color)}>
-        <Icon className="h-5 w-5" />
-      </div>
+      <motion.div 
+        className={cn("flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl shrink-0 shadow-sm", typeConfig.color)}
+        whileHover={{ scale: 1.05, rotate: 3 }}
+        whileTap={{ scale: 0.95 }}
+        transition={springTransition}
+      >
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+      </motion.div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-3">
-          <p className={cn(
-            "font-bold text-sm tracking-tight text-zinc-900",
-            task.status === 'completed' && "line-through text-zinc-400"
-          )}>{task.title}</p>
-          {task.priority === 'high' && (
-            <Badge className="bg-rose-50 text-rose-600 border-0 text-[10px] font-black uppercase tracking-widest px-1.5 h-4">High</Badge>
-          )}
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <motion.p 
+            layout="position"
+            className={cn(
+              "font-bold text-sm tracking-tight text-foreground",
+              task.status === 'completed' && "line-through text-muted-foreground"
+            )}
+          >
+            {task.title}
+          </motion.p>
+          <AnimatePresence>
+            {task.priority === 'high' && task.status !== 'completed' && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={springTransition}
+              >
+                <Badge className="bg-rose-50 text-rose-600 border-0 text-[10px] font-black uppercase tracking-widest px-1.5 h-4">High</Badge>
+              </motion.div>
+            )}
+            {task.autoGenerated && task.status !== 'completed' && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ ...springTransition, delay: 0.05 }}
+              >
+                <Badge className="bg-indigo-50 text-indigo-600 border-0 text-[10px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  Auto
+                </Badge>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        {task.description && (
-          <p className="text-xs font-medium text-zinc-500 mt-1 line-clamp-1">{task.description}</p>
-        )}
-        <div className="flex items-center gap-4 mt-4">
-          {task.donorName && (
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200/50">
-              <User className="h-3 w-3 text-zinc-400" />
-              <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">{task.donorName}</span>
-            </div>
+        <AnimatePresence>
+          {task.description && task.status !== 'completed' && (
+            <motion.p 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="text-xs font-medium text-muted-foreground mt-1 line-clamp-1"
+            >
+              {task.description}
+            </motion.p>
           )}
-          {task.dueDate && (
-            <div className={cn(
-              "flex items-center gap-2 px-2.5 py-1 rounded-full border",
-              isOverdue 
-                ? "bg-rose-50 border-rose-100 text-rose-700" 
-                : isDueToday 
-                  ? "bg-amber-50 border-amber-100 text-amber-700" 
-                  : "bg-zinc-50 border-zinc-100 text-zinc-500"
-            )}>
-              <Clock className="h-3 w-3" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">
-                {isOverdue ? 'Overdue' : isDueToday ? 'Due Today' : new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </span>
-            </div>
-          )}
-        </div>
+        </AnimatePresence>
+        <motion.div 
+          layout
+          className="flex items-center gap-2 sm:gap-4 mt-3 sm:mt-4 flex-wrap"
+        >
+          <AnimatePresence>
+            {task.donorName && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                transition={springTransition}
+                className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border/50"
+              >
+                <User className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{task.donorName}</span>
+              </motion.div>
+            )}
+            {task.dueDate && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ ...springTransition, delay: 0.02 }}
+                className={cn(
+                  "flex items-center gap-2 px-2.5 py-1 rounded-full border",
+                  isOverdue 
+                    ? "bg-rose-50 border-rose-100 text-rose-700" 
+                    : isDueToday 
+                      ? "bg-amber-50 border-amber-100 text-amber-700" 
+                      : "bg-muted border-border/50 text-muted-foreground"
+                )}
+              >
+                <Clock className="h-3 w-3" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  {isOverdue ? 'Overdue' : isDueToday ? 'Due Today' : new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-zinc-400 hover:text-zinc-900 rounded-xl">
-            <MoreHorizontal className="h-5 w-5" />
-          </Button>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground rounded-xl">
+              <MoreHorizontal className="h-5 w-5" />
+            </Button>
+          </motion.div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="rounded-2xl border-zinc-100 p-2 shadow-xl">
-          <DropdownMenuItem onClick={onToggle} className="rounded-xl text-xs font-bold py-2.5">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-zinc-400" />
+        <DropdownMenuContent align="end" className="rounded-2xl border-border p-2 shadow-xl min-w-[180px]">
+          <DropdownMenuItem onClick={handleToggle} className="rounded-xl text-xs font-bold py-2.5 cursor-pointer">
+            <CheckCircle2 className="mr-2 h-4 w-4 text-muted-foreground" />
             {task.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
           </DropdownMenuItem>
           {task.donorName && (
-            <DropdownMenuItem className="rounded-xl text-xs font-bold py-2.5">
-              <User className="mr-2 h-4 w-4 text-zinc-400" />
+            <DropdownMenuItem className="rounded-xl text-xs font-bold py-2.5 cursor-pointer">
+              <User className="mr-2 h-4 w-4 text-muted-foreground" />
               View Partner
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem className="rounded-xl text-xs font-bold py-2.5 text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+          <DropdownMenuItem 
+            onClick={onDismiss}
+            className="rounded-xl text-xs font-bold py-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
             Dismiss Task
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isHovered && task.status !== 'completed' ? 0.5 : 0 }}
+        className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing hidden sm:block"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </motion.div>
+    </Reorder.Item>
+  )
+}
+
+function EmptyState({ filter }: { filter: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={smoothTransition}
+    >
+      <Card className="border-border border-dashed bg-muted/20 rounded-[2.5rem]">
+        <CardContent className="p-12 sm:p-24 text-center">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ ...smoothTransition, delay: 0.1 }}
+              className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-card shadow-sm border border-border flex items-center justify-center mx-auto mb-6 sm:mb-8"
+            >
+              <motion.div
+                animate={{ 
+                  rotate: [0, 10, -10, 0],
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatDelay: 3,
+                  ease: 'easeInOut',
+                }}
+              >
+                <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/30" />
+              </motion.div>
+            </motion.div>
+          <motion.h3 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="font-black text-xl sm:text-2xl text-foreground tracking-tight"
+          >
+            All caught up!
+          </motion.h3>
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-2 text-sm font-medium text-muted-foreground max-w-[280px] mx-auto"
+          >
+            No {filter === 'all' ? '' : filter} tasks remaining. You're operating at peak efficiency.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button className="mt-8 sm:mt-10 h-11 sm:h-12 px-8 sm:px-10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em]">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Task
+            </Button>
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
+
+function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={springTransition}
+      className={cn(
+        "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-colors cursor-default",
+        color
+      )}
+    >
+      <motion.span 
+        key={value}
+        initial={{ scale: 1.2, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="text-2xl font-black tabular-nums"
+      >
+        {value}
+      </motion.span>
+      <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
+    </motion.div>
   )
 }
 
 export default function TasksPage() {
-  const [taskList, setTaskList] = React.useState<Task[]>(INITIAL_TASKS)
-  const [filter, setFilter] = React.useState<'all' | 'pending' | 'completed'>('pending')
+  const [taskList, setTaskList] = useState<Task[]>(INITIAL_TASKS)
+  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending')
 
   const handleToggle = (id: string) => {
     setTaskList(prev => prev.map(t => 
@@ -174,76 +439,164 @@ export default function TasksPage() {
     ))
   }
 
-  const filteredTasks = taskList.filter(task => {
-    if (task.status === 'dismissed') return false
-    if (filter === 'pending' && task.status !== 'pending') return false
-    if (filter === 'completed' && task.status !== 'completed') return false
-    return true
-  })
+  const handleDismiss = (id: string) => {
+    setTaskList(prev => prev.filter(t => t.id !== id))
+  }
+
+  const handleClearCompleted = () => {
+    setTaskList(prev => prev.filter(t => t.status !== 'completed'))
+  }
+
+  const handleReorder = (newOrder: Task[]) => {
+    setTaskList(newOrder)
+  }
+
+  const filteredTasks = useMemo(() => {
+    return taskList.filter(task => {
+      if (task.status === 'dismissed') return false
+      if (filter === 'pending' && task.status !== 'pending') return false
+      if (filter === 'completed' && task.status !== 'completed') return false
+      return true
+    })
+  }, [taskList, filter])
 
   const pendingCount = taskList.filter(t => t.status === 'pending').length
   const completedCount = taskList.filter(t => t.status === 'completed').length
+  const overdueCount = taskList.filter(t => 
+    t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date()
+  ).length
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6 pb-20"
+    >
       <PageHeader 
         title="Tasks" 
         description="Stay on top of donor follow-ups and ministry administration."
       >
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 px-4 text-xs font-medium"
-          onClick={() => setTaskList(prev => prev.filter(t => t.status !== 'completed'))}
+        <motion.div 
+          className="flex items-center gap-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
         >
-          Clear Completed
-        </Button>
-        <Button size="sm" className="h-9 px-4 text-xs font-medium">
-          <Plus className="mr-2 h-4 w-4" />
-          New Task
-        </Button>
+          <AnimatePresence>
+            {completedCount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-4 text-xs font-medium"
+                  onClick={handleClearCompleted}
+                >
+                  Clear Completed
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button size="sm" className="h-9 px-4 text-xs font-medium">
+              <Plus className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
+          </motion.div>
+        </motion.div>
       </PageHeader>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="w-full sm:w-auto">
-          <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto">
-            <TabsTrigger value="all" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all">All</TabsTrigger>
-            <TabsTrigger value="pending" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all">
-              Pending ({pendingCount})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all">
-              Completed ({completedCount})
-            </TabsTrigger>
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-3"
+      >
+        <StatCard 
+          label="Pending" 
+          value={pendingCount} 
+          color="bg-amber-50 border-amber-100 text-amber-700"
+        />
+        <StatCard 
+          label="Completed" 
+          value={completedCount} 
+          color="bg-emerald-50 border-emerald-100 text-emerald-700"
+        />
+        {overdueCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={springTransition}
+          >
+            <StatCard 
+              label="Overdue" 
+              value={overdueCount} 
+              color="bg-rose-50 border-rose-100 text-rose-700"
+            />
+          </motion.div>
+        )}
+      </motion.div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="flex flex-col sm:flex-row items-center justify-between gap-4"
+      >
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as 'all' | 'pending' | 'completed')} className="w-full sm:w-auto">
+          <TabsList className="bg-muted/50 border border-border p-1.5 h-auto rounded-2xl w-full sm:w-auto">
+            {(['all', 'pending', 'completed'] as const).map((tab) => (
+              <TabsTrigger 
+                key={tab}
+                value={tab} 
+                className="rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground data-[state=active]:text-foreground transition-all"
+              >
+                <motion.span layout>
+                  {tab === 'all' ? 'All' : tab === 'pending' ? `Pending (${pendingCount})` : `Completed (${completedCount})`}
+                </motion.span>
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
-        <Button variant="outline" size="sm" className="w-full sm:w-auto h-11 rounded-2xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter & Sort
-        </Button>
-      </div>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto h-11 rounded-2xl border-border bg-card text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter & Sort
+          </Button>
+        </motion.div>
+      </motion.div>
 
-      <div className="space-y-4">
-        {filteredTasks.length > 0 ? (
-          filteredTasks.map(task => (
-            <TaskRow 
-              key={task.id} 
-              task={task} 
-              onToggle={() => handleToggle(task.id)}
-            />
-          ))
-        ) : (
-          <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem]">
-            <CardContent className="p-24 text-center">
-              <div className="h-20 w-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8">
-                <CheckCircle2 className="h-10 w-10 text-zinc-100" />
-              </div>
-              <h3 className="font-black text-2xl text-zinc-900 tracking-tight">All caught up!</h3>
-              <p className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto">No {filter} tasks remaining. You're operating at peak efficiency.</p>
-              <Button className="mt-10 h-12 px-10 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">Create Task</Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+      <LayoutGroup>
+        <AnimatePresence mode="popLayout">
+          {filteredTasks.length > 0 ? (
+            <Reorder.Group
+              key="task-list"
+              axis="y"
+              values={filteredTasks}
+              onReorder={handleReorder}
+              className="space-y-4"
+            >
+              {filteredTasks.map((task, index) => (
+                <TaskRow 
+                  key={task.id} 
+                  task={task} 
+                  onToggle={() => handleToggle(task.id)}
+                  onDismiss={() => handleDismiss(task.id)}
+                  index={index}
+                />
+              ))}
+            </Reorder.Group>
+          ) : (
+            <EmptyState key="empty-state" filter={filter} />
+          )}
+        </AnimatePresence>
+      </LayoutGroup>
+    </motion.div>
   )
 }
