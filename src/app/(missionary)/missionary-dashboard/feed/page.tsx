@@ -32,7 +32,7 @@ import {
   ExternalLink,
   Image as ImageIcon,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -69,6 +69,37 @@ const RichTextEditor = dynamic(
     loading: () => <div className="h-[250px] w-full bg-muted rounded-2xl animate-pulse" />,
   }
 )
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+}
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+}
+
+const springTransition = {
+  type: 'spring' as const,
+  stiffness: 400,
+  damping: 30,
+}
+
+const smoothTransition = {
+  duration: 0.25,
+  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+}
 
 type Visibility = 'public' | 'partners' | 'private'
 type SecurityLevel = 'high' | 'medium' | 'low'
@@ -126,12 +157,16 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString()
 }
 
+const MotionCard = motion.create(Card)
+
 function FollowerRequestItem({
   request,
   onResolve,
+  index,
 }: {
   request: FollowerRequest
   onResolve: (id: string, approved: boolean) => void
+  index: number
 }) {
   const [status, setStatus] = useState<'pending' | 'processing' | 'approved' | 'ignored' | 'collapsing'>('pending')
 
@@ -164,24 +199,27 @@ function FollowerRequestItem({
     }
   }
 
-  if (status === 'collapsing') {
-    return <div className="h-0 opacity-0 overflow-hidden transition-all duration-500" />
-  }
-
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+      transition={{ ...smoothTransition, delay: index * 0.05 }}
       className={cn(
-        'transition-all duration-300 ease-out px-4 py-3',
+        'px-4 py-3 overflow-hidden',
         status === 'approved' || status === 'ignored' ? 'bg-muted/30' : ''
       )}
     >
       <div className="flex items-start gap-3">
-        <Avatar className="h-9 w-9 shrink-0 border border-border/50 shadow-sm">
-          <AvatarImage src={request.avatar_url || undefined} />
-          <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-bold">
-            {request.initials}
-          </AvatarFallback>
-        </Avatar>
+        <motion.div whileHover={{ scale: 1.05 }} transition={springTransition}>
+          <Avatar className="h-9 w-9 shrink-0 border border-border/50 shadow-sm">
+            <AvatarImage src={request.avatar_url || undefined} />
+            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-bold">
+              {request.initials}
+            </AvatarFallback>
+          </Avatar>
+        </motion.div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
@@ -191,9 +229,11 @@ function FollowerRequestItem({
               </p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {request.is_donor && (
-                  <Badge variant="secondary" className="text-[7px] h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-bold uppercase tracking-wider">
-                    Donor
-                  </Badge>
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={springTransition}>
+                    <Badge variant="secondary" className="text-[7px] h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-bold uppercase tracking-wider">
+                      Donor
+                    </Badge>
+                  </motion.div>
                 )}
                 <span className="text-[9px] text-muted-foreground">{formatTimeAgo(request.created_at)}</span>
               </div>
@@ -201,54 +241,98 @@ function FollowerRequestItem({
           </div>
 
           <div className="h-8 relative mt-2">
-            {status === 'pending' && (
-              <div className="flex gap-2 absolute inset-0">
-                <Button
-                  size="sm"
-                  variant="maia"
-                  className="flex-1 h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
-                  onClick={() => handleAction('approve')}
+            <AnimatePresence mode="wait">
+              {status === 'pending' && (
+                <motion.div
+                  key="pending"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex gap-2 absolute inset-0"
                 >
-                  Accept
-                </Button>
-                <Button
-                  size="sm"
-                  variant="maia-outline"
-                  className="flex-1 h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
-                  onClick={() => handleAction('ignore')}
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                    <Button
+                      size="sm"
+                      variant="maia"
+                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
+                      onClick={() => handleAction('approve')}
+                    >
+                      Accept
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                    <Button
+                      size="sm"
+                      variant="maia-outline"
+                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
+                      onClick={() => handleAction('ignore')}
+                    >
+                      Ignore
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {status === 'processing' && (
+                <motion.div
+                  key="processing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center justify-center h-full absolute inset-0"
                 >
-                  Ignore
-                </Button>
-              </div>
-            )}
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                    <Loader2 className="h-4 w-4 text-muted-foreground" />
+                  </motion.div>
+                </motion.div>
+              )}
 
-            {status === 'processing' && (
-              <div className="flex items-center justify-center h-full absolute inset-0">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
+              {status === 'approved' && (
+                <motion.div
+                  key="approved"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={springTransition}
+                  className="flex items-center gap-1.5 h-full absolute inset-0 text-emerald-600"
+                >
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ ...springTransition, delay: 0.1 }}
+                    className="bg-emerald-100 rounded-full p-0.5"
+                  >
+                    <Check className="h-3 w-3" />
+                  </motion.div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Accepted</span>
+                </motion.div>
+              )}
 
-            {status === 'approved' && (
-              <div className="flex items-center gap-1.5 h-full absolute inset-0 text-emerald-600 animate-in fade-in slide-in-from-bottom-1 duration-200">
-                <div className="bg-emerald-100 rounded-full p-0.5">
-                  <Check className="h-3 w-3" />
-                </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider">Accepted</span>
-              </div>
-            )}
-
-            {status === 'ignored' && (
-              <div className="flex items-center gap-1.5 h-full absolute inset-0 text-muted-foreground animate-in fade-in slide-in-from-bottom-1 duration-200">
-                <div className="bg-muted rounded-full p-0.5">
-                  <X className="h-3 w-3" />
-                </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider">Removed</span>
-              </div>
-            )}
+              {status === 'ignored' && (
+                <motion.div
+                  key="ignored"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={springTransition}
+                  className="flex items-center gap-1.5 h-full absolute inset-0 text-muted-foreground"
+                >
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ ...springTransition, delay: 0.1 }}
+                    className="bg-muted rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </motion.div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Removed</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -336,7 +420,7 @@ function ReactionButton({
       </AnimatePresence>
       <motion.button
         whileHover={{ scale: 1.05, y: -2 }}
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.92 }}
         onClick={(e) => {
           e.stopPropagation()
           handleClick()
@@ -352,12 +436,12 @@ function ReactionButton({
           animate={
             isActive
               ? {
-                  scale: [1, 1.3, 1],
-                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.4, 1],
+                  rotate: [0, 15, -15, 0],
                 }
               : {}
           }
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         >
           {emoji}
         </motion.div>
@@ -403,19 +487,39 @@ function CommentSection({
   }
 
   return (
-    <div className="bg-muted/30 rounded-b-2xl border-t border-border p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={smoothTransition}
+      className="bg-muted/30 rounded-b-2xl border-t border-border p-4 sm:p-6 space-y-4 sm:space-y-6"
+    >
       {comments.length > 0 ? (
-        <div className="space-y-4 sm:space-y-6">
-          {comments.map((comment) => (
-            <div key={comment.id} className="group">
+        <motion.div 
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="space-y-4 sm:space-y-6"
+        >
+          {comments.map((comment, index) => (
+            <motion.div 
+              key={comment.id} 
+              variants={fadeInUp}
+              transition={{ delay: index * 0.05 }}
+              className="group"
+            >
               <div className="flex gap-3 sm:gap-4 text-sm">
-                <Avatar className="h-8 w-8 sm:h-9 sm:w-9 bg-card border border-border mt-1 shadow-sm">
-                  <AvatarFallback className="text-[10px] text-muted-foreground font-bold">
-                    {comment.avatar || 'U'}
-                  </AvatarFallback>
-                </Avatar>
+                <motion.div whileHover={{ scale: 1.05 }} transition={springTransition}>
+                  <Avatar className="h-8 w-8 sm:h-9 sm:w-9 bg-card border border-border mt-1 shadow-sm">
+                    <AvatarFallback className="text-[10px] text-muted-foreground font-bold">
+                      {comment.avatar || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </motion.div>
                 <div className="flex-1 space-y-2">
-                  <div className="bg-card p-3 sm:p-4 rounded-2xl rounded-tl-none border border-border shadow-sm inline-block min-w-[200px] sm:min-w-[240px] relative">
+                  <motion.div 
+                    whileHover={{ y: -1 }}
+                    className="bg-card p-3 sm:p-4 rounded-2xl rounded-tl-none border border-border shadow-sm inline-block min-w-[200px] sm:min-w-[240px] relative"
+                  >
                     <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
                       <span className="font-bold text-foreground text-xs">
                         {comment.author?.full_name || 'Anonymous'}
@@ -444,25 +548,41 @@ function CommentSection({
                       </div>
                     </div>
                     <p className="text-muted-foreground leading-relaxed text-sm">{comment.content}</p>
-                  </div>
+                  </motion.div>
                   <div className="flex items-center gap-4 pl-3">
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className="text-[10px] font-bold text-muted-foreground hover:text-foreground uppercase tracking-wider transition-colors"
                       onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
                     >
                       Reply
-                    </button>
-                    <button className="text-[10px] font-bold text-muted-foreground hover:text-rose-600 uppercase tracking-wider transition-colors">
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="text-[10px] font-bold text-muted-foreground hover:text-rose-600 uppercase tracking-wider transition-colors"
+                    >
                       Like
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
 
               {comment.replies && comment.replies.length > 0 && (
-                <div className="ml-8 sm:ml-10 mt-4 space-y-4 pl-4 border-l-2 border-border">
-                  {comment.replies.map((reply: any) => (
-                    <div key={reply.id} className="flex gap-3 sm:gap-4 text-sm">
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="ml-8 sm:ml-10 mt-4 space-y-4 pl-4 border-l-2 border-border"
+                >
+                  {comment.replies.map((reply: any, replyIndex: number) => (
+                    <motion.div 
+                      key={reply.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: replyIndex * 0.05 }}
+                      className="flex gap-3 sm:gap-4 text-sm"
+                    >
                       <Avatar className="h-6 w-6 sm:h-7 sm:w-7 bg-card border border-border shadow-sm mt-1">
                         <AvatarFallback className="text-[9px] text-muted-foreground font-bold">
                           {reply.author?.avatar_url || 'U'}
@@ -506,42 +626,60 @@ function CommentSection({
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
 
-              {replyingTo === comment.id && (
-                <div className="ml-10 sm:ml-14 mt-4 flex gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <div className="relative flex-1">
-                    <Input
-                      autoFocus
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && submitReply(comment.id)}
-                      placeholder={`Reply to ${comment.author?.full_name || 'user'}...`}
-                      className="h-10 text-sm bg-card pr-10 rounded-xl shadow-sm border-border"
-                    />
-                    <button
-                      onClick={() => submitReply(comment.id)}
-                      disabled={!replyText}
-                      className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-all"
-                    >
-                      <CornerDownRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+              <AnimatePresence>
+                {replyingTo === comment.id && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="ml-10 sm:ml-14 mt-4 flex gap-3 overflow-hidden"
+                  >
+                    <div className="relative flex-1">
+                      <Input
+                        autoFocus
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && submitReply(comment.id)}
+                        placeholder={`Reply to ${comment.author?.full_name || 'user'}...`}
+                        className="h-10 text-sm bg-card pr-10 rounded-xl shadow-sm border-border"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => submitReply(comment.id)}
+                        disabled={!replyText}
+                        className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-all"
+                      >
+                        <CornerDownRight className="h-4 w-4" />
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       ) : (
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider text-center py-4">
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs text-muted-foreground font-medium uppercase tracking-wider text-center py-4"
+        >
           No comments yet
-        </p>
+        </motion.p>
       )}
 
-      <div className="pt-2 relative">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="pt-2 relative"
+      >
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -549,20 +687,22 @@ function CommentSection({
           className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-all"
           onKeyDown={(e) => e.key === 'Enter' && text && (onAddComment(text), setText(''))}
         />
-        <Button
-          size="icon"
-          className="absolute right-1.5 top-1.5 h-8 w-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
-          onClick={() => {
-            if (text) {
-              onAddComment(text)
-              setText('')
-            }
-          }}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            size="icon"
+            className="absolute right-1.5 top-1.5 h-8 w-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
+            onClick={() => {
+              if (text) {
+                onAddComment(text)
+                setText('')
+              }
+            }}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -573,6 +713,7 @@ function PostCard({
   onReaction,
   expandedComments,
   setExpandedComments,
+  index,
 }: {
   post: Post
   onEdit: () => void
@@ -580,6 +721,7 @@ function PostCard({
   onReaction: (type: 'heart' | 'fire' | 'prayer') => void
   expandedComments: string | null
   setExpandedComments: (id: string | null) => void
+  index: number
 }) {
   const authorName = post.author ? `${post.author.first_name} ${post.author.last_name}` : 'Marcus Miller'
   const authorAvatar =
@@ -589,24 +731,36 @@ function PostCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      transition={{ ...smoothTransition, delay: index * 0.08 }}
     >
-      <Card className="overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-500 rounded-2xl sm:rounded-3xl group bg-card">
+      <MotionCard 
+        whileHover={{ y: -2 }}
+        transition={springTransition}
+        className="overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl group bg-card"
+      >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between space-y-0">
           <div className="flex gap-3 sm:gap-4">
-            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-md ring-1 ring-border">
-              <AvatarImage src={authorAvatar} />
-              <AvatarFallback>{post.author?.first_name?.[0] || 'M'}</AvatarFallback>
-            </Avatar>
+            <motion.div whileHover={{ scale: 1.05 }} transition={springTransition}>
+              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-background shadow-md ring-1 ring-border">
+                <AvatarImage src={authorAvatar} />
+                <AvatarFallback>{post.author?.first_name?.[0] || 'M'}</AvatarFallback>
+              </Avatar>
+            </motion.div>
             <div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <h3 className="font-bold text-foreground text-base sm:text-lg tracking-tight">{authorName}</h3>
-                <Badge className="bg-muted text-muted-foreground border-none font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">
-                  {post.post_type}
-                </Badge>
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Badge className="bg-muted text-muted-foreground border-none font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                    {post.post_type}
+                  </Badge>
+                </motion.div>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
@@ -628,13 +782,15 @@ function PostCard({
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
-              >
-                <MoreHorizontal className="h-5 w-5 sm:h-6 sm:w-6" />
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
+                >
+                  <MoreHorizontal className="h-5 w-5 sm:h-6 sm:w-6" />
+                </Button>
+              </motion.div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl border-border shadow-lg p-2 min-w-[160px] sm:min-w-[180px]">
               <DropdownMenuItem className="font-bold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
@@ -658,7 +814,12 @@ function PostCard({
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6"
+          >
             <div
               className="prose prose-sm sm:prose-base max-w-none text-foreground/80 leading-relaxed
                         prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-tight
@@ -668,7 +829,12 @@ function PostCard({
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             {post.media && post.media.length > 0 && (
-              <div className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-all duration-500">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.15 }}
+                className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-all duration-500"
+              >
                 {post.media.length === 1 ? (
                   <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[400px] sm:max-h-[600px]" />
                 ) : (
@@ -688,11 +854,16 @@ function PostCard({
                     <CarouselNext className="right-2 sm:right-4 bg-background/80 border-none hover:bg-background transition-all shadow-md" />
                   </Carousel>
                 )}
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
-          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0"
+          >
             <div className="flex gap-1.5 sm:gap-2 flex-wrap">
               <ReactionButton
                 isActive={post.user_liked || false}
@@ -716,14 +887,21 @@ function PostCard({
                 onClick={() => onReaction('prayer')}
               />
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-all group/comm"
               onClick={() => setExpandedComments(expandedComments === post.id ? null : post.id)}
             >
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/50 group-hover/comm:scale-110 transition-transform" />
+              <motion.div
+                animate={{ rotate: expandedComments === post.id ? 180 : 0 }}
+                transition={springTransition}
+              >
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/50" />
+              </motion.div>
               {(post.comments || []).length} comments
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
           <AnimatePresence>
             {expandedComments === post.id && (
@@ -731,6 +909,7 @@ function PostCard({
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
+                transition={smoothTransition}
                 className="overflow-hidden"
               >
                 <CommentSection
@@ -745,7 +924,68 @@ function PostCard({
             )}
           </AnimatePresence>
         </CardContent>
-      </Card>
+      </MotionCard>
+    </motion.div>
+  )
+}
+
+function LoadingState() {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col items-center justify-center py-16 sm:py-24 gap-4"
+    >
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+      >
+        <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
+      </motion.div>
+      <motion.p 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="font-bold text-xs uppercase tracking-wider text-muted-foreground/50"
+      >
+        Loading Feed...
+      </motion.p>
+    </motion.div>
+  )
+}
+
+function EmptyState({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={smoothTransition}
+      className="text-center py-20 sm:py-32 bg-muted/20 rounded-2xl sm:rounded-3xl border-2 border-dashed border-border"
+    >
+      <motion.div 
+        initial={{ scale: 0.8 }}
+        animate={{ scale: 1 }}
+        transition={springTransition}
+        className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md"
+      >
+        <Icon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
+      </motion.div>
+      <motion.h3 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="font-bold text-lg sm:text-2xl text-foreground tracking-tight"
+      >
+        {title}
+      </motion.h3>
+      <motion.p 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="text-muted-foreground font-medium mt-2 text-sm sm:text-base"
+      >
+        {description}
+      </motion.p>
     </motion.div>
   )
 }
@@ -955,17 +1195,24 @@ export default function WorkerFeed() {
   }
 
   return (
-    <div className="max-w-[1500px] mx-auto pb-20">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-[1500px] mx-auto pb-20"
+    >
       <PageHeader 
         title="Feed" 
         description="Share updates with your supporters and stay connected."
       >
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
-              <ShieldCheck className="h-4 w-4 mr-2" />
-              Security & Access
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Security & Access
+              </Button>
+            </motion.div>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px] rounded-2xl sm:rounded-3xl p-0 overflow-hidden border-border shadow-xl mx-4 sm:mx-0">
             <DialogHeader className="p-6 sm:p-8 pb-4 bg-muted/30 border-b border-border">
@@ -975,7 +1222,12 @@ export default function WorkerFeed() {
               </DialogDescription>
             </DialogHeader>
             <div className="p-6 sm:p-8 space-y-4 sm:space-y-6">
-              <div className="space-y-3 sm:space-y-4">
+              <motion.div 
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+                className="space-y-3 sm:space-y-4"
+              >
                 {[
                   {
                     level: 'high' as SecurityLevel,
@@ -995,32 +1247,38 @@ export default function WorkerFeed() {
                     title: 'Low',
                     description: 'Public feed on giving page. Auto-sync.',
                   },
-                ].map(({ level, icon: Icon, title, description }) => (
-                  <div
+                ].map(({ level, icon: Icon, title, description }, index) => (
+                  <motion.div
                     key={level}
+                    variants={fadeInUp}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => setSecurityLevel(level)}
                     className={cn(
                       'p-4 rounded-xl sm:rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 sm:gap-4',
                       securityLevel === level ? 'border-primary bg-muted/50' : 'border-border hover:border-muted-foreground/30'
                     )}
                   >
-                    <div
+                    <motion.div
+                      animate={securityLevel === level ? { scale: [1, 1.1, 1] } : {}}
+                      transition={springTransition}
                       className={cn(
                         'p-2 rounded-full',
                         securityLevel === level ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                       )}
                     >
                       <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </div>
+                    </motion.div>
                     <div>
                       <p className="font-bold text-xs uppercase tracking-wider text-foreground">{title}</p>
                       <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium leading-relaxed mt-1">
                         {description}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               <div className="pt-4 border-t border-border space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
@@ -1047,25 +1305,44 @@ export default function WorkerFeed() {
               </div>
             </div>
             <DialogFooter className="p-6 sm:p-8 pt-0">
-              <Button
-                onClick={() => toast.success('Security settings saved')}
-                className="w-full h-11 sm:h-12 rounded-xl bg-primary font-bold text-xs uppercase tracking-wider"
-              >
-                Save Changes
-              </Button>
+              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="w-full">
+                <Button
+                  onClick={() => toast.success('Security settings saved')}
+                  className="w-full h-11 sm:h-12 rounded-xl bg-primary font-bold text-xs uppercase tracking-wider"
+                >
+                  Save Changes
+                </Button>
+              </motion.div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10">
-        <div className="lg:col-span-9 space-y-6 sm:space-y-8 lg:space-y-10">
-            <Card className="overflow-hidden border border-border shadow-md rounded-2xl sm:rounded-3xl bg-card">
-              <div className="p-4 sm:p-6">
-                <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
-                  {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type) => (
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ ...smoothTransition, delay: 0.1 }}
+          className="lg:col-span-9 space-y-6 sm:space-y-8 lg:space-y-10"
+        >
+          <MotionCard 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...smoothTransition, delay: 0.15 }}
+            className="overflow-hidden border border-border shadow-md rounded-2xl sm:rounded-3xl bg-card"
+          >
+            <div className="p-4 sm:p-6">
+              <div className="flex gap-2 sm:gap-3 flex-wrap items-center mb-4 sm:mb-6">
+                {['Update', 'Prayer Request', 'Story', 'Newsletter'].map((type, index) => (
+                  <motion.div
+                    key={type}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + index * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <Button
-                      key={type}
                       variant={postType === type ? 'maia' : 'maia-outline'}
                       onClick={() => setPostType(type)}
                       className={cn(
@@ -1075,85 +1352,136 @@ export default function WorkerFeed() {
                     >
                       {type}
                     </Button>
-                  ))}
+                  </motion.div>
+                ))}
+                <AnimatePresence>
                   {editingPostId && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingPostId(null)
-                        setPostContent('')
-                      }}
-                      className="ml-auto text-destructive font-bold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      Cancel Edit
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingPostId(null)
+                          setPostContent('')
+                        }}
+                        className="ml-auto text-destructive font-bold text-[10px] uppercase tracking-wider hover:bg-destructive/10 rounded-xl"
+                      >
+                        Cancel Edit
+                      </Button>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
+              </div>
 
-                <div className="flex gap-3 sm:gap-4">
-                  <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0 hidden sm:flex">
+              <div className="flex gap-3 sm:gap-4">
+                <motion.div 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.25 }}
+                  className="hidden sm:flex"
+                >
+                  <Avatar className="h-9 w-9 sm:h-11 sm:w-11 border-2 border-border shadow-sm shrink-0">
                     <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80" />
                     <AvatarFallback className="font-bold text-sm">MF</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0 rounded-xl sm:rounded-2xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all">
-                    <RichTextEditor
-                      value={postContent}
-                      onChange={setPostContent}
-                      placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
-                      className=""
-                      contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
-                      toolbarPosition="bottom"
-                      proseInvert={false}
-                      actions={
-                        <div className="flex flex-col gap-3 w-full">
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex-1 min-w-0 rounded-xl sm:rounded-2xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20 focus-within:border-ring transition-all"
+                >
+                  <RichTextEditor
+                    value={postContent}
+                    onChange={setPostContent}
+                    placeholder={`What's happening? Share a ${postType.toLowerCase()}...`}
+                    className=""
+                    contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
+                    toolbarPosition="bottom"
+                    proseInvert={false}
+                    actions={
+                      <div className="flex flex-col gap-3 w-full">
+                        <AnimatePresence>
                           {selectedMedia.length > 0 && (
-                            <div className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2">
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+                            >
                               {selectedMedia.map((item, idx) => (
-                                <div key={idx} className="relative group/img shrink-0">
+                                <motion.div 
+                                  key={idx}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={springTransition}
+                                  className="relative group/img shrink-0"
+                                >
                                   <img
                                     src={item.url}
                                     alt={`Attached media ${idx + 1}`}
                                     className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
                                   />
-                                  <button
+                                  <motion.button
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
                                     onClick={() => setSelectedMedia((prev) => prev.filter((_, i) => i !== idx))}
                                     className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity shadow-sm"
                                   >
                                     <X className="h-3 w-3" />
-                                  </button>
-                                </div>
+                                  </motion.button>
+                                </motion.div>
                               ))}
-                            </div>
+                            </motion.div>
                           )}
-                          <div className="flex flex-wrap items-center gap-2 w-full">
+                        </AnimatePresence>
+                        <div className="flex flex-wrap items-center gap-2 w-full">
+                          <AnimatePresence>
                             {lastSaved && (
-                              <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider animate-in fade-in duration-500 hidden md:inline-block">
+                              <motion.span 
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
+                              >
                                 Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
+                              </motion.span>
                             )}
+                          </AnimatePresence>
 
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                             <Button
                               variant="ghost"
                               size="sm"
                               disabled={isUploading}
                               onClick={simulateUpload}
-                              className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all active:scale-95"
+                              className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
                             >
                               {isUploading ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                                  <Loader2 className="h-3 w-3" />
+                                </motion.div>
                               ) : (
                                 <ImageIcon className="h-3 w-3" />
                               )}
                               <span className="hidden sm:inline">Media</span>
                             </Button>
+                          </motion.div>
 
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all active:scale-95"
+                                  className="h-8 text-muted-foreground gap-1.5 font-bold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
                                 >
                                   {postPrivacy === 'public' ? (
                                     <Globe className="h-3 w-3" />
@@ -1167,37 +1495,39 @@ export default function WorkerFeed() {
                                   </span>
                                   <ChevronDown className="h-2.5 w-2.5 opacity-40" />
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="start"
-                                className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px] animate-in slide-in-from-top-2 duration-200"
+                              </motion.div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="start"
+                              className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px]"
+                            >
+                              <DropdownMenuItem
+                                onClick={() => setPostPrivacy('public')}
+                                className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
                               >
-                                <DropdownMenuItem
-                                  onClick={() => setPostPrivacy('public')}
-                                  className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                                >
-                                  <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                                  Public
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setPostPrivacy('partners')}
-                                  className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                                >
-                                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                  Partners Only
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => setPostPrivacy('private')}
-                                  className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
-                                >
-                                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                                  Private
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                                Public
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setPostPrivacy('partners')}
+                                className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+                              >
+                                <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                                Partners Only
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setPostPrivacy('private')}
+                                className="font-bold text-[9px] uppercase tracking-wider rounded-lg py-2 cursor-pointer gap-2"
+                              >
+                                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                                Private
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
 
-                            <div className="flex-1" />
+                          <div className="flex-1" />
 
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                             <Button
                               onClick={() => handlePost('draft')}
                               variant="maia-outline"
@@ -1211,13 +1541,17 @@ export default function WorkerFeed() {
                               className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
                             >
                               {isSaving ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                                  <Loader2 className="h-3 w-3" />
+                                </motion.div>
                               ) : (
                                 <Save className="h-3 w-3 sm:mr-1.5" />
                               )}
                               <span className="hidden sm:inline">Draft</span>
                             </Button>
+                          </motion.div>
 
+                          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                             <Button
                               onClick={() => handlePost('published')}
                               variant="maia"
@@ -1230,16 +1564,21 @@ export default function WorkerFeed() {
                               }
                               className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
                             >
-                              {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Publish'}
+                              {isSaving ? (
+                                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                                  <Loader2 className="h-3 w-3" />
+                                </motion.div>
+                              ) : 'Publish'}
                             </Button>
-                          </div>
+                          </motion.div>
                         </div>
-                      }
-                    />
-                  </div>
-                </div>
+                      </div>
+                    }
+                  />
+                </motion.div>
               </div>
-            </Card>
+            </div>
+          </MotionCard>
 
           <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <Tabs
@@ -1248,7 +1587,12 @@ export default function WorkerFeed() {
               onValueChange={(v) => setActiveTab(v as PostStatus)}
               className="w-full"
             >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
+              >
                 <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
                   <TabsTrigger
                     value="published"
@@ -1261,165 +1605,234 @@ export default function WorkerFeed() {
                     className="rounded-lg px-4 sm:px-6 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
                   >
                     Drafts
-                    {drafts.length > 0 && (
-                      <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-bold">
-                        {drafts.length}
-                      </Badge>
-                    )}
+                    <AnimatePresence>
+                      {drafts.length > 0 && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          transition={springTransition}
+                        >
+                          <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-bold">
+                            {drafts.length}
+                          </Badge>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </TabsTrigger>
                 </TabsList>
 
-                <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+                >
                   <Clock className="h-3.5 w-3.5" />
                   Last synced: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               <TabsContent value="published" className="mt-0">
-                <motion.div layout className="space-y-6 sm:space-y-8 lg:space-y-10">
-                  <AnimatePresence mode="popLayout">
-                    {isLoading ? (
-                      <div className="flex flex-col items-center justify-center py-16 sm:py-24 gap-4">
-                        <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-muted-foreground/30" />
-                        <p className="font-bold text-xs uppercase tracking-wider text-muted-foreground/50">
-                          Loading Feed...
-                        </p>
-                      </div>
-                    ) : posts.length > 0 ? (
-                      posts.map((post) => (
-                        <PostCard
-                          key={post.id}
-                          post={post}
-                          onEdit={() => handleEditDraft(post)}
-                          onDelete={() => handleDeletePost(post.id)}
-                          onReaction={(type: 'heart' | 'fire' | 'prayer') => handleReaction(post.id, type)}
-                          expandedComments={expandedComments}
-                          setExpandedComments={setExpandedComments}
+                <LayoutGroup>
+                  <motion.div layout className="space-y-6 sm:space-y-8 lg:space-y-10">
+                    <AnimatePresence mode="popLayout">
+                      {isLoading ? (
+                        <LoadingState />
+                      ) : posts.length > 0 ? (
+                        posts.map((post, index) => (
+                          <PostCard
+                            key={post.id}
+                            post={post}
+                            index={index}
+                            onEdit={() => handleEditDraft(post)}
+                            onDelete={() => handleDeletePost(post.id)}
+                            onReaction={(type: 'heart' | 'fire' | 'prayer') => handleReaction(post.id, type)}
+                            expandedComments={expandedComments}
+                            setExpandedComments={setExpandedComments}
+                          />
+                        ))
+                      ) : (
+                        <EmptyState 
+                          icon={Globe}
+                          title="Your feed is empty"
+                          description="Start sharing your journey with your partners."
                         />
-                      ))
-                    ) : (
-                      <div className="text-center py-20 sm:py-32 bg-muted/20 rounded-2xl sm:rounded-3xl border-2 border-dashed border-border">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md">
-                          <Globe className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
-                        </div>
-                        <h3 className="font-bold text-lg sm:text-2xl text-foreground tracking-tight">
-                          Your feed is empty
-                        </h3>
-                        <p className="text-muted-foreground font-medium mt-2 text-sm sm:text-base">
-                          Start sharing your journey with your partners.
-                        </p>
-                      </div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </LayoutGroup>
               </TabsContent>
 
               <TabsContent value="draft" className="mt-0">
-                <motion.div layout className="space-y-4 sm:space-y-6 lg:space-y-8">
-                  <AnimatePresence mode="popLayout">
-                    {drafts.length > 0 ? (
-                      drafts.map((draft) => (
-                        <motion.div
-                          key={draft.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className="group"
-                        >
-                          <Card className="overflow-hidden border border-border hover:border-muted-foreground/30 transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8">
-                            <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
-                              <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                                  <Badge className="bg-muted text-muted-foreground border-none font-bold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
-                                    Draft • {draft.post_type}
-                                  </Badge>
-                                  <span className="text-[10px] text-muted-foreground font-medium">
-                                    Saved {new Date(draft.created_at).toLocaleDateString()}
-                                  </span>
+                <LayoutGroup>
+                  <motion.div layout className="space-y-4 sm:space-y-6 lg:space-y-8">
+                    <AnimatePresence mode="popLayout">
+                      {drafts.length > 0 ? (
+                        drafts.map((draft, index) => (
+                          <motion.div
+                            key={draft.id}
+                            layout
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ ...smoothTransition, delay: index * 0.05 }}
+                            className="group"
+                          >
+                            <MotionCard 
+                              whileHover={{ y: -2 }}
+                              transition={springTransition}
+                              className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
+                            >
+                              <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
+                                <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
+                                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                    <motion.div
+                                      initial={{ scale: 0.9, opacity: 0 }}
+                                      animate={{ scale: 1, opacity: 1 }}
+                                      transition={{ delay: 0.1 }}
+                                    >
+                                      <Badge className="bg-muted text-muted-foreground border-none font-bold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                        Draft • {draft.post_type}
+                                      </Badge>
+                                    </motion.div>
+                                    <span className="text-[10px] text-muted-foreground font-medium">
+                                      Saved {new Date(draft.created_at).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
+                                    dangerouslySetInnerHTML={{ __html: draft.content }}
+                                  />
                                 </div>
-                                <div
-                                  className="prose prose-sm sm:prose-base max-w-none line-clamp-3 opacity-60 text-foreground"
-                                  dangerouslySetInnerHTML={{ __html: draft.content }}
-                                />
+                                <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
+                                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 sm:flex-none">
+                                    <Button
+                                      variant="maia"
+                                      size="sm"
+                                      onClick={() => handleEditDraft(draft)}
+                                      className="w-full h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl"
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                                      <span className="hidden sm:inline">Edit & Publish</span>
+                                      <span className="sm:hidden">Edit</span>
+                                    </Button>
+                                  </motion.div>
+                                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 sm:flex-none">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeletePost(draft.id)}
+                                      className="w-full h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-bold text-[10px] uppercase tracking-wider rounded-xl"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                      Delete
+                                    </Button>
+                                  </motion.div>
+                                </div>
                               </div>
-                              <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
-                                <Button
-                                  variant="maia"
-                                  size="sm"
-                                  onClick={() => handleEditDraft(draft)}
-                                  className="flex-1 sm:flex-none h-9 sm:h-10 px-4 sm:px-6 text-[10px] uppercase tracking-wider rounded-xl"
-                                >
-                                  <ExternalLink className="h-3.5 w-3.5 mr-2" />
-                                  <span className="hidden sm:inline">Edit & Publish</span>
-                                  <span className="sm:hidden">Edit</span>
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeletePost(draft.id)}
-                                  className="flex-1 sm:flex-none h-9 sm:h-10 text-destructive hover:bg-destructive/10 font-bold text-[10px] uppercase tracking-wider rounded-xl"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        </motion.div>
-                      ))
-                    ) : (
-                      <div className="text-center py-20 sm:py-32 bg-muted/20 rounded-2xl sm:rounded-3xl border-2 border-dashed border-border">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-md">
-                          <Save className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
-                        </div>
-                        <h3 className="font-bold text-lg sm:text-2xl text-foreground tracking-tight">No drafts yet</h3>
-                        <p className="text-muted-foreground font-medium mt-2 text-sm sm:text-base">
-                          Drafts allow you to perfect your updates before sharing.
-                        </p>
-                      </div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                            </MotionCard>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <EmptyState 
+                          icon={Save}
+                          title="No drafts yet"
+                          description="Drafts allow you to perfect your updates before sharing."
+                        />
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </LayoutGroup>
               </TabsContent>
             </Tabs>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="lg:col-span-3 space-y-6 sm:space-y-8 lg:space-y-10">
-            <Card className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card">
-              <div className="px-4 py-3 flex items-center justify-between">
-                <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">Follow Requests</h3>
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ ...smoothTransition, delay: 0.2 }}
+          className="lg:col-span-3 space-y-6 sm:space-y-8 lg:space-y-10"
+        >
+          <MotionCard 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card"
+          >
+            <div className="px-4 py-3 flex items-center justify-between">
+              <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">Follow Requests</h3>
+              <AnimatePresence>
                 {pendingRequests.length > 0 && (
-                  <Badge className="bg-primary text-primary-foreground border-none font-bold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
-                    {pendingRequests.length}
-                  </Badge>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    transition={springTransition}
+                  >
+                    <Badge className="bg-primary text-primary-foreground border-none font-bold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
+                      {pendingRequests.length}
+                    </Badge>
+                  </motion.div>
                 )}
-              </div>
-              
-              <div className="border-t border-border">
-                {isLoadingRequests ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : pendingRequests.length > 0 ? (
-                  <div className="divide-y divide-border/50">
-                    {pendingRequests.map((req) => (
-                      <FollowerRequestItem key={req.id} request={req} onResolve={handleResolveRequest} />
+              </AnimatePresence>
+            </div>
+            
+            <div className="border-t border-border">
+              {isLoadingRequests ? (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center py-12"
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Loader2 className="h-5 w-5 text-muted-foreground" />
+                  </motion.div>
+                </motion.div>
+              ) : pendingRequests.length > 0 ? (
+                <motion.div 
+                  variants={staggerContainer}
+                  initial="initial"
+                  animate="animate"
+                  className="divide-y divide-border/50"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {pendingRequests.map((req, index) => (
+                      <FollowerRequestItem 
+                        key={req.id} 
+                        request={req} 
+                        onResolve={handleResolveRequest}
+                        index={index}
+                      />
                     ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-10 px-4">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100">
-                      <Check className="h-5 w-5 text-emerald-500" />
-                    </div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">All caught up!</p>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
+                  </AnimatePresence>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={smoothTransition}
+                  className="text-center py-10 px-4"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    transition={springTransition}
+                    className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100"
+                  >
+                    <Check className="h-5 w-5 text-emerald-500" />
+                  </motion.div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">All caught up!</p>
+                </motion.div>
+              )}
+            </div>
+          </MotionCard>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }
