@@ -94,22 +94,54 @@ export interface RecurringAgreement {
   updated_at: string
 }
 
+export type TaskType = 'call' | 'email' | 'to_do' | 'follow_up' | 'thank_you' | 'meeting'
+export type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'completed' | 'deferred'
+export type TaskPriority = 'none' | 'low' | 'medium' | 'high'
+
 export interface Task {
   id: string
-  tenant_id: string
   missionary_id: string
-  donor_id?: string
-  donor?: Donor
+  donor_id?: string | null
+  donor?: {
+    id: string
+    name: string
+    email?: string
+    avatar_url?: string
+  } | null
   title: string
-  description?: string
-  task_type: 'thank_you' | 'follow_up' | 'failed_payment' | 'card_expiring' | 'pledge_reminder' | 'at_risk' | 'custom'
-  due_date?: string
-  priority: 'low' | 'medium' | 'high'
-  status: 'pending' | 'completed' | 'dismissed'
-  completed_at?: string
-  auto_generated: boolean
+  description?: string | null
+  notes?: string | null
+  task_type: TaskType
+  status: TaskStatus
+  priority: TaskPriority
+  due_date?: string | null
+  reminder_date?: string | null
+  completed_at?: string | null
+  is_auto_generated: boolean
+  auto_generation_source?: string | null
   created_at: string
   updated_at: string
+}
+
+export interface TaskFormData {
+  title: string
+  description?: string
+  notes?: string
+  task_type: TaskType
+  status: TaskStatus
+  priority: TaskPriority
+  due_date?: Date | null
+  reminder_date?: Date | null
+  donor_id?: string | null
+}
+
+export interface TaskFilters {
+  status?: TaskStatus | 'all'
+  priority?: TaskPriority | 'all'
+  task_type?: TaskType | 'all'
+  donor_id?: string | null
+  due_date_range?: { start?: Date; end?: Date }
+  search?: string
 }
 
 export interface Post {

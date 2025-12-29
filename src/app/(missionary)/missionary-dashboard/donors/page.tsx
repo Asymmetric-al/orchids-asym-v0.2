@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Checkbox } from '@/components/ui/checkbox'
 import { PageHeader } from '@/components/page-header'
 import {
   Select,
@@ -65,6 +66,7 @@ import {
   Tag,
   X,
   Check,
+  CheckCircle2,
   CreditCard,
   Building2,
   Globe,
@@ -76,12 +78,16 @@ import {
   Gift,
   Loader2,
   Repeat,
+  ListTodo,
 } from 'lucide-react'
 import { format, formatDistanceToNow, differenceInMonths } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 import { AddPartnerDialog } from '@/features/missionary/components/add-partner-dialog'
+import { TaskDialog } from '@/features/missionary/components/task-dialog'
+import { useTasks } from '@/hooks/useTasks'
+import type { Task } from '@/lib/missionary/types'
 import { toast } from 'sonner'
 import {
   Form,
@@ -467,6 +473,226 @@ const editDonorSchema = z.object({
 type EditDonorFormValues = z.infer<typeof editDonorSchema>
 
 type SortOption = 'name' | 'last_gift' | 'total_given' | 'joined_date'
+
+const TASK_TYPE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
+  call: { label: 'Call', icon: Phone, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  email: { label: 'Email', icon: Mail, color: 'text-purple-600', bgColor: 'bg-purple-50' },
+  to_do: { label: 'To-do', icon: CheckCircle2, color: 'text-zinc-600', bgColor: 'bg-zinc-100' },
+  follow_up: { label: 'Follow Up', icon: User, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  thank_you: { label: 'Thank You', icon: Heart, color: 'text-rose-600', bgColor: 'bg-rose-50' },
+  meeting: { label: 'Meeting', icon: Users, color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+}
+
+function DonorTasks({ donorId, donorName }: { donorId: string; donorName: string }) {
+  const { filteredTasks, loading, completeTask, reopenTask, deleteTask, refresh } = useTasks({ donorId })
+  const [taskDialogOpen, setTaskDialogOpen] = React.useState(false)
+  const [editingTask, setEditingTask] = React.useState<Task | null>(null)
+
+  const activeTasks = filteredTasks.filter(t => t.status !== 'completed' && t.status !== 'deferred')
+  const completedTasks = filteredTasks.filter(t => t.status === 'completed')
+
+  const handleComplete = async (task: Task) => {
+    if (task.status === 'completed') {
+      await reopenTask(task.id)
+    } else {
+      await completeTask(task.id)
+    }
+  }
+
+  const handleEdit = (task: Task) => {
+    setEditingTask(task)
+    setTaskDialogOpen(true)
+  }
+
+  const handleTaskSuccess = () => {
+    refresh()
+    setEditingTask(null)
+    setTaskDialogOpen(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-start gap-3 p-4 border rounded-xl bg-white animate-pulse">
+            <div className="h-5 w-5 rounded-md bg-zinc-200 mt-0.5" />
+            <div className="h-9 w-9 rounded-lg bg-zinc-200" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-3/4 bg-zinc-200 rounded" />
+              <div className="h-3 w-1/2 bg-zinc-200 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <motion.div {...fadeInUp} className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-bold text-zinc-900">Tasks</h3>
+          <p className="text-xs text-zinc-500 mt-0.5">Follow-ups and actions for {donorName}</p>
+        </div>
+        <TaskDialog
+          task={editingTask}
+          defaultDonorId={donorId}
+          open={taskDialogOpen}
+          onOpenChange={(open) => {
+            setTaskDialogOpen(open)
+            if (!open) setEditingTask(null)
+          }}
+          onSuccess={handleTaskSuccess}
+          trigger={
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button size="sm" className="h-8 px-3 text-xs rounded-xl">
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Task
+              </Button>
+            </motion.div>
+          }
+        />
+      </motion.div>
+
+      {filteredTasks.length === 0 ? (
+        <motion.div {...fadeInUp} className="flex flex-col items-center justify-center py-12 text-center bg-zinc-50 rounded-2xl border border-zinc-100">
+          <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mb-4 shadow-sm">
+            <ListTodo className="h-6 w-6 text-zinc-300" />
+          </div>
+          <p className="text-sm font-bold text-zinc-900">No tasks yet</p>
+          <p className="text-xs text-zinc-400 mt-1 max-w-[240px]">Create a task to track follow-ups with this partner.</p>
+        </motion.div>
+      ) : (
+        <div className="space-y-4">
+          {activeTasks.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Active ({activeTasks.length})</p>
+              {activeTasks.map((task, i) => {
+                const typeConfig = TASK_TYPE_CONFIG[task.task_type] || TASK_TYPE_CONFIG.to_do
+                const Icon = typeConfig.icon
+                const isOverdue = task.due_date && new Date(task.due_date) < new Date()
+                const isDueToday = task.due_date && new Date(task.due_date).toDateString() === new Date().toDateString()
+
+                return (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="flex items-start gap-3 p-4 border border-zinc-100 rounded-xl bg-white hover:border-zinc-200 transition-all group"
+                  >
+                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                      <Checkbox
+                        checked={false}
+                        onCheckedChange={() => handleComplete(task)}
+                        className="h-5 w-5 rounded-md"
+                      />
+                    </motion.div>
+                    <div className={cn('h-9 w-9 rounded-lg flex items-center justify-center shrink-0', typeConfig.bgColor, typeConfig.color)}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-bold text-zinc-900">{task.title}</p>
+                        {task.priority === 'high' && (
+                          <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-black uppercase tracking-widest px-1.5 h-4">High</Badge>
+                        )}
+                      </div>
+                      {task.description && (
+                        <p className="text-xs text-zinc-500 mt-0.5 line-clamp-1">{task.description}</p>
+                      )}
+                      {task.due_date && (
+                        <div className={cn(
+                          'inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border',
+                          isOverdue ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                          isDueToday ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                          'bg-zinc-100 text-zinc-600 border-zinc-200'
+                        )}>
+                          <Clock className="h-3 w-3" />
+                          {isOverdue ? 'Overdue' : isDueToday ? 'Due Today' : format(new Date(task.due_date), 'MMM d')}
+                        </div>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem onClick={() => handleEdit(task)} className="text-xs font-medium">
+                          <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleComplete(task)} className="text-xs font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-2" /> Complete
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => deleteTask(task.id)} className="text-xs font-medium text-destructive focus:text-destructive">
+                          <X className="h-3.5 w-3.5 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </motion.div>
+                )
+              })}
+            </div>
+          )}
+
+          {completedTasks.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Completed ({completedTasks.length})</p>
+              {completedTasks.slice(0, 5).map((task, i) => {
+                const typeConfig = TASK_TYPE_CONFIG[task.task_type] || TASK_TYPE_CONFIG.to_do
+                const Icon = typeConfig.icon
+
+                return (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="flex items-start gap-3 p-4 border border-transparent rounded-xl bg-zinc-50/50 group"
+                  >
+                    <motion.div whileTap={{ scale: 0.9 }} className="mt-0.5">
+                      <Checkbox
+                        checked={true}
+                        onCheckedChange={() => handleComplete(task)}
+                        className="h-5 w-5 rounded-md data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                      />
+                    </motion.div>
+                    <div className={cn('h-9 w-9 rounded-lg flex items-center justify-center shrink-0 opacity-50', typeConfig.bgColor, typeConfig.color)}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-zinc-400 line-through">{task.title}</p>
+                      {task.completed_at && (
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          Completed {formatDistanceToNow(new Date(task.completed_at), { addSuffix: true })}
+                        </p>
+                      )}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => deleteTask(task.id)}
+                    >
+                      <X className="h-4 w-4 text-zinc-400" />
+                    </Button>
+                  </motion.div>
+                )
+              })}
+              {completedTasks.length > 5 && (
+                <p className="text-xs text-zinc-400 text-center py-2">
+                  + {completedTasks.length - 5} more completed tasks
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function DonorsPage() {
   const { profile, loading: authLoading } = useAuth()
@@ -1408,20 +1634,20 @@ export default function DonorsPage() {
                     </motion.div>
                   </div>
 
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                    <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
-                      <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-4 sm:flex">
-                        {['overview', 'contact', 'recurring', 'giving'].map((tab) => (
-                          <TabsTrigger 
-                            key={tab}
-                            value={tab} 
-                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
-                          >
-                            {tab === 'overview' ? 'Overview' : tab === 'contact' ? 'Contact' : tab === 'recurring' ? 'Recurring' : 'Giving'}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                    </div>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+                      <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
+                        <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-5 sm:flex">
+                          {['overview', 'tasks', 'contact', 'recurring', 'giving'].map((tab) => (
+                            <TabsTrigger 
+                              key={tab}
+                              value={tab} 
+                              className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                            >
+                              {tab === 'overview' ? 'Overview' : tab === 'tasks' ? 'Tasks' : tab === 'contact' ? 'Contact' : tab === 'recurring' ? 'Recurring' : 'Giving'}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </div>
 
                     <ScrollArea className="flex-1 min-h-0">
                       <div className="p-6">
@@ -1556,9 +1782,13 @@ export default function DonorsPage() {
                                 </AnimatePresence>
                               )}
                             </div>
-                          </TabsContent>
+                            </TabsContent>
 
-                          <TabsContent value="contact" className="mt-0 space-y-6">
+                            <TabsContent value="tasks" className="mt-0 space-y-6">
+                              <DonorTasks donorId={selectedDonor.id} donorName={selectedDonor.name} />
+                            </TabsContent>
+
+                            <TabsContent value="contact" className="mt-0 space-y-6">
                             <motion.div 
                               {...fadeInUp}
                               transition={smoothTransition}
