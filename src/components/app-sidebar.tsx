@@ -45,14 +45,14 @@ const donorNavItems = [
   { title: 'Feed', href: '/donor-dashboard/feed', icon: Newspaper },
   { title: 'My Giving', href: '/donor-dashboard/pledges', icon: Heart },
   { title: 'Wallet', href: '/donor-dashboard/wallet', icon: CreditCard },
-  { title: 'Giving History', href: '/donor-dashboard/history', icon: FileText },
+  { title: 'History', href: '/donor-dashboard/history', icon: FileText },
   { title: 'Settings', href: '/donor-dashboard/settings', icon: Settings },
 ]
 
 const missionaryNavItems = [
   { title: 'Dashboard', href: '/missionary-dashboard', icon: Home },
   { title: 'Donors', href: '/missionary-dashboard/donors', icon: Users },
-  { title: 'My Feed', href: '/missionary-dashboard/feed', icon: Newspaper },
+  { title: 'Feed', href: '/missionary-dashboard/feed', icon: Newspaper },
   { title: 'Analytics', href: '/missionary-dashboard/analytics', icon: BarChart3 },
   { title: 'Tasks', href: '/missionary-dashboard/tasks', icon: FileText },
   { title: 'Newsletter', href: '/missionary-dashboard/newsletter', icon: Mail },
@@ -88,73 +88,73 @@ export function AppSidebar({ role = 'donor', tenantLogo, tenantName = 'Give Hope
   const navItems = getNavItems(role)
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-zinc-100 bg-white">
-      <SidebarHeader className="p-2.5">
-        <Link href="/" className="flex items-center gap-2.5 group">
+    <Sidebar collapsible="icon" className="border-r border-zinc-200/60 bg-white">
+      <SidebarHeader className="px-3 py-3">
+        <Link href="/" className="flex items-center gap-2 group">
           {tenantLogo ? (
-            <Avatar className="h-7 w-7 rounded-lg shadow-sm border border-zinc-100 group-hover:scale-105 transition-transform">
+            <Avatar className="size-7 rounded-md shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-all">
               <AvatarImage src={tenantLogo} alt={tenantName} />
-              <AvatarFallback className="rounded-lg bg-zinc-900 text-white font-bold text-[10px]">
+              <AvatarFallback className="rounded-md bg-zinc-900 text-white font-semibold text-xs">
                 {tenantName.charAt(0)}
               </AvatarFallback>
             </Avatar>
           ) : (
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs group-hover:scale-105 transition-transform">
+            <div className="flex size-7 items-center justify-center rounded-md bg-zinc-900 text-white font-semibold text-xs shadow-sm ring-1 ring-zinc-950/5 group-hover:ring-zinc-950/10 transition-all">
               {tenantName.charAt(0)}
             </div>
           )}
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-bold tracking-tight text-zinc-900 leading-none">
-              {tenantName.toUpperCase().split(' ')[0]}
-            </span>
-            <span className="text-[10px] font-medium text-zinc-500 tracking-widest uppercase leading-none mt-0.5">
-              {tenantName.toUpperCase().split(' ')[1] || 'MISSION'}
+            <span className="text-[13px] font-semibold text-zinc-900 leading-tight tracking-tight">
+              {tenantName}
             </span>
           </div>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-1.5 scrollbar-none">
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 px-3 mb-1">
-            Navigation
+      <SidebarContent className="px-2">
+        <SidebarGroup className="p-0">
+          <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 px-2 mb-1 h-6">
+            Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {navItems.map((item) => (
+              {navItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
-                      isActive={pathname === item.href}
+                      isActive={isActive}
                       tooltip={item.title}
                       className={cn(
-                        "h-8 px-3 rounded-md transition-all duration-200",
-                        pathname === item.href 
-                          ? "bg-zinc-100 text-zinc-900 font-semibold"
-                          : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
+                        "h-8 px-2 rounded-md transition-colors",
+                        isActive 
+                          ? "bg-zinc-100 text-zinc-900 font-medium"
+                          : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
                       )}
                     >
-                      <Link href={item.href} className="flex items-center gap-3">
+                      <Link href={item.href} className="flex items-center gap-2.5">
                         <item.icon className={cn(
-                          "size-3.5 transition-colors",
-                          pathname === item.href ? "text-zinc-900" : "text-zinc-400 group-hover:text-zinc-900"
+                          "size-4 shrink-0",
+                          isActive ? "text-zinc-700" : "text-zinc-400"
                         )} />
-                        <span className="text-xs tracking-tight">{item.title}</span>
+                        <span className="text-[13px] truncate">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-              ))}
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-2.5 mt-auto">
-        <div className="flex items-center gap-2 p-1.5 rounded-lg bg-zinc-50 border border-zinc-100 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:border-none">
-          <Avatar className="h-6 w-6 rounded-md border border-white shadow-sm">
-            <AvatarFallback className="bg-zinc-900 text-white text-[9px] font-bold">UN</AvatarFallback>
+      <SidebarFooter className="px-3 py-3 mt-auto border-t border-zinc-100">
+        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+          <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
+            <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">UN</AvatarFallback>
           </Avatar>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="text-[11px] font-bold text-zinc-900 truncate leading-tight">User Name</span>
-            <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter truncate">{role}</span>
+            <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">User Name</span>
+            <span className="text-[11px] text-zinc-500 truncate capitalize">{role}</span>
           </div>
         </div>
       </SidebarFooter>
