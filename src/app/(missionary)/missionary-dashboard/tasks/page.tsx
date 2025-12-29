@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/page-header'
@@ -40,9 +39,6 @@ import {
   CheckCircle2,
   MoreHorizontal,
   Heart,
-  AlertTriangle,
-  User,
-  Filter,
   Sparkles,
   Trash2,
   Search,
@@ -52,16 +48,13 @@ import {
   UserPlus,
   Users,
   Flag,
-  Calendar,
   Bell,
   RefreshCw,
-  ArrowUpRight,
   Pencil,
-  Eye,
   ListFilter,
   X,
-  CalendarDays,
   AlertCircle,
+  User,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTasks } from '@/hooks/useTasks'
@@ -80,27 +73,27 @@ const smoothTransition = {
 }
 
 const TASK_TYPE_CONFIG: Record<TaskType, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
-  call: { label: 'Call', icon: Phone, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  email: { label: 'Email', icon: Mail, color: 'text-purple-600', bgColor: 'bg-purple-50' },
+  call: { label: 'Call', icon: Phone, color: 'text-sky-600', bgColor: 'bg-sky-50' },
+  email: { label: 'Email', icon: Mail, color: 'text-violet-600', bgColor: 'bg-violet-50' },
   to_do: { label: 'To-do', icon: CheckSquare, color: 'text-zinc-600', bgColor: 'bg-zinc-100' },
-  follow_up: { label: 'Follow Up', icon: UserPlus, color: 'text-orange-600', bgColor: 'bg-orange-50' },
-  thank_you: { label: 'Thank You', icon: Heart, color: 'text-rose-600', bgColor: 'bg-rose-50' },
-  meeting: { label: 'Meeting', icon: Users, color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+  follow_up: { label: 'Follow Up', icon: UserPlus, color: 'text-amber-600', bgColor: 'bg-amber-50' },
+  thank_you: { label: 'Thank You', icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-50' },
+  meeting: { label: 'Meeting', icon: Users, color: 'text-teal-600', bgColor: 'bg-teal-50' },
 }
 
 const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string; badgeColor: string }> = {
-  none: { label: 'None', color: 'text-zinc-400', badgeColor: 'bg-zinc-100 text-zinc-500' },
-  low: { label: 'Low', color: 'text-blue-500', badgeColor: 'bg-blue-50 text-blue-600' },
-  medium: { label: 'Medium', color: 'text-amber-500', badgeColor: 'bg-amber-50 text-amber-600' },
-  high: { label: 'High', color: 'text-rose-500', badgeColor: 'bg-rose-50 text-rose-600' },
+  none: { label: 'None', color: 'text-zinc-400', badgeColor: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
+  low: { label: 'Low', color: 'text-sky-500', badgeColor: 'bg-sky-50 text-sky-700 border-sky-200' },
+  medium: { label: 'Medium', color: 'text-amber-500', badgeColor: 'bg-amber-50 text-amber-700 border-amber-200' },
+  high: { label: 'High', color: 'text-rose-500', badgeColor: 'bg-rose-50 text-rose-700 border-rose-200' },
 }
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string }> = {
-  not_started: { label: 'Not Started', color: 'bg-zinc-100 text-zinc-600' },
-  in_progress: { label: 'In Progress', color: 'bg-blue-50 text-blue-600' },
-  waiting: { label: 'Waiting', color: 'bg-amber-50 text-amber-600' },
-  completed: { label: 'Completed', color: 'bg-emerald-50 text-emerald-600' },
-  deferred: { label: 'Deferred', color: 'bg-zinc-100 text-zinc-500' },
+  not_started: { label: 'Not Started', color: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
+  in_progress: { label: 'In Progress', color: 'bg-sky-50 text-sky-700 border-sky-200' },
+  waiting: { label: 'Waiting', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  completed: { label: 'Completed', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  deferred: { label: 'Deferred', color: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
 }
 
 function getDueDateStatus(dueDate: string | null | undefined) {
@@ -110,18 +103,18 @@ function getDueDateStatus(dueDate: string | null | undefined) {
   now.setHours(0, 0, 0, 0)
   
   if (isPast(date) && !isToday(date)) {
-    return { label: 'Overdue', color: 'bg-rose-50 text-rose-600 border-rose-100' }
+    return { label: 'Overdue', color: 'bg-rose-50 text-rose-700 border-rose-200' }
   }
   if (isToday(date)) {
-    return { label: 'Due Today', color: 'bg-amber-50 text-amber-600 border-amber-100' }
+    return { label: 'Due Today', color: 'bg-amber-50 text-amber-700 border-amber-200' }
   }
   if (isTomorrow(date)) {
-    return { label: 'Tomorrow', color: 'bg-blue-50 text-blue-600 border-blue-100' }
+    return { label: 'Tomorrow', color: 'bg-sky-50 text-sky-700 border-sky-200' }
   }
   if (isThisWeek(date)) {
-    return { label: format(date, 'EEEE'), color: 'bg-zinc-100 text-zinc-600 border-zinc-200' }
+    return { label: format(date, 'EEEE'), color: 'bg-zinc-100 text-zinc-700 border-zinc-200' }
   }
-  return { label: format(date, 'MMM d'), color: 'bg-zinc-100 text-zinc-600 border-zinc-200' }
+  return { label: format(date, 'MMM d'), color: 'bg-zinc-100 text-zinc-700 border-zinc-200' }
 }
 
 function TaskListSkeleton() {
@@ -133,7 +126,7 @@ function TaskListSkeleton() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: i * 0.05 }}
-          className="flex items-start gap-4 p-5 border rounded-2xl bg-white"
+          className="flex items-start gap-4 p-5 border border-zinc-200 rounded-2xl bg-white"
         >
           <Skeleton className="h-5 w-5 rounded-md mt-1" />
           <Skeleton className="h-10 w-10 rounded-xl" />
@@ -165,21 +158,21 @@ function EmptyState({
       exit={{ opacity: 0, scale: 0.95 }}
       transition={smoothTransition}
     >
-      <Card className="border-border border-dashed bg-muted/20 rounded-[2rem]">
+      <Card className="border-dashed border-2 border-zinc-200 bg-zinc-50/50 rounded-2xl">
         <CardContent className="p-12 sm:p-20 text-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ ...smoothTransition, delay: 0.1 }}
-            className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-card shadow-sm border border-border flex items-center justify-center mx-auto mb-6"
+            className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white shadow-sm border border-zinc-200 flex items-center justify-center mx-auto mb-6"
           >
-            <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/30" />
+            <CheckCircle2 className="h-8 w-8 sm:h-10 sm:w-10 text-zinc-300" />
           </motion.div>
           <motion.h3
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="font-black text-xl sm:text-2xl text-foreground tracking-tight"
+            className="font-black text-xl sm:text-2xl text-zinc-900 tracking-tight"
           >
             {filter === 'all' ? 'No tasks yet' : 'All caught up!'}
           </motion.h3>
@@ -187,7 +180,7 @@ function EmptyState({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-2 text-sm font-medium text-muted-foreground max-w-[300px] mx-auto"
+            className="mt-2 text-sm font-medium text-zinc-500 max-w-[300px] mx-auto"
           >
             {filter === 'all'
               ? 'Create your first task to start tracking follow-ups with your partners.'
@@ -202,7 +195,7 @@ function EmptyState({
           >
             <Button
               onClick={onCreateTask}
-              className="mt-8 h-11 px-8 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em]"
+              className="mt-8 h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] bg-zinc-900 hover:bg-zinc-800"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create Task
@@ -225,9 +218,9 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         transition={springTransition}
-        className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100"
+        className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-200"
       >
-        <AlertCircle className="h-7 w-7 text-rose-500" />
+        <AlertCircle className="h-7 w-7 text-rose-600" />
       </motion.div>
       <p className="text-sm font-bold text-zinc-900 mb-1">Something went wrong</p>
       <p className="text-xs text-zinc-500 mb-4 max-w-[300px]">{message}</p>
@@ -236,7 +229,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
           variant="outline"
           size="sm"
           onClick={onRetry}
-          className="h-9 rounded-xl border-zinc-200"
+          className="h-9 rounded-xl border-zinc-200 hover:bg-zinc-50"
         >
           <RefreshCw className="h-3.5 w-3.5 mr-2" />
           Try Again
@@ -266,7 +259,7 @@ function StatCard({
       transition={springTransition}
       onClick={onClick}
       className={cn(
-        'flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all cursor-pointer text-left',
+        'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer text-left shadow-sm',
         color,
         isActive && 'ring-2 ring-offset-2 ring-zinc-900'
       )}
@@ -279,7 +272,7 @@ function StatCard({
       >
         {value}
       </motion.span>
-      <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>
+      <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">{label}</span>
     </motion.button>
   )
 }
@@ -297,7 +290,6 @@ function TaskRow({
   onDelete: () => void
   index: number
 }) {
-  const [isHovered, setIsHovered] = useState(false)
   const typeConfig = TASK_TYPE_CONFIG[task.task_type]
   const priorityConfig = PRIORITY_CONFIG[task.priority]
   const statusConfig = STATUS_CONFIG[task.status]
@@ -312,26 +304,25 @@ function TaskRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100 }}
       transition={{ ...smoothTransition, delay: index * 0.03 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
       className={cn(
-        'relative group flex items-start gap-4 p-5 border rounded-2xl transition-all',
+        'relative group flex items-start gap-4 p-5 border rounded-xl transition-all',
         isCompleted
-          ? 'bg-muted/30 border-transparent'
-          : 'bg-card border-border hover:border-muted-foreground/20 hover:shadow-lg'
+          ? 'bg-zinc-50/50 border-zinc-100'
+          : 'bg-white border-zinc-200 hover:border-zinc-300 hover:shadow-md'
       )}
     >
       <motion.div className="mt-1 relative" whileTap={{ scale: 0.9 }}>
         <Checkbox
           checked={isCompleted}
           onCheckedChange={onComplete}
-          className="h-5 w-5 rounded-md border-border data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+          className="h-5 w-5 rounded-md border-zinc-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
         />
       </motion.div>
 
       <motion.div
         className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-xl shrink-0 shadow-sm',
+          'flex h-10 w-10 items-center justify-center rounded-xl shrink-0',
+          isCompleted ? 'opacity-50' : '',
           typeConfig.bgColor,
           typeConfig.color
         )}
@@ -348,25 +339,25 @@ function TaskRow({
               <motion.p
                 className={cn(
                   'font-bold text-sm tracking-tight',
-                  isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
+                  isCompleted ? 'line-through text-zinc-400' : 'text-zinc-900'
                 )}
               >
                 {task.title}
               </motion.p>
               {task.priority !== 'none' && !isCompleted && (
-                <Badge className={cn('border-0 text-[9px] font-black uppercase tracking-widest px-1.5 h-4', priorityConfig.badgeColor)}>
+                <Badge className={cn('border text-[9px] font-black uppercase tracking-widest px-1.5 h-4', priorityConfig.badgeColor)}>
                   {priorityConfig.label}
                 </Badge>
               )}
               {task.is_auto_generated && !isCompleted && (
-                <Badge className="bg-indigo-50 text-indigo-600 border-0 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
+                <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
                   <Sparkles className="h-2.5 w-2.5" />
                   Auto
                 </Badge>
               )}
             </div>
             {task.description && !isCompleted && (
-              <p className="text-xs font-medium text-muted-foreground mt-1 line-clamp-2">
+              <p className="text-xs font-medium text-zinc-500 mt-1 line-clamp-2">
                 {task.description}
               </p>
             )}
@@ -378,15 +369,15 @@ function TaskRow({
             <Link href={`/missionary-dashboard/donors?selected=${task.donor.id}`}>
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted border border-border/50 hover:border-primary/30 transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer"
               >
                 <Avatar className="h-4 w-4">
                   <AvatarImage src={task.donor.avatar_url || undefined} />
-                  <AvatarFallback className="text-[8px] font-bold bg-zinc-200">
+                  <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
                     {task.donor.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
                   {task.donor.name}
                 </span>
               </motion.div>
@@ -407,13 +398,13 @@ function TaskRow({
           {task.reminder_date && !isCompleted && (
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-600 text-[10px] font-bold uppercase tracking-wider"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider"
             >
               <Bell className="h-3 w-3" />
               {format(new Date(task.reminder_date), 'MMM d')}
             </motion.div>
           )}
-          <Badge className={cn('border-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full', statusConfig.color)}>
+          <Badge className={cn('border text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full', statusConfig.color)}>
             {statusConfig.label}
           </Badge>
         </div>
@@ -425,33 +416,33 @@ function TaskRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground rounded-lg"
+              className="h-8 w-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </motion.div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="rounded-xl border-border p-1.5 shadow-xl min-w-[160px]">
+        <DropdownMenuContent align="end" className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-[160px]">
           <DropdownMenuItem onClick={onEdit} className="rounded-lg text-xs font-medium py-2 cursor-pointer">
-            <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+            <Pencil className="mr-2 h-3.5 w-3.5 text-zinc-400" />
             Edit Task
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onComplete} className="rounded-lg text-xs font-medium py-2 cursor-pointer">
-            <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+            <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-zinc-400" />
             {isCompleted ? 'Reopen Task' : 'Mark Complete'}
           </DropdownMenuItem>
           {task.donor && (
             <DropdownMenuItem asChild className="rounded-lg text-xs font-medium py-2 cursor-pointer">
               <Link href={`/missionary-dashboard/donors?selected=${task.donor.id}`}>
-                <User className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                <User className="mr-2 h-3.5 w-3.5 text-zinc-400" />
                 View Partner
               </Link>
             </DropdownMenuItem>
           )}
-          <DropdownMenuSeparator className="my-1" />
+          <DropdownMenuSeparator className="my-1 bg-zinc-100" />
           <DropdownMenuItem
             onClick={onDelete}
-            className="rounded-lg text-xs font-medium py-2 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+            className="rounded-lg text-xs font-medium py-2 text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
           >
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             Delete Task
@@ -624,7 +615,7 @@ export default function TasksPage() {
               variant="outline"
               size="sm"
               onClick={refresh}
-              className="h-9 px-3 text-xs font-medium"
+              className="h-9 px-3 text-xs font-medium border-zinc-200 hover:bg-zinc-50"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -639,7 +630,7 @@ export default function TasksPage() {
             onSuccess={handleTaskSuccess}
             trigger={
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button size="sm" className="h-9 px-4 text-xs font-medium">
+                <Button size="sm" className="h-9 px-4 text-xs font-medium bg-zinc-900 hover:bg-zinc-800">
                   <Plus className="mr-2 h-4 w-4" />
                   New Task
                 </Button>
@@ -658,14 +649,14 @@ export default function TasksPage() {
         <StatCard
           label="Active"
           value={stats.notStarted + stats.inProgress}
-          color="bg-blue-50 border-blue-100 text-blue-700"
+          color="bg-sky-50 border-sky-200 text-sky-700"
           onClick={() => setViewFilter('active')}
           isActive={viewFilter === 'active'}
         />
         <StatCard
           label="Completed"
           value={stats.completed}
-          color="bg-emerald-50 border-emerald-100 text-emerald-700"
+          color="bg-emerald-50 border-emerald-200 text-emerald-700"
           onClick={() => setViewFilter('completed')}
           isActive={viewFilter === 'completed'}
         />
@@ -673,7 +664,7 @@ export default function TasksPage() {
           <StatCard
             label="Overdue"
             value={stats.overdue}
-            color="bg-rose-50 border-rose-100 text-rose-700"
+            color="bg-rose-50 border-rose-200 text-rose-700"
             onClick={() => setViewFilter('overdue')}
             isActive={viewFilter === 'overdue'}
           />
@@ -682,7 +673,7 @@ export default function TasksPage() {
           <StatCard
             label="Due Today"
             value={stats.dueToday}
-            color="bg-amber-50 border-amber-100 text-amber-700"
+            color="bg-amber-50 border-amber-200 text-amber-700"
             onClick={() => setViewFilter('today')}
             isActive={viewFilter === 'today'}
           />
@@ -691,7 +682,7 @@ export default function TasksPage() {
           <StatCard
             label="High Priority"
             value={stats.highPriority}
-            color="bg-purple-50 border-purple-100 text-purple-700"
+            color="bg-violet-50 border-violet-200 text-violet-700"
           />
         )}
       </motion.div>
@@ -703,18 +694,18 @@ export default function TasksPage() {
         className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
       >
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
           <Input
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-11 bg-muted/50 border-border rounded-xl"
+            className="pl-9 h-11 bg-white border-zinc-200 rounded-xl focus:border-zinc-300 focus:ring-zinc-200"
           />
           {searchTerm && (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-zinc-100"
               onClick={() => setSearchTerm('')}
             >
               <X className="h-4 w-4" />
@@ -728,12 +719,12 @@ export default function TasksPage() {
             onValueChange={(v) => setViewFilter(v as ViewFilter)}
             className="hidden sm:block"
           >
-            <TabsList className="bg-muted/50 border border-border p-1 h-auto rounded-xl">
+            <TabsList className="bg-zinc-100 border border-zinc-200 p-1 h-auto rounded-xl">
               {(['all', 'active', 'completed'] as const).map((tab) => (
                 <TabsTrigger
                   key={tab}
                   value={tab}
-                  className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm px-4 py-1.5 text-[10px] font-black uppercase tracking-widest"
+                  className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 data-[state=active]:text-zinc-900"
                 >
                   {tab === 'all' ? 'All' : tab === 'active' ? 'Active' : 'Done'}
                 </TabsTrigger>
@@ -747,24 +738,24 @@ export default function TasksPage() {
                 variant="outline"
                 size="sm"
                 className={cn(
-                  'h-11 rounded-xl border-border',
-                  hasActiveFilters && 'border-primary bg-primary/5'
+                  'h-11 rounded-xl border-zinc-200 hover:bg-zinc-50',
+                  hasActiveFilters && 'border-zinc-900 bg-zinc-900/5'
                 )}
               >
                 <ListFilter className="h-4 w-4 mr-2" />
                 Filters
                 {hasActiveFilters && (
-                  <Badge className="ml-2 h-5 px-1.5 bg-primary text-primary-foreground">
+                  <Badge className="ml-2 h-5 px-1.5 bg-zinc-900 text-white border-0">
                     {[typeFilter !== 'all', priorityFilter !== 'all', !!searchTerm].filter(Boolean).length}
                   </Badge>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl">
-              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <DropdownMenuContent align="end" className="w-56 rounded-xl border-zinc-200">
+              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                 Task Type
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-zinc-100" />
               <DropdownMenuCheckboxItem
                 checked={typeFilter === 'all'}
                 onCheckedChange={() => setTypeFilter('all')}
@@ -782,11 +773,11 @@ export default function TasksPage() {
                 </DropdownMenuCheckboxItem>
               ))}
 
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <DropdownMenuSeparator className="bg-zinc-100" />
+              <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                 Priority
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-zinc-100" />
               <DropdownMenuCheckboxItem
                 checked={priorityFilter === 'all'}
                 onCheckedChange={() => setPriorityFilter('all')}
@@ -806,10 +797,10 @@ export default function TasksPage() {
 
               {hasActiveFilters && (
                 <>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-zinc-100" />
                   <DropdownMenuItem
                     onClick={clearFilters}
-                    className="text-destructive focus:text-destructive"
+                    className="text-rose-600 focus:text-rose-600 focus:bg-rose-50"
                   >
                     <X className="h-3.5 w-3.5 mr-2" />
                     Clear All Filters
@@ -832,7 +823,7 @@ export default function TasksPage() {
             {typeFilter !== 'all' && (
               <Badge
                 variant="secondary"
-                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer hover:bg-destructive/10"
+                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer bg-zinc-100 text-zinc-700 border border-zinc-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
                 onClick={() => setTypeFilter('all')}
               >
                 {TASK_TYPE_CONFIG[typeFilter].label}
@@ -842,7 +833,7 @@ export default function TasksPage() {
             {priorityFilter !== 'all' && (
               <Badge
                 variant="secondary"
-                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer hover:bg-destructive/10"
+                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer bg-zinc-100 text-zinc-700 border border-zinc-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
                 onClick={() => setPriorityFilter('all')}
               >
                 {PRIORITY_CONFIG[priorityFilter].label} Priority
@@ -852,7 +843,7 @@ export default function TasksPage() {
             {searchTerm && (
               <Badge
                 variant="secondary"
-                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer hover:bg-destructive/10"
+                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer bg-zinc-100 text-zinc-700 border border-zinc-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
                 onClick={() => setSearchTerm('')}
               >
                 Search: "{searchTerm}"
@@ -893,18 +884,18 @@ export default function TasksPage() {
       </AnimatePresence>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-2xl">
+        <AlertDialogContent className="rounded-2xl border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-zinc-900">Delete Task</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-500">
               Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl border-zinc-200 hover:bg-zinc-50">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-xl bg-rose-600 text-white hover:bg-rose-700"
             >
               Delete
             </AlertDialogAction>
