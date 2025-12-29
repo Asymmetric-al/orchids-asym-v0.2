@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,49 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -12 },
+}
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.96 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.96 },
+}
+
+const slideInRight = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 },
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+}
+
+const springTransition = {
+  type: 'spring' as const,
+  stiffness: 380,
+  damping: 32,
+}
+
+const smoothTransition = {
+  duration: 0.3,
+  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+}
+
+const gentleTransition = {
+  duration: 0.4,
+  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+}
 
 interface ProfileData {
   firstName: string
@@ -153,19 +197,32 @@ function FormField({
   className?: string
 }) {
   return (
-    <div className={cn('space-y-1.5', className)}>
+    <motion.div 
+      className={cn('space-y-1.5', className)}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       <Label className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {label}
       </Label>
       {children}
-      {error && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
-          {error}
-        </p>
-      )}
-    </div>
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.p 
+            className="text-xs text-red-500 flex items-center gap-1"
+            initial={{ opacity: 0, height: 0, y: -4 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AlertCircle className="h-3 w-3" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }
 
@@ -189,9 +246,14 @@ function SocialIcon({
   const Icon = icons[platform] || Globe
 
   return (
-    <div className="cursor-pointer">
+    <motion.div 
+      className="cursor-pointer"
+      whileHover={{ scale: 1.15, y: -1 }}
+      whileTap={{ scale: 0.95 }}
+      transition={springTransition}
+    >
       <Icon className="h-4 w-4 text-zinc-400 hover:text-zinc-600 transition-colors" />
-    </div>
+    </motion.div>
   )
 }
 
@@ -209,12 +271,15 @@ function AvatarUploadArea({
   isEditing: boolean
 }) {
   return (
-    <div
+    <motion.div
       className={cn(
         "relative group",
         isEditing && "cursor-pointer"
       )}
       onClick={isEditing ? onUploadClick : undefined}
+      whileHover={isEditing ? { scale: 1.02 } : {}}
+      whileTap={isEditing ? { scale: 0.98 } : {}}
+      transition={springTransition}
     >
       <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
         <AvatarImage src={avatarUrl} />
@@ -222,23 +287,43 @@ function AvatarUploadArea({
           {initials || 'U'}
         </AvatarFallback>
       </Avatar>
-      {isUploading && (
-        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-          <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white animate-spin" />
-        </div>
-      )}
-      {isEditing && !isUploading && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onUploadClick()
-          }}
-          className="absolute -bottom-1 -right-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-zinc-800 transition-colors"
-        >
-          <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-        </button>
-      )}
-    </div>
+      <AnimatePresence>
+        {isUploading && (
+          <motion.div 
+            className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isEditing && !isUploading && (
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation()
+              onUploadClick()
+            }}
+            className="absolute -bottom-1 -right-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-zinc-800 transition-colors"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={springTransition}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }
 
@@ -254,7 +339,7 @@ function CoverUploadArea({
   isEditing: boolean
 }) {
   return (
-    <div
+    <motion.div
       onClick={isEditing ? onUploadClick : undefined}
       className={cn(
         'aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden',
@@ -263,40 +348,64 @@ function CoverUploadArea({
           ? 'border-transparent'
           : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300'
       )}
+      whileHover={isEditing && !coverUrl ? { scale: 1.01, borderColor: '#a1a1aa' } : {}}
+      transition={smoothTransition}
     >
       {coverUrl ? (
         <>
-          <img
+          <motion.img
             src={coverUrl}
             alt="Cover"
             className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={gentleTransition}
           />
           {isEditing && (
-            <div className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center transition-colors group">
-              <div className="bg-white rounded-lg px-3 py-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+            <motion.div 
+              className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center transition-colors group"
+              whileHover="hover"
+            >
+              <motion.div 
+                className="bg-white rounded-lg px-3 py-1.5 shadow-lg"
+                initial={{ opacity: 0, y: 8 }}
+                variants={{
+                  hover: { opacity: 1, y: 0 }
+                }}
+                transition={smoothTransition}
+              >
                 <span className="text-xs font-medium">Change Cover</span>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
         </>
       ) : (
-        <>
-          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3">
+        <motion.div 
+          className="flex flex-col items-center"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={smoothTransition}
+        >
+          <motion.div 
+            className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3"
+            animate={isUploading ? { rotate: [0, 180, 360] } : {}}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          >
             {isUploading ? (
-              <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400 animate-spin" />
+              <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400" />
             ) : (
               <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-300" />
             )}
-          </div>
+          </motion.div>
           <p className="text-xs sm:text-sm font-medium text-zinc-700">
             {isEditing ? 'Click to upload cover photo' : 'No cover photo'}
           </p>
           <p className="text-[10px] sm:text-xs text-zinc-400 mt-0.5">
             1200x400px recommended
           </p>
-        </>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -309,11 +418,14 @@ function PreviewToggle({
 }) {
   return (
     <div className="relative bg-zinc-100 border border-zinc-200 p-1 rounded-lg flex">
-      <div
-        className={cn(
-          "absolute top-1 bottom-1 bg-white rounded-md shadow-sm transition-all duration-200",
-          value === 'mobile' ? 'left-1 w-[calc(50%-2px)]' : 'left-[50%] w-[calc(50%-2px)]'
-        )}
+      <motion.div
+        className="absolute top-1 bottom-1 bg-white rounded-md shadow-sm"
+        layout
+        transition={springTransition}
+        style={{
+          left: value === 'mobile' ? 4 : '50%',
+          width: 'calc(50% - 4px)',
+        }}
       />
       <button
         onClick={() => onChange('mobile')}
@@ -334,6 +446,29 @@ function PreviewToggle({
         <Monitor className="h-4 w-4" />
       </button>
     </div>
+  )
+}
+
+function MotionCard({ 
+  children, 
+  className,
+  delay = 0 
+}: { 
+  children: React.ReactNode
+  className?: string
+  delay?: number 
+}) {
+  return (
+    <motion.div
+      variants={fadeInUp}
+      initial="initial"
+      animate="animate"
+      transition={{ ...gentleTransition, delay }}
+    >
+      <Card className={cn("rounded-2xl border-zinc-200 shadow-sm", className)}>
+        {children}
+      </Card>
+    </motion.div>
   )
 }
 
@@ -639,484 +774,725 @@ export default function ProfilePage() {
 
   if (fetchError) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center">
+      <motion.div 
+        className="flex flex-col items-center justify-center py-20 space-y-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={gentleTransition}
+      >
+        <motion.div 
+          className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ ...springTransition, delay: 0.1 }}
+        >
           <AlertCircle className="h-6 w-6 text-red-500" />
-        </div>
+        </motion.div>
         <p className="text-zinc-600">{fetchError}</p>
         <Button onClick={() => window.location.reload()} variant="outline">
           Try Again
         </Button>
-      </div>
+      </motion.div>
     )
   }
 
   return (
     <TooltipProvider>
-      <div className="space-y-6 pb-20">
-        <PageHeader title="Profile" description="Update your information and how you appear to supporters.">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyLink}
-                  className="h-9 px-3 text-xs font-medium"
-                >
-                  {copiedLink ? (
-                    <Check className="h-4 w-4 text-emerald-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Copy profile link</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-3 text-xs font-medium"
-                  asChild
-                >
-                  <a
-                    href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Eye className="mr-1.5 h-4 w-4" />
-                    <span className="hidden sm:inline">View Public Page</span>
-                    <span className="sm:hidden">View</span>
-                    <ExternalLink className="ml-1 h-3 w-3 opacity-50" />
-                  </a>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View your public profile</TooltipContent>
-            </Tooltip>
-
-            {isEditing && hasChanges && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCancel}
-                className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
-              >
-                <X className="mr-1.5 h-4 w-4" />
-                Cancel
-              </Button>
-            )}
-
-            <Button
-              onClick={handleSave}
-              disabled={isSaving || (isEditing && !hasChanges)}
-              size="sm"
-              className={cn(
-                'h-9 px-4 text-xs font-medium min-w-[100px]',
-                saveSuccess && 'bg-emerald-600 hover:bg-emerald-600'
-              )}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : saveSuccess ? (
-                <>
-                  <CheckCircle2 className="mr-1.5 h-4 w-4" />
-                  Saved!
-                </>
-              ) : isEditing ? (
-                <>
-                  <Save className="mr-1.5 h-4 w-4" />
-                  Save
-                </>
-              ) : (
-                <>
-                  <Pencil className="mr-1.5 h-4 w-4" />
-                  Edit
-                </>
-              )}
-            </Button>
-          </div>
-        </PageHeader>
-
-        <div className="grid gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-7 space-y-6">
-            <Card className="rounded-2xl border-zinc-200 shadow-sm">
-              <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-                <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Personal Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField label="First Name" error={validationErrors.firstName}>
-                      <Input
-                        value={profile.firstName}
-                        onChange={(e) => updateProfile('firstName', e.target.value)}
-                        disabled={!isEditing}
-                        className="h-10"
-                        placeholder="Your first name"
-                      />
-                    </FormField>
-                    <FormField label="Last Name" error={validationErrors.lastName}>
-                      <Input
-                        value={profile.lastName}
-                        onChange={(e) => updateProfile('lastName', e.target.value)}
-                        disabled={!isEditing}
-                        className="h-10"
-                        placeholder="Your last name"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField label="Location" icon={MapPin}>
-                      <Input
-                        value={profile.location}
-                        onChange={(e) => updateProfile('location', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="City, Country"
-                        className="h-10"
-                      />
-                    </FormField>
-                    <FormField label="Phone" icon={PhoneIcon} error={validationErrors.phone}>
-                      <Input
-                        value={profile.phone}
-                        onChange={(e) => updateProfile('phone', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="+1 (555) 000-0000"
-                        className="h-10"
-                      />
-                    </FormField>
-                  </div>
-
-                  <FormField label="Tagline">
-                    <Input
-                      value={profile.ministryFocus}
-                      onChange={(e) => updateProfile('ministryFocus', e.target.value)}
-                      disabled={!isEditing}
-                      placeholder="A short description of your work"
-                      className="h-10"
-                    />
-                  </FormField>
-
-                  <FormField label="About You">
-                    <div className="relative">
-                      <Textarea
-                        value={profile.bio}
-                        onChange={(e) => updateProfile('bio', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="Share a bit about yourself and your ministry..."
-                        className="min-h-[120px] resize-none"
-                        maxLength={500}
-                      />
-                      {isEditing && (
-                        <span className={cn(
-                          "absolute bottom-2 right-2 text-[10px] font-medium",
-                          profile.bio.length >= 450 ? 'text-amber-500' : 'text-zinc-300'
-                        )}>
-                          {profile.bio.length}/500
-                        </span>
-                      )}
-                    </div>
-                  </FormField>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-zinc-200 shadow-sm">
-              <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-                <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                  <ImageIcon className="h-4 w-4" />
-                  Profile Photos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                  <AvatarUploadArea
-                    avatarUrl={profile.avatarUrl}
-                    initials={initials}
-                    isUploading={isUploading}
-                    onUploadClick={() => fileInputRef.current?.click()}
-                    isEditing={isEditing}
-                  />
-                  <div className="space-y-2 text-center sm:text-left">
-                    <p className="text-sm font-medium text-zinc-900">Profile Picture</p>
-                    <p className="text-xs text-zinc-500 max-w-[200px]">
-                      Square image, at least 400x400px. JPG or PNG.
-                    </p>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                    />
-                    {isEditing && (
+      <LayoutGroup>
+        <motion.div 
+          className="space-y-6 pb-20"
+          initial="initial"
+          animate="animate"
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeInUp} transition={gentleTransition}>
+            <PageHeader title="Profile" description="Update your information and how you appear to supporters.">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={isUploading}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="h-8 text-xs"
+                        onClick={handleCopyLink}
+                        className="h-9 px-3 text-xs font-medium"
                       >
-                        {isUploading ? (
-                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Upload className="mr-1.5 h-3.5 w-3.5" />
-                        )}
-                        {isUploading ? 'Uploading...' : 'Upload'}
+                        <AnimatePresence mode="wait">
+                          {copiedLink ? (
+                            <motion.div
+                              key="check"
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0, rotate: 180 }}
+                              transition={springTransition}
+                            >
+                              <Check className="h-4 w-4 text-emerald-600" />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="copy"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              exit={{ scale: 0 }}
+                              transition={springTransition}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </Button>
-                    )}
-                  </div>
-                </div>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy profile link</TooltipContent>
+                </Tooltip>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-zinc-500">
-                    Cover Photo
-                  </Label>
-                  <CoverUploadArea
-                    coverUrl={profile.coverUrl}
-                    isUploading={isUploadingCover}
-                    onUploadClick={() => coverInputRef.current?.click()}
-                    isEditing={isEditing}
-                  />
-                  <input
-                    type="file"
-                    ref={coverInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleCoverUpload}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-zinc-200 shadow-sm">
-              <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
-                <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Social Links
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField label="Instagram" icon={Instagram}>
-                      <Input
-                        value={profile.instagram}
-                        onChange={(e) => updateProfile('instagram', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="@yourhandle"
-                        className="h-10"
-                      />
-                    </FormField>
-                    <FormField label="Facebook" icon={Facebook}>
-                      <Input
-                        value={profile.facebook}
-                        onChange={(e) => updateProfile('facebook', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="facebook.com/yourpage"
-                        className="h-10"
-                      />
-                    </FormField>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField label="Twitter / X" icon={Twitter}>
-                      <Input
-                        value={profile.twitter}
-                        onChange={(e) => updateProfile('twitter', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="@yourhandle"
-                        className="h-10"
-                      />
-                    </FormField>
-                    <FormField label="YouTube" icon={Youtube}>
-                      <Input
-                        value={profile.youtube}
-                        onChange={(e) => updateProfile('youtube', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="youtube.com/@channel"
-                        className="h-10"
-                      />
-                    </FormField>
-                  </div>
-                  <FormField label="Website" icon={LinkIcon} error={validationErrors.website}>
-                    <Input
-                      value={profile.website}
-                      onChange={(e) => updateProfile('website', e.target.value)}
-                      disabled={!isEditing}
-                      placeholder="https://yourwebsite.com"
-                      className="h-10"
-                    />
-                  </FormField>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-5">
-            <div className="sticky top-24">
-              <div className="flex items-center justify-between mb-3 px-1">
-                <span className="text-xs font-medium text-zinc-500">
-                  Preview
-                </span>
-                <PreviewToggle
-                  value={previewMode}
-                  onChange={setPreviewMode}
-                />
-              </div>
-
-              {previewMode === 'mobile' ? (
-                <div className="border-[10px] sm:border-[12px] border-zinc-900 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative">
-                  <div className="absolute top-0 left-0 right-0 h-32 sm:h-36">
-                    {profile.coverUrl ? (
-                      <img
-                        src={profile.coverUrl}
-                        alt="Cover"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-zinc-100 flex items-center justify-center">
-                        <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 text-zinc-200" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="absolute top-20 sm:top-24 left-0 right-0 flex justify-center">
-                    <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
-                      <Avatar className="h-full w-full">
-                        <AvatarImage src={profile.avatarUrl} />
-                        <AvatarFallback className="bg-zinc-100 font-bold text-base sm:text-lg">
-                          {initials || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </div>
-
-                  <div className="mt-44 sm:mt-52 px-4 sm:px-6 text-center">
-                    <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
-                      {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                    </h2>
-                    <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 mt-1">
-                      <MapPin className="h-3 w-3" />
-                      {profile.location || 'Location'}
-                    </div>
-                    <p className="text-xs font-medium text-zinc-600 mt-2">
-                      {profile.ministryFocus || 'Tagline'}
-                    </p>
-
-                    <p className="text-xs text-zinc-400 mt-4 line-clamp-3 px-2">
-                      {profile.bio || 'Your bio will appear here.'}
-                    </p>
-
-                    <div className="flex justify-center gap-3 mt-5">
-                      {profile.instagram && (
-                        <SocialIcon platform="instagram" url={profile.instagram} />
-                      )}
-                      {profile.facebook && (
-                        <SocialIcon platform="facebook" url={profile.facebook} />
-                      )}
-                      {profile.twitter && (
-                        <SocialIcon platform="twitter" url={profile.twitter} />
-                      )}
-                      {profile.youtube && (
-                        <SocialIcon platform="youtube" url={profile.youtube} />
-                      )}
-                      {profile.website && (
-                        <SocialIcon platform="website" url={profile.website} />
-                      )}
-                    </div>
-
-                    <Button className="w-full mt-6 sm:mt-8 bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl h-11 sm:h-12 text-xs font-semibold">
-                      Support
-                    </Button>
-                  </div>
-
-                  <div className="absolute top-0 left-0 right-0 h-6 sm:h-8 flex justify-center pt-1 pointer-events-none">
-                    <div className="bg-zinc-900 h-4 sm:h-5 w-24 sm:w-28 rounded-full" />
-                  </div>
-                  <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
-                    <div className="bg-zinc-200 h-1 w-28 sm:w-32 rounded-full" />
-                  </div>
-                </div>
-              ) : (
-                <div className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white">
-                  <div className="h-2.5 bg-zinc-100 border-b border-zinc-200 flex items-center px-2 gap-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                    <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                  </div>
-
-                  <div className="relative">
-                    <div className="h-20">
-                      {profile.coverUrl ? (
-                        <img
-                          src={profile.coverUrl}
-                          alt="Cover"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-zinc-100" />
-                      )}
-                    </div>
-
-                    <div className="px-4 pb-4">
-                      <div className="flex items-end gap-3 -mt-6">
-                        <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                          <AvatarImage src={profile.avatarUrl} />
-                          <AvatarFallback className="bg-zinc-100 text-xs font-bold">
-                            {initials || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 pb-0.5">
-                          <h2 className="text-sm font-bold text-zinc-900">
-                            {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                          </h2>
-                          <p className="text-[10px] text-zinc-500 flex items-center gap-1">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {profile.location || 'Location'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <p className="text-[10px] font-medium text-zinc-600 mt-3">
-                        {profile.ministryFocus || 'Tagline'}
-                      </p>
-                      <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2">
-                        {profile.bio || 'Your bio will appear here.'}
-                      </p>
-
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex gap-2">
-                          {profile.instagram && (
-                            <SocialIcon platform="instagram" url={profile.instagram} />
-                          )}
-                          {profile.facebook && (
-                            <SocialIcon platform="facebook" url={profile.facebook} />
-                          )}
-                          {profile.twitter && (
-                            <SocialIcon platform="twitter" url={profile.twitter} />
-                          )}
-                        </div>
-                        <Button
-                          size="sm"
-                          className="h-6 rounded text-[9px] font-medium px-3"
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-3 text-xs font-medium"
+                        asChild
+                      >
+                        <a
+                          href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
-                          Support
-                        </Button>
-                      </div>
+                          <Eye className="mr-1.5 h-4 w-4" />
+                          <span className="hidden sm:inline">View Public Page</span>
+                          <span className="sm:hidden">View</span>
+                          <ExternalLink className="ml-1 h-3 w-3 opacity-50" />
+                        </a>
+                      </Button>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>View your public profile</TooltipContent>
+                </Tooltip>
+
+                <AnimatePresence>
+                  {isEditing && hasChanges && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8, x: -10 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.8, x: -10 }}
+                      transition={springTransition}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
+                      >
+                        <X className="mr-1.5 h-4 w-4" />
+                        Cancel
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.div 
+                  whileHover={{ scale: 1.02 }} 
+                  whileTap={{ scale: 0.98 }}
+                  layout
+                >
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving || (isEditing && !hasChanges)}
+                    size="sm"
+                    className={cn(
+                      'h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-300',
+                      saveSuccess && 'bg-emerald-600 hover:bg-emerald-600'
+                    )}
+                  >
+                    <AnimatePresence mode="wait">
+                      {isSaving ? (
+                        <motion.div
+                          key="saving"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </motion.div>
+                      ) : saveSuccess ? (
+                        <motion.div
+                          key="success"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="flex items-center"
+                        >
+                          <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                          Saved!
+                        </motion.div>
+                      ) : isEditing ? (
+                        <motion.div
+                          key="save"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center"
+                        >
+                          <Save className="mr-1.5 h-4 w-4" />
+                          Save
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="edit"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center"
+                        >
+                          <Pencil className="mr-1.5 h-4 w-4" />
+                          Edit
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </motion.div>
+              </div>
+            </PageHeader>
+          </motion.div>
+
+          <div className="grid gap-6 lg:grid-cols-12">
+            <motion.div 
+              className="lg:col-span-7 space-y-6"
+              variants={staggerContainer}
+            >
+              <MotionCard delay={0.05}>
+                <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
+                  <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Personal Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <motion.div 
+                    className="space-y-5"
+                    variants={staggerContainer}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <FormField label="First Name" error={validationErrors.firstName}>
+                        <motion.div
+                          whileFocus={{ scale: 1.01 }}
+                          transition={springTransition}
+                        >
+                          <Input
+                            value={profile.firstName}
+                            onChange={(e) => updateProfile('firstName', e.target.value)}
+                            disabled={!isEditing}
+                            className={cn(
+                              "h-10 transition-all duration-200",
+                              isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            )}
+                            placeholder="Your first name"
+                          />
+                        </motion.div>
+                      </FormField>
+                      <FormField label="Last Name" error={validationErrors.lastName}>
+                        <Input
+                          value={profile.lastName}
+                          onChange={(e) => updateProfile('lastName', e.target.value)}
+                          disabled={!isEditing}
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                          placeholder="Your last name"
+                        />
+                      </FormField>
                     </div>
-                  </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <FormField label="Location" icon={MapPin}>
+                        <Input
+                          value={profile.location}
+                          onChange={(e) => updateProfile('location', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="City, Country"
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                        />
+                      </FormField>
+                      <FormField label="Phone" icon={PhoneIcon} error={validationErrors.phone}>
+                        <Input
+                          value={profile.phone}
+                          onChange={(e) => updateProfile('phone', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="+1 (555) 000-0000"
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                        />
+                      </FormField>
+                    </div>
+
+                    <FormField label="Tagline">
+                      <Input
+                        value={profile.ministryFocus}
+                        onChange={(e) => updateProfile('ministryFocus', e.target.value)}
+                        disabled={!isEditing}
+                        placeholder="A short description of your work"
+                        className={cn(
+                          "h-10 transition-all duration-200",
+                          isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                        )}
+                      />
+                    </FormField>
+
+                    <FormField label="About You">
+                      <div className="relative">
+                        <Textarea
+                          value={profile.bio}
+                          onChange={(e) => updateProfile('bio', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="Share a bit about yourself and your ministry..."
+                          className={cn(
+                            "min-h-[120px] resize-none transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                          maxLength={500}
+                        />
+                        <AnimatePresence>
+                          {isEditing && (
+                            <motion.span 
+                              className={cn(
+                                "absolute bottom-2 right-2 text-[10px] font-medium",
+                                profile.bio.length >= 450 ? 'text-amber-500' : 'text-zinc-300'
+                              )}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {profile.bio.length}/500
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </FormField>
+                  </motion.div>
+                </CardContent>
+              </MotionCard>
+
+              <MotionCard delay={0.1}>
+                <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
+                  <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Profile Photos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 space-y-6">
+                  <motion.div 
+                    className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...gentleTransition, delay: 0.15 }}
+                  >
+                    <AvatarUploadArea
+                      avatarUrl={profile.avatarUrl}
+                      initials={initials}
+                      isUploading={isUploading}
+                      onUploadClick={() => fileInputRef.current?.click()}
+                      isEditing={isEditing}
+                    />
+                    <div className="space-y-2 text-center sm:text-left">
+                      <p className="text-sm font-medium text-zinc-900">Profile Picture</p>
+                      <p className="text-xs text-zinc-500 max-w-[200px]">
+                        Square image, at least 400x400px. JPG or PNG.
+                      </p>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                      />
+                      <AnimatePresence>
+                        {isEditing && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={smoothTransition}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isUploading}
+                              onClick={() => fileInputRef.current?.click()}
+                              className="h-8 text-xs"
+                            >
+                              {isUploading ? (
+                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Upload className="mr-1.5 h-3.5 w-3.5" />
+                              )}
+                              {isUploading ? 'Uploading...' : 'Upload'}
+                            </Button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+
+                  <motion.div 
+                    className="space-y-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...gentleTransition, delay: 0.2 }}
+                  >
+                    <Label className="text-xs font-medium text-zinc-500">
+                      Cover Photo
+                    </Label>
+                    <CoverUploadArea
+                      coverUrl={profile.coverUrl}
+                      isUploading={isUploadingCover}
+                      onUploadClick={() => coverInputRef.current?.click()}
+                      isEditing={isEditing}
+                    />
+                    <input
+                      type="file"
+                      ref={coverInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleCoverUpload}
+                    />
+                  </motion.div>
+                </CardContent>
+              </MotionCard>
+
+              <MotionCard delay={0.15}>
+                <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
+                  <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Social Links
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <motion.div 
+                    className="space-y-4"
+                    variants={staggerContainer}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <FormField label="Instagram" icon={Instagram}>
+                        <Input
+                          value={profile.instagram}
+                          onChange={(e) => updateProfile('instagram', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="@yourhandle"
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                        />
+                      </FormField>
+                      <FormField label="Facebook" icon={Facebook}>
+                        <Input
+                          value={profile.facebook}
+                          onChange={(e) => updateProfile('facebook', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="facebook.com/yourpage"
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                        />
+                      </FormField>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <FormField label="Twitter / X" icon={Twitter}>
+                        <Input
+                          value={profile.twitter}
+                          onChange={(e) => updateProfile('twitter', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="@yourhandle"
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                        />
+                      </FormField>
+                      <FormField label="YouTube" icon={Youtube}>
+                        <Input
+                          value={profile.youtube}
+                          onChange={(e) => updateProfile('youtube', e.target.value)}
+                          disabled={!isEditing}
+                          placeholder="youtube.com/@channel"
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          )}
+                        />
+                      </FormField>
+                    </div>
+                    <FormField label="Website" icon={LinkIcon} error={validationErrors.website}>
+                      <Input
+                        value={profile.website}
+                        onChange={(e) => updateProfile('website', e.target.value)}
+                        disabled={!isEditing}
+                        placeholder="https://yourwebsite.com"
+                        className={cn(
+                          "h-10 transition-all duration-200",
+                          isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                        )}
+                      />
+                    </FormField>
+                  </motion.div>
+                </CardContent>
+              </MotionCard>
+            </motion.div>
+
+            <motion.div 
+              className="lg:col-span-5"
+              variants={slideInRight}
+              initial="initial"
+              animate="animate"
+              transition={{ ...gentleTransition, delay: 0.2 }}
+            >
+              <div className="sticky top-24">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <span className="text-xs font-medium text-zinc-500">
+                    Preview
+                  </span>
+                  <PreviewToggle
+                    value={previewMode}
+                    onChange={setPreviewMode}
+                  />
                 </div>
-              )}
-            </div>
+
+                <AnimatePresence mode="wait">
+                  {previewMode === 'mobile' ? (
+                    <motion.div
+                      key="mobile-preview"
+                      initial={{ opacity: 0, scale: 0.95, rotateY: -5 }}
+                      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, rotateY: 5 }}
+                      transition={gentleTransition}
+                      className="border-[10px] sm:border-[12px] border-zinc-900 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative"
+                    >
+                      <motion.div 
+                        className="absolute top-0 left-0 right-0 h-32 sm:h-36"
+                        layoutId="preview-cover"
+                      >
+                        {profile.coverUrl ? (
+                          <motion.img
+                            src={profile.coverUrl}
+                            alt="Cover"
+                            className="w-full h-full object-cover"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-zinc-100 flex items-center justify-center">
+                            <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 text-zinc-200" />
+                          </div>
+                        )}
+                      </motion.div>
+
+                      <motion.div 
+                        className="absolute top-20 sm:top-24 left-0 right-0 flex justify-center"
+                        layoutId="preview-avatar"
+                      >
+                        <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
+                          <Avatar className="h-full w-full">
+                            <AvatarImage src={profile.avatarUrl} />
+                            <AvatarFallback className="bg-zinc-100 font-bold text-base sm:text-lg">
+                              {initials || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </motion.div>
+
+                      <div className="mt-44 sm:mt-52 px-4 sm:px-6 text-center">
+                        <motion.h2 
+                          className="text-lg sm:text-xl font-bold text-zinc-900"
+                          key={`name-${profile.firstName}-${profile.lastName}`}
+                          initial={{ opacity: 0.5 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                        </motion.h2>
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 mt-1">
+                          <MapPin className="h-3 w-3" />
+                          <motion.span
+                            key={`location-${profile.location}`}
+                            initial={{ opacity: 0.5 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            {profile.location || 'Location'}
+                          </motion.span>
+                        </div>
+                        <motion.p 
+                          className="text-xs font-medium text-zinc-600 mt-2"
+                          key={`tagline-${profile.ministryFocus}`}
+                          initial={{ opacity: 0.5 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          {profile.ministryFocus || 'Tagline'}
+                        </motion.p>
+
+                        <motion.p 
+                          className="text-xs text-zinc-400 mt-4 line-clamp-3 px-2"
+                          key={`bio-${profile.bio.substring(0, 20)}`}
+                          initial={{ opacity: 0.5 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          {profile.bio || 'Your bio will appear here.'}
+                        </motion.p>
+
+                        <div className="flex justify-center gap-3 mt-5">
+                          <AnimatePresence>
+                            {profile.instagram && (
+                              <SocialIcon platform="instagram" url={profile.instagram} />
+                            )}
+                            {profile.facebook && (
+                              <SocialIcon platform="facebook" url={profile.facebook} />
+                            )}
+                            {profile.twitter && (
+                              <SocialIcon platform="twitter" url={profile.twitter} />
+                            )}
+                            {profile.youtube && (
+                              <SocialIcon platform="youtube" url={profile.youtube} />
+                            )}
+                            {profile.website && (
+                              <SocialIcon platform="website" url={profile.website} />
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={springTransition}
+                        >
+                          <Button className="w-full mt-6 sm:mt-8 bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl h-11 sm:h-12 text-xs font-semibold">
+                            Support
+                          </Button>
+                        </motion.div>
+                      </div>
+
+                      <div className="absolute top-0 left-0 right-0 h-6 sm:h-8 flex justify-center pt-1 pointer-events-none">
+                        <div className="bg-zinc-900 h-4 sm:h-5 w-24 sm:w-28 rounded-full" />
+                      </div>
+                      <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
+                        <div className="bg-zinc-200 h-1 w-28 sm:w-32 rounded-full" />
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="desktop-preview"
+                      initial={{ opacity: 0, scale: 0.95, rotateY: 5 }}
+                      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, rotateY: -5 }}
+                      transition={gentleTransition}
+                      className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
+                    >
+                      <div className="h-2.5 bg-zinc-100 border-b border-zinc-200 flex items-center px-2 gap-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
+                      </div>
+
+                      <div className="relative">
+                        <motion.div 
+                          className="h-20"
+                          layoutId="preview-cover"
+                        >
+                          {profile.coverUrl ? (
+                            <img
+                              src={profile.coverUrl}
+                              alt="Cover"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-zinc-100" />
+                          )}
+                        </motion.div>
+
+                        <div className="px-4 pb-4">
+                          <div className="flex items-end gap-3 -mt-6">
+                            <motion.div layoutId="preview-avatar">
+                              <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                                <AvatarImage src={profile.avatarUrl} />
+                                <AvatarFallback className="bg-zinc-100 text-xs font-bold">
+                                  {initials || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                            </motion.div>
+                            <div className="flex-1 pb-0.5">
+                              <h2 className="text-sm font-bold text-zinc-900">
+                                {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                              </h2>
+                              <p className="text-[10px] text-zinc-500 flex items-center gap-1">
+                                <MapPin className="h-2.5 w-2.5" />
+                                {profile.location || 'Location'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="text-[10px] font-medium text-zinc-600 mt-3">
+                            {profile.ministryFocus || 'Tagline'}
+                          </p>
+                          <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2">
+                            {profile.bio || 'Your bio will appear here.'}
+                          </p>
+
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="flex gap-2">
+                              {profile.instagram && (
+                                <SocialIcon platform="instagram" url={profile.instagram} />
+                              )}
+                              {profile.facebook && (
+                                <SocialIcon platform="facebook" url={profile.facebook} />
+                              )}
+                              {profile.twitter && (
+                                <SocialIcon platform="twitter" url={profile.twitter} />
+                              )}
+                            </div>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Button
+                                size="sm"
+                                className="h-6 rounded text-[9px] font-medium px-3"
+                              >
+                                Support
+                              </Button>
+                            </motion.div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.p 
+                  className="text-[10px] text-zinc-400 text-center mt-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  Changes update in real-time
+                </motion.p>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </LayoutGroup>
     </TooltipProvider>
   )
 }
