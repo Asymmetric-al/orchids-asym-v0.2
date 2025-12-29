@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -93,6 +94,43 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+}
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+}
+
+const slideInRight = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 },
+}
+
+const springTransition = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 30,
+}
+
+const smoothTransition = {
+  duration: 0.2,
+  ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
+}
 
 type ActivityType = 'gift' | 'note' | 'call' | 'email' | 'meeting' | 'pledge_started' | 'pledge_completed'
 type GiftType = 'Online' | 'Check' | 'Cash' | 'Bank Transfer' | 'Stock' | 'In-Kind'
@@ -288,13 +326,19 @@ function DonorListSkeleton() {
   return (
     <div className="p-3 space-y-2">
       {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-zinc-100">
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: i * 0.03 }}
+          className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-zinc-100"
+        >
           <Skeleton className="h-11 w-11 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   )
@@ -302,18 +346,97 @@ function DonorListSkeleton() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center h-64 text-center p-6">
-      <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100">
+    <motion.div 
+      {...fadeInUp}
+      transition={smoothTransition}
+      className="flex flex-col items-center justify-center h-64 text-center p-6"
+    >
+      <motion.div 
+        initial={{ scale: 0.8 }}
+        animate={{ scale: 1 }}
+        transition={springTransition}
+        className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100"
+      >
         <AlertCircle className="h-7 w-7 text-rose-500" />
-      </div>
+      </motion.div>
       <p className="text-sm font-bold text-zinc-900 mb-1">Something went wrong</p>
       <p className="text-xs text-zinc-500 mb-4">{message}</p>
-      <Button variant="outline" size="sm" onClick={onRetry} className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900">
-        <RefreshCw className="h-3.5 w-3.5 mr-2" />
-        Try Again
-      </Button>
-    </div>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button variant="outline" size="sm" onClick={onRetry} className="h-9 rounded-2xl border-zinc-200 bg-white text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900">
+          <RefreshCw className="h-3.5 w-3.5 mr-2" />
+          Try Again
+        </Button>
+      </motion.div>
+    </motion.div>
   )
+}
+
+const MotionCard = motion.create(Card)
+
+function StatCard({ 
+  label, 
+  value, 
+  subtext, 
+  icon: Icon, 
+  iconBg, 
+  iconColor,
+  onClick,
+  isActive,
+  delay = 0
+}: { 
+  label: string
+  value: string | number
+  subtext: string
+  icon: React.ElementType
+  iconBg: string
+  iconColor: string
+  onClick?: () => void
+  isActive?: boolean
+  delay?: number
+}) {
+  const content = (
+    <MotionCard 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...smoothTransition, delay }}
+      whileHover={{ y: -2, boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
+      whileTap={onClick ? { scale: 0.98 } : undefined}
+      className={cn(
+        'border-zinc-200 bg-white shadow-sm transition-all rounded-xl',
+        onClick && 'cursor-pointer',
+        isActive && 'border-blue-400 ring-2 ring-blue-100'
+      )}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</p>
+            <motion.p 
+              key={value}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xl font-bold tracking-tight text-zinc-900"
+            >
+              {value}
+            </motion.p>
+            <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{subtext}</span>
+          </div>
+          <motion.div 
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={springTransition}
+            className={cn('h-9 w-9 rounded-lg border flex items-center justify-center', iconBg)}
+          >
+            <Icon className={cn('h-4 w-4', iconColor)} />
+          </motion.div>
+        </div>
+      </CardContent>
+    </MotionCard>
+  )
+
+  if (onClick) {
+    return <button onClick={onClick} className="text-left w-full">{content}</button>
+  }
+  return content
 }
 
 const editDonorSchema = z.object({
@@ -739,106 +862,88 @@ export default function DonorsPage() {
   const hasActiveFilters = statusFilter !== 'All' || tagFilter.length > 0 || pledgeFilter !== 'All' || searchTerm.length > 0
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       <PageHeader 
         title="Partners" 
         description="Manage your support network and donor relationships."
       >
-        <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+        </motion.div>
         {profile?.id && (
           <AddPartnerDialog
             missionaryId={profile.id}
             onSuccess={fetchDonors}
             trigger={
-              <Button size="sm" className="h-9 px-4 text-xs font-medium">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Partner
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button size="sm" className="h-9 px-4 text-xs font-medium">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Partner
+                </Button>
+              </motion.div>
             }
           />
         )}
       </PageHeader>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-zinc-200 bg-white shadow-sm hover:border-zinc-300 transition-all rounded-xl">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Partners</p>
-                <p className="text-xl font-bold tracking-tight text-zinc-900">{donors.length}</p>
-                <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{activeCount} active</span>
-              </div>
-              <div className="h-9 w-9 rounded-lg bg-zinc-50 border border-zinc-100 flex items-center justify-center">
-                <Users className="h-4 w-4 text-zinc-900" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-zinc-200 bg-white shadow-sm hover:border-zinc-300 transition-all rounded-xl">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Given</p>
-                <p className="text-xl font-bold tracking-tight text-zinc-900">{formatCurrency(totalGiven)}</p>
-                <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">Lifetime</span>
-              </div>
-              <div className="h-9 w-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                <Heart className="h-4 w-4 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <button 
+        <StatCard
+          label="Total Partners"
+          value={donors.length}
+          subtext={`${activeCount} active`}
+          icon={Users}
+          iconBg="bg-zinc-50 border-zinc-100"
+          iconColor="text-zinc-900"
+          delay={0}
+        />
+        <StatCard
+          label="Total Given"
+          value={formatCurrency(totalGiven)}
+          subtext="Lifetime"
+          icon={Heart}
+          iconBg="bg-emerald-50 border-emerald-100"
+          iconColor="text-emerald-600"
+          delay={0.05}
+        />
+        <StatCard
+          label="Recurring Donations"
+          value={activePledgeCount}
+          subtext={`${formatCurrency(monthlyPledgeTotal)}/mo`}
+          icon={Repeat}
+          iconBg="bg-blue-50 border-blue-100"
+          iconColor="text-blue-600"
           onClick={() => handleStatCardClick('activePledge')}
-          className="text-left w-full"
-        >
-          <Card className={cn(
-            'border-zinc-200 bg-white shadow-sm hover:border-blue-300 hover:shadow-md transition-all rounded-xl cursor-pointer',
-            pledgeFilter === 'Active' && 'border-blue-400 ring-2 ring-blue-100'
-          )}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Recurring Donations</p>
-                  <p className="text-xl font-bold tracking-tight text-zinc-900">{activePledgeCount}</p>
-                  <span className="text-[10px] font-medium text-emerald-500 uppercase tracking-wider">{formatCurrency(monthlyPledgeTotal)}/mo</span>
-                </div>
-                <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
-                  <Repeat className="h-4 w-4 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </button>
-        <button 
+          isActive={pledgeFilter === 'Active'}
+          delay={0.1}
+        />
+        <StatCard
+          label="Needs Attention"
+          value={atRiskCount + lapsedCount}
+          subtext={`${atRiskCount} at risk, ${lapsedCount} lapsed`}
+          icon={AlertCircle}
+          iconBg="bg-amber-50 border-amber-100"
+          iconColor="text-amber-600"
           onClick={() => handleStatCardClick('atRisk')}
-          className="text-left w-full"
-        >
-          <Card className={cn(
-            'border-zinc-200 bg-white shadow-sm hover:border-amber-300 hover:shadow-md transition-all rounded-xl cursor-pointer',
-            statusFilter === 'At Risk' && 'border-amber-400 ring-2 ring-amber-100'
-          )}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Needs Attention</p>
-                  <p className="text-xl font-bold tracking-tight text-zinc-900">{atRiskCount + lapsedCount}</p>
-                  <span className="text-[10px] font-medium text-amber-500 uppercase tracking-wider">{atRiskCount} at risk, {lapsedCount} lapsed</span>
-                </div>
-                <div className="h-9 w-9 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </button>
+          isActive={statusFilter === 'At Risk'}
+          delay={0.15}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-4 xl:col-span-3">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ ...smoothTransition, delay: 0.2 }}
+          className="lg:col-span-4 xl:col-span-3"
+        >
           <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
             <div className="p-4 border-b border-zinc-100 space-y-4 shrink-0">
               <div className="flex items-center justify-between">
@@ -951,40 +1056,56 @@ export default function DonorsPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              {hasActiveFilters && (
-                <div className="flex flex-wrap gap-1.5">
-                  {statusFilter !== 'All' && (
-                    <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200">
-                      {statusFilter}
-                      <button onClick={() => setStatusFilter('All')} className="ml-1 hover:text-zinc-900">
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </Badge>
-                  )}
-                  {pledgeFilter !== 'All' && (
-                    <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200">
-                      {pledgeFilter === 'Active' ? 'Recurring' : 'No Recurring'}
-                      <button onClick={() => setPledgeFilter('All')} className="ml-1 hover:text-blue-900">
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </Badge>
-                  )}
-                  {tagFilter.map(tag => (
-                    <Badge key={tag} variant="outline" className={cn('text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border', getTagStyle(tag))}>
-                      {getTagLabel(tag)}
-                      <button onClick={() => setTagFilter(prev => prev.filter(t => t !== tag))} className="ml-1">
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </Badge>
-                  ))}
-                  <button 
-                    onClick={clearAllFilters}
-                    className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
+              <AnimatePresence mode="popLayout">
+                {hasActiveFilters && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex flex-wrap gap-1.5 overflow-hidden"
                   >
-                    Clear All
-                  </button>
-                </div>
-              )}
+                    {statusFilter !== 'All' && (
+                      <motion.div layout {...scaleIn} transition={springTransition}>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200">
+                          {statusFilter}
+                          <button onClick={() => setStatusFilter('All')} className="ml-1 hover:text-zinc-900">
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </Badge>
+                      </motion.div>
+                    )}
+                    {pledgeFilter !== 'All' && (
+                      <motion.div layout {...scaleIn} transition={springTransition}>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200">
+                          {pledgeFilter === 'Active' ? 'Recurring' : 'No Recurring'}
+                          <button onClick={() => setPledgeFilter('All')} className="ml-1 hover:text-blue-900">
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </Badge>
+                      </motion.div>
+                    )}
+                    {tagFilter.map(tag => (
+                      <motion.div key={tag} layout {...scaleIn} transition={springTransition}>
+                        <Badge variant="outline" className={cn('text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border', getTagStyle(tag))}>
+                          {getTagLabel(tag)}
+                          <button onClick={() => setTagFilter(prev => prev.filter(t => t !== tag))} className="ml-1">
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </Badge>
+                      </motion.div>
+                    ))}
+                    <motion.button 
+                      layout
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={clearAllFilters}
+                      className="text-[9px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 px-2"
+                    >
+                      Clear All
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <ScrollArea className="flex-1 min-h-0">
@@ -993,763 +1114,954 @@ export default function DonorsPage() {
               ) : isLoading ? (
                 <DonorListSkeleton />
               ) : filteredDonors.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-center p-6">
-                  <div className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4">
+                <motion.div 
+                  {...fadeInUp}
+                  transition={smoothTransition}
+                  className="flex flex-col items-center justify-center h-64 text-center p-6"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    transition={springTransition}
+                    className="w-14 h-14 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
+                  >
                     <Search className="h-6 w-6 text-zinc-300" />
-                  </div>
+                  </motion.div>
                   <p className="text-sm font-bold text-zinc-900">No partners found</p>
                   <p className="text-xs text-zinc-400 mt-1">
                     {hasActiveFilters ? 'Try adjusting your filters' : 'Add your first partner to get started'}
                   </p>
                   {hasActiveFilters && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={clearAllFilters}
-                      className="mt-4 h-8 rounded-xl text-xs"
-                    >
-                      Clear Filters
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={clearAllFilters}
+                        className="mt-4 h-8 rounded-xl text-xs"
+                      >
+                        Clear Filters
+                      </Button>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               ) : (
-                <div className="p-2 space-y-1">
-                  {filteredDonors.map((donor) => (
-                    <div
-                      key={donor.id}
-                      onClick={() => setSelectedDonorId(donor.id)}
-                      className={cn(
-                        'group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all border',
-                        selectedDonorId === donor.id
-                          ? 'bg-zinc-900 border-zinc-900'
-                          : 'bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200'
-                      )}
-                    >
-                      <div className="relative shrink-0">
-                        <Avatar className={cn('h-10 w-10 border-2', selectedDonorId === donor.id ? 'border-zinc-700' : 'border-white shadow-sm')}>
-                          <AvatarImage src={donor.avatar_url} />
-                          <AvatarFallback className={cn('text-xs font-bold', selectedDonorId === donor.id ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-100 text-zinc-500')}>
-                            {donor.initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className={cn('absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2', selectedDonorId === donor.id ? 'border-zinc-900' : 'border-white', getStatusColor(donor.status))} />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className={cn('font-bold text-sm truncate', selectedDonorId === donor.id ? 'text-white' : 'text-zinc-900')}>
-                            {donor.name}
-                          </span>
-                          {donor.has_active_pledge && (
-                            <div className={cn('h-2 w-2 rounded-full shrink-0 ml-1', selectedDonorId === donor.id ? 'bg-emerald-400' : 'bg-emerald-500')} title="Active recurring donation" />
+                <LayoutGroup>
+                  <motion.div 
+                    variants={staggerContainer}
+                    initial="initial"
+                    animate="animate"
+                    className="p-2 space-y-1"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {filteredDonors.map((donor, index) => (
+                        <motion.div
+                          key={donor.id}
+                          layout
+                          variants={fadeInUp}
+                          initial="initial"
+                          animate="animate"
+                          exit="exit"
+                          transition={{ ...smoothTransition, delay: index * 0.02 }}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          onClick={() => setSelectedDonorId(donor.id)}
+                          className={cn(
+                            'group flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors border',
+                            selectedDonorId === donor.id
+                              ? 'bg-zinc-900 border-zinc-900'
+                              : 'bg-white border-transparent hover:bg-zinc-50 hover:border-zinc-200'
                           )}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={cn('text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider', selectedDonorId === donor.id ? 'text-zinc-400' : 'text-zinc-400')}>
-                            {donor.location || 'Unknown'}
-                          </span>
-                          <span className={cn('text-xs font-black', selectedDonorId === donor.id ? 'text-zinc-300' : 'text-zinc-900')}>
-                            {formatCurrency(donor.total_given)}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className={cn('h-4 w-4 shrink-0 transition-transform', selectedDonorId === donor.id ? 'text-zinc-500' : 'text-zinc-300 group-hover:translate-x-0.5')} />
-                    </div>
-                  ))}
-                </div>
+                        >
+                          <div className="relative shrink-0">
+                            <Avatar className={cn('h-10 w-10 border-2', selectedDonorId === donor.id ? 'border-zinc-700' : 'border-white shadow-sm')}>
+                              <AvatarImage src={donor.avatar_url} />
+                              <AvatarFallback className={cn('text-xs font-bold', selectedDonorId === donor.id ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-100 text-zinc-500')}>
+                                {donor.initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <motion.div 
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={springTransition}
+                              className={cn('absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2', selectedDonorId === donor.id ? 'border-zinc-900' : 'border-white', getStatusColor(donor.status))} 
+                            />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className={cn('font-bold text-sm truncate', selectedDonorId === donor.id ? 'text-white' : 'text-zinc-900')}>
+                                {donor.name}
+                              </span>
+                              {donor.has_active_pledge && (
+                                <motion.div 
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                  className={cn('h-2 w-2 rounded-full shrink-0 ml-1', selectedDonorId === donor.id ? 'bg-emerald-400' : 'bg-emerald-500')} 
+                                  title="Active recurring donation" 
+                                />
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className={cn('text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider', selectedDonorId === donor.id ? 'text-zinc-400' : 'text-zinc-400')}>
+                                {donor.location || 'Unknown'}
+                              </span>
+                              <span className={cn('text-xs font-black', selectedDonorId === donor.id ? 'text-zinc-300' : 'text-zinc-900')}>
+                                {formatCurrency(donor.total_given)}
+                              </span>
+                            </div>
+                          </div>
+                          <motion.div
+                            animate={{ x: selectedDonorId === donor.id ? 0 : -2 }}
+                            whileHover={{ x: 2 }}
+                          >
+                            <ChevronRight className={cn('h-4 w-4 shrink-0', selectedDonorId === donor.id ? 'text-zinc-500' : 'text-zinc-300')} />
+                          </motion.div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+                </LayoutGroup>
               )}
             </ScrollArea>
           </Card>
-        </div>
+        </motion.div>
 
-        <div className="lg:col-span-8 xl:col-span-9">
-          {selectedDonor ? (
-            <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-              <div className="border-b border-zinc-100 p-6 shrink-0">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100" onClick={() => setSelectedDonorId(null)}>
-                      <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <Avatar className="h-14 w-14 border-2 border-white shadow-lg rounded-2xl">
-                      <AvatarImage src={selectedDonor.avatar_url} />
-                      <AvatarFallback className="text-lg font-bold bg-zinc-100 text-zinc-500">
-                        {selectedDonor.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <h2 className="text-lg font-bold text-zinc-900 tracking-tight">{selectedDonor.name}</h2>
-                        {getStatusBadge(selectedDonor.status)}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-zinc-500">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {selectedDonor.location || 'Unknown'}
-                        </span>
-                        <span className="flex items-center gap-1 capitalize">
-                          {selectedDonor.type === 'Church' ? <Building2 className="h-3 w-3" /> : selectedDonor.type === 'Organization' ? <Briefcase className="h-3 w-3" /> : <User className="h-3 w-3" />}
-                          {selectedDonor.type}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" onClick={() => { setActivityType('note'); setIsNoteDialogOpen(true) }}>
-                      <Pencil className="h-3.5 w-3.5 mr-1.5" /> Note
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" asChild>
-                      <a href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}>
-                        <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
-                      </a>
-                    </Button>
-                    <Button size="sm" className="flex-1 sm:flex-none h-9 px-4 text-xs font-medium rounded-xl" asChild>
-                      <a href={`mailto:${selectedDonor.email}`}>
-                        <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
-                      </a>
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100">
-                          <MoreHorizontal className="h-5 w-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl border-zinc-100 shadow-xl">
-                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-zinc-100" />
-                        <DropdownMenuItem onClick={openEditDialog} className="text-xs font-medium">
-                          <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setIsTagDialogOpen(true)} className="text-xs font-medium">
-                          <Tag className="h-3.5 w-3.5 mr-2" /> Manage Tags
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-zinc-100" />
-                        <DropdownMenuItem onClick={() => { setActivityType('call'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
-                          <Phone className="h-3.5 w-3.5 mr-2" /> Log Call
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setActivityType('meeting'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
-                          <Briefcase className="h-3.5 w-3.5 mr-2" /> Log Meeting
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setActivityType('email'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
-                          <Mail className="h-3.5 w-3.5 mr-2" /> Log Email
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Lifetime</p>
-                    <p className="text-lg font-bold text-zinc-900">{formatCurrency(selectedDonor.total_given)}</p>
-                  </div>
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Last Gift</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-lg font-bold text-zinc-900">{formatCurrency(selectedDonor.last_gift_amount)}</p>
-                      {selectedDonor.last_gift_date && differenceInMonths(new Date(), new Date(selectedDonor.last_gift_date)) < 1 && (
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                      )}
-                    </div>
-                    {selectedDonor.last_gift_date && (
-                      <p className="text-[10px] text-zinc-400 mt-0.5">{formatDistanceToNow(new Date(selectedDonor.last_gift_date), { addSuffix: true })}</p>
-                    )}
-                  </div>
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Frequency</p>
-                    <div className="flex items-center gap-1.5">
-                      <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
-                      <p className="text-sm font-bold text-zinc-900">{selectedDonor.frequency || 'N/A'}</p>
-                    </div>
-                  </div>
-                  <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Partner Since</p>
-                    <p className="text-sm font-bold text-zinc-900">{selectedDonor.joined_date ? format(new Date(selectedDonor.joined_date), 'MMM yyyy') : 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-1.5 mt-4">
-                  {(selectedDonor.tags || []).map(tag => (
-                    <Badge key={tag} variant="outline" className={cn('text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border', getTagStyle(tag))}>
-                      {getTagLabel(tag)}
-                    </Badge>
-                  ))}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 px-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
-                    onClick={() => setIsTagDialogOpen(true)}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Add Tag
-                  </Button>
-                </div>
-              </div>
-
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-                <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
-                  <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-4 sm:flex">
-                    <TabsTrigger 
-                      value="overview" 
-                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
-                    >
-                      Overview
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="contact" 
-                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
-                    >
-                      Contact
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="recurring" 
-                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
-                    >
-                      Recurring
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="giving" 
-                      className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
-                    >
-                      Giving
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                <ScrollArea className="flex-1 min-h-0">
-                  <div className="p-6">
-                    <TabsContent value="overview" className="mt-0 space-y-6">
-                      <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100">
-                        <Textarea
-                          placeholder="Log a call, meeting notes, or observation..."
-                          className="min-h-[80px] border-none bg-white focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
-                          value={noteInput}
-                          onChange={(e) => setNoteInput(e.target.value)}
-                        />
-                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-100">
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest", activityType === 'call' ? 'bg-blue-50 text-blue-600' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
-                              onClick={() => setActivityType('call')}
-                            >
-                              <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest", activityType === 'meeting' ? 'bg-emerald-50 text-emerald-600' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
-                              onClick={() => setActivityType('meeting')}
-                            >
-                              <Briefcase className="h-3.5 w-3.5 mr-1.5" /> Meeting
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest hidden sm:flex", activityType === 'note' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
-                              onClick={() => setActivityType('note')}
-                            >
-                              <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Note
-                            </Button>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest" 
-                            onClick={handleAddNote} 
-                            disabled={!noteInput.trim() || isSavingNote}
-                          >
-                            {isSavingNote ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Post <Send className="h-3 w-3 ml-1.5" /></>}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ ...smoothTransition, delay: 0.25 }}
+          className="lg:col-span-8 xl:col-span-9"
+        >
+          <AnimatePresence mode="wait">
+            {selectedDonor ? (
+              <motion.div
+                key={selectedDonor.id}
+                {...slideInRight}
+                transition={smoothTransition}
+              >
+                <Card className="border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+                  <div className="border-b border-zinc-100 p-6 shrink-0">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100" onClick={() => setSelectedDonorId(null)}>
+                            <ArrowLeft className="h-5 w-5" />
                           </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4 relative">
-                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-zinc-100" />
-                        
-                        {selectedDonor.activities.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-16 text-center ml-8">
-                            <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4">
-                              <Calendar className="h-7 w-7 text-zinc-300" />
-                            </div>
-                            <p className="text-sm font-bold text-zinc-900">No activity recorded yet</p>
-                            <p className="text-xs text-zinc-400 mt-1">Start by logging your first interaction</p>
+                        </motion.div>
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={springTransition}
+                        >
+                          <Avatar className="h-14 w-14 border-2 border-white shadow-lg rounded-2xl">
+                            <AvatarImage src={selectedDonor.avatar_url} />
+                            <AvatarFallback className="text-lg font-bold bg-zinc-100 text-zinc-500">
+                              {selectedDonor.initials}
+                            </AvatarFallback>
+                          </Avatar>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ ...smoothTransition, delay: 0.1 }}
+                        >
+                          <div className="flex items-center gap-3 mb-1">
+                            <h2 className="text-lg font-bold text-zinc-900 tracking-tight">{selectedDonor.name}</h2>
+                            {getStatusBadge(selectedDonor.status)}
                           </div>
-                        ) : (
-                          selectedDonor.activities.map((activity) => (
-                            <div key={activity.id} className="relative pl-10 group">
-                              <div className={cn(
-                                'absolute left-0 top-1 h-8 w-8 rounded-xl flex items-center justify-center shadow-sm z-10 transition-transform group-hover:scale-110',
-                                getActivityBg(activity.type as ActivityType)
-                              )}>
-                                {getActivityIcon(activity.type as ActivityType)}
-                              </div>
-                              
-                              <div className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-200/40 transition-all">
-                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
-                                  <div className="space-y-1">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <span className="text-sm font-bold text-zinc-900">{activity.title}</span>
-                                      {activity.amount && (
-                                        <Badge className={cn(
-                                          'font-black px-2 h-5 rounded-lg text-[9px] uppercase tracking-widest border-0',
-                                          activity.status === 'Failed' 
-                                            ? 'bg-rose-50 text-rose-600'
-                                            : 'bg-emerald-50 text-emerald-700'
-                                        )}>
-                                          {formatCurrency(activity.amount)}
-                                        </Badge>
-                                      )}
-                                      {activity.gift_type && (
-                                        <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-400">
-                                          {getGiftTypeIcon(activity.gift_type)}
-                                          {activity.gift_type}
-                                        </span>
-                                      )}
-                                      {activity.status === 'Failed' && (
-                                        <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-black uppercase tracking-widest">
-                                          Failed
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    {activity.description && (
-                                      <p className="text-sm text-zinc-500 leading-relaxed">{activity.description}</p>
-                                    )}
-                                    {activity.note && (
-                                      <p className="text-xs text-zinc-400 italic">{activity.note}</p>
-                                    )}
-                                  </div>
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">
-                                    {format(new Date(activity.date), 'MMM d, yyyy')}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        )}
+                          <div className="flex items-center gap-3 text-xs text-zinc-500">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" /> {selectedDonor.location || 'Unknown'}
+                            </span>
+                            <span className="flex items-center gap-1 capitalize">
+                              {selectedDonor.type === 'Church' ? <Building2 className="h-3 w-3" /> : selectedDonor.type === 'Organization' ? <Briefcase className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                              {selectedDonor.type}
+                            </span>
+                          </div>
+                        </motion.div>
                       </div>
-                    </TabsContent>
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ ...smoothTransition, delay: 0.15 }}
+                        className="flex items-center gap-2 w-full sm:w-auto"
+                      >
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 sm:flex-none">
+                          <Button variant="outline" size="sm" className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" onClick={() => { setActivityType('note'); setIsNoteDialogOpen(true) }}>
+                            <Pencil className="h-3.5 w-3.5 mr-1.5" /> Note
+                          </Button>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 sm:flex-none">
+                          <Button variant="outline" size="sm" className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50" asChild>
+                            <a href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}>
+                              <Phone className="h-3.5 w-3.5 mr-1.5" /> Call
+                            </a>
+                          </Button>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 sm:flex-none">
+                          <Button size="sm" className="w-full h-9 px-4 text-xs font-medium rounded-xl" asChild>
+                            <a href={`mailto:${selectedDonor.email}`}>
+                              <Mail className="h-3.5 w-3.5 mr-1.5" /> Email
+                            </a>
+                          </Button>
+                        </motion.div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 rounded-xl hover:bg-zinc-100">
+                              <MoreHorizontal className="h-5 w-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-xl border-zinc-100 shadow-xl">
+                            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-zinc-100" />
+                            <DropdownMenuItem onClick={openEditDialog} className="text-xs font-medium">
+                              <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setIsTagDialogOpen(true)} className="text-xs font-medium">
+                              <Tag className="h-3.5 w-3.5 mr-2" /> Manage Tags
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-zinc-100" />
+                            <DropdownMenuItem onClick={() => { setActivityType('call'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
+                              <Phone className="h-3.5 w-3.5 mr-2" /> Log Call
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setActivityType('meeting'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
+                              <Briefcase className="h-3.5 w-3.5 mr-2" /> Log Meeting
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setActivityType('email'); setIsNoteDialogOpen(true) }} className="text-xs font-medium">
+                              <Mail className="h-3.5 w-3.5 mr-2" /> Log Email
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </motion.div>
+                    </div>
 
-                    <TabsContent value="contact" className="mt-0 space-y-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-bold text-zinc-900">Contact Information</h3>
-                        <Button variant="outline" size="sm" onClick={openEditDialog} className="h-8 px-3 text-xs rounded-xl border-zinc-200">
-                          <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+                    <motion.div 
+                      variants={staggerContainer}
+                      initial="initial"
+                      animate="animate"
+                      className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
+                    >
+                      {[
+                        { label: 'Lifetime', value: formatCurrency(selectedDonor.total_given) },
+                        { label: 'Last Gift', value: formatCurrency(selectedDonor.last_gift_amount), extra: selectedDonor.last_gift_date ? formatDistanceToNow(new Date(selectedDonor.last_gift_date), { addSuffix: true }) : null, showPulse: selectedDonor.last_gift_date && differenceInMonths(new Date(), new Date(selectedDonor.last_gift_date)) < 1 },
+                        { label: 'Frequency', value: selectedDonor.frequency || 'N/A', icon: ArrowUpRight },
+                        { label: 'Partner Since', value: selectedDonor.joined_date ? format(new Date(selectedDonor.joined_date), 'MMM yyyy') : 'N/A' },
+                      ].map((stat, i) => (
+                        <motion.div
+                          key={stat.label}
+                          variants={fadeInUp}
+                          transition={{ ...smoothTransition, delay: 0.2 + i * 0.05 }}
+                          whileHover={{ y: -2 }}
+                          className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
+                        >
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">{stat.label}</p>
+                          <div className="flex items-center gap-2">
+                            {stat.icon && <stat.icon className="h-3.5 w-3.5 text-emerald-600" />}
+                            <p className={cn(stat.label === 'Lifetime' || stat.label === 'Last Gift' ? 'text-lg' : 'text-sm', 'font-bold text-zinc-900')}>{stat.value}</p>
+                            {stat.showPulse && (
+                              <motion.div 
+                                animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                                className="w-2 h-2 bg-emerald-500 rounded-full" 
+                              />
+                            )}
+                          </div>
+                          {stat.extra && (
+                            <p className="text-[10px] text-zinc-400 mt-0.5">{stat.extra}</p>
+                          )}
+                        </motion.div>
+                      ))}
+                    </motion.div>
+
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="flex flex-wrap items-center gap-1.5 mt-4"
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {(selectedDonor.tags || []).map((tag, i) => (
+                          <motion.div
+                            key={tag}
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ ...springTransition, delay: i * 0.03 }}
+                          >
+                            <Badge variant="outline" className={cn('text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border', getTagStyle(tag))}>
+                              {getTagLabel(tag)}
+                            </Badge>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 px-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
+                          onClick={() => setIsTagDialogOpen(true)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Add Tag
                         </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                  <Mail className="h-4 w-4" />
+                      </motion.div>
+                    </motion.div>
+                  </div>
+
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+                    <div className="px-6 py-4 border-b border-zinc-100 shrink-0">
+                      <TabsList className="bg-zinc-100/50 border border-zinc-100 p-1.5 h-auto rounded-2xl w-full sm:w-auto grid grid-cols-4 sm:flex">
+                        {['overview', 'contact', 'recurring', 'giving'].map((tab) => (
+                          <TabsTrigger 
+                            key={tab}
+                            value={tab} 
+                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                          >
+                            {tab === 'overview' ? 'Overview' : tab === 'contact' ? 'Contact' : tab === 'recurring' ? 'Recurring' : 'Giving'}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </div>
+
+                    <ScrollArea className="flex-1 min-h-0">
+                      <div className="p-6">
+                        <AnimatePresence mode="wait">
+                          <TabsContent value="overview" className="mt-0 space-y-6">
+                            <motion.div 
+                              {...fadeInUp}
+                              transition={smoothTransition}
+                              className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100"
+                            >
+                              <Textarea
+                                placeholder="Log a call, meeting notes, or observation..."
+                                className="min-h-[80px] border-none bg-white focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
+                                value={noteInput}
+                                onChange={(e) => setNoteInput(e.target.value)}
+                              />
+                              <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-100">
+                                <div className="flex gap-2">
+                                  {[
+                                    { type: 'call', icon: Phone, bg: 'bg-blue-50 text-blue-600' },
+                                    { type: 'meeting', icon: Briefcase, bg: 'bg-emerald-50 text-emerald-600' },
+                                    { type: 'note', icon: MessageSquare, bg: 'bg-zinc-200 text-zinc-700', hidden: 'hidden sm:flex' },
+                                  ].map(({ type, icon: Icon, bg, hidden }) => (
+                                    <motion.div key={type} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className={cn("h-8 rounded-lg text-[10px] font-black uppercase tracking-widest", hidden, activityType === type ? bg : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100')}
+                                        onClick={() => setActivityType(type as typeof activityType)}
+                                      >
+                                        <Icon className="h-3.5 w-3.5 mr-1.5" /> {type.charAt(0).toUpperCase() + type.slice(1)}
+                                      </Button>
+                                    </motion.div>
+                                  ))}
                                 </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Email</p>
-                                    {selectedDonor.preferred_contact === 'email' && (
-                                      <Badge className="bg-blue-50 text-blue-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.email || 'Not provided'}</p>
-                                </div>
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                  <Button 
+                                    size="sm" 
+                                    className="h-8 rounded-xl px-4 text-[10px] font-black uppercase tracking-widest" 
+                                    onClick={handleAddNote} 
+                                    disabled={!noteInput.trim() || isSavingNote}
+                                  >
+                                    {isSavingNote ? <Loader2 className="h-3 w-3 animate-spin" /> : <>Post <Send className="h-3 w-3 ml-1.5" /></>}
+                                  </Button>
+                                </motion.div>
                               </div>
-                              {selectedDonor.email && (
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl shrink-0" onClick={() => copyToClipboard(selectedDonor.email, 'Email')}>
-                                  <Copy className="h-4 w-4" />
-                                </Button>
+                            </motion.div>
+
+                            <div className="space-y-4 relative">
+                              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-zinc-100" />
+                              
+                              {selectedDonor.activities.length === 0 ? (
+                                <motion.div 
+                                  {...fadeInUp}
+                                  className="flex flex-col items-center justify-center py-16 text-center ml-8"
+                                >
+                                  <motion.div
+                                    initial={{ scale: 0.8 }}
+                                    animate={{ scale: 1 }}
+                                    transition={springTransition}
+                                    className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-4"
+                                  >
+                                    <Calendar className="h-7 w-7 text-zinc-300" />
+                                  </motion.div>
+                                  <p className="text-sm font-bold text-zinc-900">No activity recorded yet</p>
+                                  <p className="text-xs text-zinc-400 mt-1">Start by logging your first interaction</p>
+                                </motion.div>
+                              ) : (
+                                <AnimatePresence>
+                                  {selectedDonor.activities.map((activity, i) => (
+                                    <motion.div 
+                                      key={activity.id} 
+                                      initial={{ opacity: 0, x: -20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ ...smoothTransition, delay: i * 0.05 }}
+                                      className="relative pl-10 group"
+                                    >
+                                      <motion.div 
+                                        whileHover={{ scale: 1.15 }}
+                                        className={cn(
+                                          'absolute left-0 top-1 h-8 w-8 rounded-xl flex items-center justify-center shadow-sm z-10',
+                                          getActivityBg(activity.type as ActivityType)
+                                        )}
+                                      >
+                                        {getActivityIcon(activity.type as ActivityType)}
+                                      </motion.div>
+                                      
+                                      <motion.div 
+                                        whileHover={{ y: -2, boxShadow: '0 8px 30px rgba(0,0,0,0.08)' }}
+                                        className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-all"
+                                      >
+                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
+                                          <div className="space-y-1">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <span className="text-sm font-bold text-zinc-900">{activity.title}</span>
+                                              {activity.amount && (
+                                                <Badge className={cn(
+                                                  'font-black px-2 h-5 rounded-lg text-[9px] uppercase tracking-widest border-0',
+                                                  activity.status === 'Failed' 
+                                                    ? 'bg-rose-50 text-rose-600'
+                                                    : 'bg-emerald-50 text-emerald-700'
+                                                )}>
+                                                  {formatCurrency(activity.amount)}
+                                                </Badge>
+                                              )}
+                                              {activity.gift_type && (
+                                                <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-400">
+                                                  {getGiftTypeIcon(activity.gift_type)}
+                                                  {activity.gift_type}
+                                                </span>
+                                              )}
+                                              {activity.status === 'Failed' && (
+                                                <Badge className="bg-rose-50 text-rose-600 border-0 text-[9px] font-black uppercase tracking-widest">
+                                                  Failed
+                                                </Badge>
+                                              )}
+                                            </div>
+                                            {activity.description && (
+                                              <p className="text-sm text-zinc-500 leading-relaxed">{activity.description}</p>
+                                            )}
+                                            {activity.note && (
+                                              <p className="text-xs text-zinc-400 italic">{activity.note}</p>
+                                            )}
+                                          </div>
+                                          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 whitespace-nowrap">
+                                            {format(new Date(activity.date), 'MMM d, yyyy')}
+                                          </span>
+                                        </div>
+                                      </motion.div>
+                                    </motion.div>
+                                  ))}
+                                </AnimatePresence>
                               )}
                             </div>
+                          </TabsContent>
+
+                          <TabsContent value="contact" className="mt-0 space-y-6">
+                            <motion.div 
+                              {...fadeInUp}
+                              transition={smoothTransition}
+                              className="flex items-center justify-between mb-2"
+                            >
+                              <h3 className="text-sm font-bold text-zinc-900">Contact Information</h3>
+                              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button variant="outline" size="sm" onClick={openEditDialog} className="h-8 px-3 text-xs rounded-xl border-zinc-200">
+                                  <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+                                </Button>
+                              </motion.div>
+                            </motion.div>
                             
-                            <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                  <Phone className="h-4 w-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Primary Phone</p>
-                                    {selectedDonor.preferred_contact === 'phone' && (
-                                      <Badge className="bg-emerald-50 text-emerald-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm font-medium text-zinc-900">{selectedDonor.phone || 'Not provided'}</p>
-                                </div>
-                              </div>
-                              {selectedDonor.phone && (
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl shrink-0" onClick={() => copyToClipboard(selectedDonor.phone, 'Phone')}>
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                                  <MessageSquare className="h-4 w-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Mobile / Text</p>
-                                    {selectedDonor.preferred_contact === 'text' && (
-                                      <Badge className="bg-purple-50 text-purple-600 border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0">Preferred</Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm font-medium text-zinc-900">{selectedDonor.mobile || 'Not provided'}</p>
-                                </div>
-                              </div>
-                              {selectedDonor.mobile && (
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl shrink-0" onClick={() => copyToClipboard(selectedDonor.mobile!, 'Mobile')}>
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-600 flex items-center justify-center shrink-0">
-                                  <Briefcase className="h-4 w-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Work Phone</p>
-                                  <p className="text-sm font-medium text-zinc-900">{selectedDonor.work_phone || 'Not provided'}</p>
-                                </div>
-                              </div>
-                              {selectedDonor.work_phone && (
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0" onClick={() => copyToClipboard(selectedDonor.work_phone!, 'Work Phone')}>
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {selectedDonor.website && (
-                              <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                    <Globe className="h-4 w-4" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Website</p>
-                                    <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.website}</p>
-                                  </div>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl shrink-0" asChild>
-                                  <a href={selectedDonor.website.startsWith('http') ? selectedDonor.website : `https://${selectedDonor.website}`} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
-                                  <Home className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Mailing Address</p>
-                                  {selectedDonor.address?.street ? (
-                                    <>
-                                      {formatAddress(selectedDonor.address).map((line, i) => (
-                                        <p key={i} className={cn('text-sm', i === 0 ? 'font-medium text-zinc-900' : 'text-zinc-500')}>{line}</p>
-                                      ))}
-                                    </>
-                                  ) : (
-                                    <p className="text-sm text-zinc-400 italic">No address on file</p>
-                                  )}
-                                </div>
-                              </div>
-                              {selectedDonor.address?.street && (
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0" asChild>
-                                  <a href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(', '))}`} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          {(selectedDonor.organization || selectedDonor.title) && (
-                            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                              <div className="flex items-start gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
-                                  <Building2 className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Organization</p>
-                                  {selectedDonor.organization && (
-                                    <p className="text-sm font-medium text-zinc-900">{selectedDonor.organization}</p>
-                                  )}
-                                  {selectedDonor.title && (
-                                    <p className="text-sm text-zinc-500">{selectedDonor.title}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-2 gap-3">
-                            {selectedDonor.spouse && (
-                              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-                                    <Heart className="h-4 w-4" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Spouse</p>
-                                    <p className="text-sm font-medium text-zinc-900">{selectedDonor.spouse}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {selectedDonor.birthday && (
-                              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                                    <Star className="h-4 w-4" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Birthday</p>
-                                    <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.birthday), 'MMMM d')}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {selectedDonor.anniversary && (
-                              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
-                                    <Calendar className="h-4 w-4" />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Anniversary</p>
-                                    <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.anniversary), 'MMMM d')}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {selectedDonor.notes && (
-                            <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-2">Internal Notes</p>
-                              <p className="text-sm text-zinc-700">{selectedDonor.notes}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="recurring" className="mt-0 space-y-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <h3 className="text-sm font-bold text-zinc-900">Recurring Donations</h3>
-                          <p className="text-xs text-zinc-500 mt-0.5">Scheduled giving commitments for this partner</p>
-                        </div>
-                      </div>
-                      
-                      {selectedDonor.recurring_donations.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center bg-zinc-50 rounded-2xl border border-zinc-100">
-                          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                            <Repeat className="h-7 w-7 text-zinc-300" />
-                          </div>
-                          <p className="text-sm font-bold text-zinc-900">No recurring donations</p>
-                          <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">When this partner sets up a recurring gift, it will appear here with all the details.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {selectedDonor.recurring_donations.map((recurring) => (
-                            <div key={recurring.id} className={cn(
-                              'p-5 rounded-2xl border transition-all',
-                              recurring.status === 'active' 
-                                ? 'bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200' 
-                                : 'bg-zinc-50 border-zinc-200'
-                            )}>
-                              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
-                                <div className="flex items-start gap-4">
-                                  <div className={cn(
-                                    'h-12 w-12 rounded-xl flex items-center justify-center shrink-0',
-                                    recurring.status === 'active' ? 'bg-emerald-100' : 'bg-zinc-100'
-                                  )}>
-                                    {getPaymentMethodIcon(recurring.payment_method)}
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center gap-3 mb-1">
-                                      <h4 className="text-xl font-bold text-zinc-900">{formatCurrency(Number(recurring.amount))}</h4>
-                                      <span className="text-sm font-medium text-zinc-500">/ {recurring.frequency.toLowerCase()}</span>
-                                      {getRecurringStatusBadge(recurring.status as RecurringStatus)}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              <motion.div 
+                                variants={staggerContainer}
+                                initial="initial"
+                                animate="animate"
+                                className="space-y-3"
+                              >
+                                {[
+                                  { icon: Mail, label: 'Email', value: selectedDonor.email, preferred: selectedDonor.preferred_contact === 'email', color: 'blue' },
+                                  { icon: Phone, label: 'Primary Phone', value: selectedDonor.phone, preferred: selectedDonor.preferred_contact === 'phone', color: 'emerald' },
+                                  { icon: MessageSquare, label: 'Mobile / Text', value: selectedDonor.mobile, preferred: selectedDonor.preferred_contact === 'text', color: 'purple' },
+                                  { icon: Briefcase, label: 'Work Phone', value: selectedDonor.work_phone, color: 'zinc' },
+                                ].map((item, i) => (
+                                  <motion.div
+                                    key={item.label}
+                                    variants={fadeInUp}
+                                    transition={{ delay: i * 0.05 }}
+                                    whileHover={{ y: -2 }}
+                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center shrink-0', `bg-${item.color}-50 text-${item.color}-600`)}>
+                                        <item.icon className="h-4 w-4" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{item.label}</p>
+                                          {item.preferred && (
+                                            <Badge className={cn(`bg-${item.color}-50 text-${item.color}-600`, 'border-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0')}>Preferred</Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-sm font-medium text-zinc-900 truncate">{item.value || 'Not provided'}</p>
+                                      </div>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
-                                      <span className="flex items-center gap-1">
-                                        <Calendar className="h-3.5 w-3.5" />
-                                        Started {format(new Date(recurring.start_date), 'MMM d, yyyy')}
-                                      </span>
-                                      {recurring.end_date ? (
-                                        <span className="flex items-center gap-1 text-amber-600">
-                                          <Clock className="h-3.5 w-3.5" />
-                                          Ends {format(new Date(recurring.end_date), 'MMM d, yyyy')}
-                                        </span>
-                                      ) : (
-                                        <span className="text-emerald-600">No end date</span>
+                                    {item.value && (
+                                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          className={cn('h-9 w-9 rounded-xl shrink-0', `text-zinc-400 hover:text-${item.color}-600 hover:bg-${item.color}-50`)} 
+                                          onClick={() => copyToClipboard(item.value!, item.label)}
+                                        >
+                                          <Copy className="h-4 w-4" />
+                                        </Button>
+                                      </motion.div>
+                                    )}
+                                  </motion.div>
+                                ))}
+                                {selectedDonor.website && (
+                                  <motion.div
+                                    variants={fadeInUp}
+                                    whileHover={{ y: -2 }}
+                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                        <Globe className="h-4 w-4" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Website</p>
+                                        <p className="text-sm font-medium text-zinc-900 truncate">{selectedDonor.website}</p>
+                                      </div>
+                                    </div>
+                                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                      <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl shrink-0" asChild>
+                                        <a href={selectedDonor.website.startsWith('http') ? selectedDonor.website : `https://${selectedDonor.website}`} target="_blank" rel="noopener noreferrer">
+                                          <ExternalLink className="h-4 w-4" />
+                                        </a>
+                                      </Button>
+                                    </motion.div>
+                                  </motion.div>
+                                )}
+                              </motion.div>
+
+                              <motion.div 
+                                variants={staggerContainer}
+                                initial="initial"
+                                animate="animate"
+                                className="space-y-4"
+                              >
+                                <motion.div 
+                                  variants={fadeInUp}
+                                  whileHover={{ y: -2 }}
+                                  className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3">
+                                      <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                        <Home className="h-4 w-4" />
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Mailing Address</p>
+                                        {selectedDonor.address?.street ? (
+                                          <>
+                                            {formatAddress(selectedDonor.address).map((line, i) => (
+                                              <p key={i} className={cn('text-sm', i === 0 ? 'font-medium text-zinc-900' : 'text-zinc-500')}>{line}</p>
+                                            ))}
+                                          </>
+                                        ) : (
+                                          <p className="text-sm text-zinc-400 italic">No address on file</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {selectedDonor.address?.street && (
+                                      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                        <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0" asChild>
+                                          <a href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(', '))}`} target="_blank" rel="noopener noreferrer">
+                                            <ExternalLink className="h-4 w-4" />
+                                          </a>
+                                        </Button>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                </motion.div>
+
+                                {(selectedDonor.organization || selectedDonor.title) && (
+                                  <motion.div 
+                                    variants={fadeInUp}
+                                    whileHover={{ y: -2 }}
+                                    className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <div className="h-10 w-10 rounded-xl bg-zinc-100 text-zinc-500 flex items-center justify-center shrink-0">
+                                        <Building2 className="h-4 w-4" />
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Organization</p>
+                                        {selectedDonor.organization && (
+                                          <p className="text-sm font-medium text-zinc-900">{selectedDonor.organization}</p>
+                                        )}
+                                        {selectedDonor.title && (
+                                          <p className="text-sm text-zinc-500">{selectedDonor.title}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-3">
+                                  {selectedDonor.spouse && (
+                                    <motion.div 
+                                      variants={fadeInUp}
+                                      whileHover={{ y: -2 }}
+                                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                                          <Heart className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Spouse</p>
+                                          <p className="text-sm font-medium text-zinc-900">{selectedDonor.spouse}</p>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                  {selectedDonor.birthday && (
+                                    <motion.div 
+                                      variants={fadeInUp}
+                                      whileHover={{ y: -2 }}
+                                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                          <Star className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Birthday</p>
+                                          <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.birthday), 'MMMM d')}</p>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                  {selectedDonor.anniversary && (
+                                    <motion.div 
+                                      variants={fadeInUp}
+                                      whileHover={{ y: -2 }}
+                                      className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
+                                          <Calendar className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Anniversary</p>
+                                          <p className="text-sm font-medium text-zinc-900">{format(new Date(selectedDonor.anniversary), 'MMMM d')}</p>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </div>
+
+                                {selectedDonor.notes && (
+                                  <motion.div 
+                                    variants={fadeInUp}
+                                    whileHover={{ y: -2 }}
+                                    className="p-4 bg-amber-50/50 rounded-2xl border border-amber-100"
+                                  >
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-2">Internal Notes</p>
+                                    <p className="text-sm text-zinc-700">{selectedDonor.notes}</p>
+                                  </motion.div>
+                                )}
+                              </motion.div>
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="recurring" className="mt-0 space-y-6">
+                            <motion.div 
+                              {...fadeInUp}
+                              transition={smoothTransition}
+                              className="flex items-center justify-between mb-2"
+                            >
+                              <div>
+                                <h3 className="text-sm font-bold text-zinc-900">Recurring Donations</h3>
+                                <p className="text-xs text-zinc-500 mt-0.5">Scheduled giving commitments for this partner</p>
+                              </div>
+                            </motion.div>
+                            
+                            {selectedDonor.recurring_donations.length === 0 ? (
+                              <motion.div 
+                                {...fadeInUp}
+                                className="flex flex-col items-center justify-center py-16 text-center bg-zinc-50 rounded-2xl border border-zinc-100"
+                              >
+                                <motion.div
+                                  initial={{ scale: 0.8 }}
+                                  animate={{ scale: 1 }}
+                                  transition={springTransition}
+                                  className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm"
+                                >
+                                  <Repeat className="h-7 w-7 text-zinc-300" />
+                                </motion.div>
+                                <p className="text-sm font-bold text-zinc-900">No recurring donations</p>
+                                <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">When this partner sets up a recurring gift, it will appear here with all the details.</p>
+                              </motion.div>
+                            ) : (
+                              <motion.div 
+                                variants={staggerContainer}
+                                initial="initial"
+                                animate="animate"
+                                className="space-y-4"
+                              >
+                                {selectedDonor.recurring_donations.map((recurring, i) => (
+                                  <motion.div 
+                                    key={recurring.id}
+                                    variants={fadeInUp}
+                                    transition={{ delay: i * 0.1 }}
+                                    whileHover={{ y: -2 }}
+                                    className={cn(
+                                      'p-5 rounded-2xl border transition-all',
+                                      recurring.status === 'active' 
+                                        ? 'bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200' 
+                                        : 'bg-zinc-50 border-zinc-200'
+                                    )}
+                                  >
+                                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                                      <div className="flex items-start gap-4">
+                                        <motion.div 
+                                          whileHover={{ scale: 1.1, rotate: 5 }}
+                                          className={cn(
+                                            'h-12 w-12 rounded-xl flex items-center justify-center shrink-0',
+                                            recurring.status === 'active' ? 'bg-emerald-100' : 'bg-zinc-100'
+                                          )}
+                                        >
+                                          {getPaymentMethodIcon(recurring.payment_method)}
+                                        </motion.div>
+                                        <div>
+                                          <div className="flex items-center gap-3 mb-1">
+                                            <h4 className="text-xl font-bold text-zinc-900">{formatCurrency(Number(recurring.amount))}</h4>
+                                            <span className="text-sm font-medium text-zinc-500">/ {recurring.frequency.toLowerCase()}</span>
+                                            {getRecurringStatusBadge(recurring.status as RecurringStatus)}
+                                          </div>
+                                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
+                                            <span className="flex items-center gap-1">
+                                              <Calendar className="h-3.5 w-3.5" />
+                                              Started {format(new Date(recurring.start_date), 'MMM d, yyyy')}
+                                            </span>
+                                            {recurring.end_date ? (
+                                              <span className="flex items-center gap-1 text-amber-600">
+                                                <Clock className="h-3.5 w-3.5" />
+                                                Ends {format(new Date(recurring.end_date), 'MMM d, yyyy')}
+                                              </span>
+                                            ) : (
+                                              <span className="text-emerald-600">No end date</span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {recurring.status === 'active' && recurring.next_payment_date && (
+                                        <motion.div 
+                                          initial={{ opacity: 0, scale: 0.9 }}
+                                          animate={{ opacity: 1, scale: 1 }}
+                                          className="bg-white p-3 rounded-xl border border-emerald-100 text-center lg:text-right"
+                                        >
+                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Next Payment</p>
+                                          <p className="text-lg font-bold text-zinc-900">{format(new Date(recurring.next_payment_date), 'MMM d')}</p>
+                                          <p className="text-xs text-zinc-500">{formatDistanceToNow(new Date(recurring.next_payment_date), { addSuffix: true })}</p>
+                                        </motion.div>
                                       )}
                                     </div>
-                                  </div>
-                                </div>
-                                {recurring.status === 'active' && recurring.next_payment_date && (
-                                  <div className="bg-white p-3 rounded-xl border border-emerald-100 text-center lg:text-right">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Next Payment</p>
-                                    <p className="text-lg font-bold text-zinc-900">{format(new Date(recurring.next_payment_date), 'MMM d')}</p>
-                                    <p className="text-xs text-zinc-500">{formatDistanceToNow(new Date(recurring.next_payment_date), { addSuffix: true })}</p>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 bg-white/60 rounded-xl border border-zinc-100">
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Payment Method</p>
-                                  <div className="flex items-center gap-1.5">
-                                    {getPaymentMethodIcon(recurring.payment_method)}
-                                    <p className="text-sm font-medium text-zinc-900">{recurring.payment_method || 'Online'}</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Total Paid</p>
-                                  <p className="text-sm font-bold text-emerald-600">{formatCurrency(Number(recurring.total_paid))}</p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Expected</p>
-                                  <p className="text-sm font-bold text-zinc-900">{formatCurrency(Number(recurring.total_expected))}</p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Completed</p>
-                                  <p className="text-sm font-bold text-zinc-900">{recurring.payments_completed} payments</p>
-                                </div>
-                                <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Remaining</p>
-                                  <p className="text-sm font-bold text-zinc-900">{recurring.payments_remaining > 0 ? `${recurring.payments_remaining} payments` : 'Ongoing'}</p>
-                                </div>
-                              </div>
-
-                              <div className="mt-4">
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Progress</span>
-                                  <span className="text-xs font-bold text-zinc-600">
-                                    {Number(recurring.total_expected) > 0 
-                                      ? `${Math.round((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100)}%` 
-                                      : 'Ongoing'}
-                                  </span>
-                                </div>
-                                <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
-                                  <div 
-                                    className={cn(
-                                      'h-full rounded-full transition-all',
-                                      recurring.status === 'active' ? 'bg-emerald-500' : 
-                                      recurring.status === 'completed' ? 'bg-blue-500' : 'bg-zinc-400'
-                                    )}
-                                    style={{ 
-                                      width: Number(recurring.total_expected) > 0 
-                                        ? `${Math.min((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100, 100)}%`
-                                        : '100%'
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="giving" className="mt-0">
-                      <div className="overflow-x-auto rounded-2xl border border-zinc-200">
-                        <table className="w-full text-sm text-left">
-                          <thead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 border-b border-zinc-200">
-                            <tr>
-                              <th className="px-6 py-4">Date</th>
-                              <th className="px-6 py-4">Type</th>
-                              <th className="px-6 py-4">Method</th>
-                              <th className="px-6 py-4">Amount</th>
-                              <th className="px-6 py-4">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-zinc-100">
-                            {selectedDonor.activities.filter(a => a.type === 'gift').length > 0 ? (
-                              selectedDonor.activities.filter(a => a.type === 'gift').map((gift) => (
-                                <tr key={gift.id} className="hover:bg-zinc-50 transition-colors">
-                                  <td className="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap">
-                                    {format(new Date(gift.date), 'MMM d, yyyy')}
-                                  </td>
-                                  <td className="px-6 py-4 text-zinc-500">
-                                    {gift.title}
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <span className="flex items-center gap-1.5 text-zinc-500">
-                                      {gift.gift_type && getGiftTypeIcon(gift.gift_type)}
-                                      {gift.gift_type || 'Online'}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 font-bold text-zinc-900">
-                                    {formatCurrency(gift.amount || 0)}
-                                  </td>
-                                  <td className="px-6 py-4">
-                                    <Badge className={cn(
-                                      'font-black rounded-full text-[9px] uppercase tracking-widest border-0',
-                                      gift.status === 'Failed' 
-                                        ? 'bg-rose-50 text-rose-600'
-                                        : 'bg-emerald-50 text-emerald-700'
-                                    )}>
-                                      {gift.status || 'Succeeded'}
-                                    </Badge>
-                                  </td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td colSpan={5}>
-                                  <div className="p-16 text-center">
-                                    <div className="h-14 w-14 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                      <History className="h-6 w-6 text-zinc-300" />
+                                    
+                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 bg-white/60 rounded-xl border border-zinc-100">
+                                      {[
+                                        { label: 'Payment Method', value: recurring.payment_method || 'Online', icon: true },
+                                        { label: 'Total Paid', value: formatCurrency(Number(recurring.total_paid)), color: 'text-emerald-600' },
+                                        { label: 'Expected', value: formatCurrency(Number(recurring.total_expected)) },
+                                        { label: 'Completed', value: `${recurring.payments_completed} payments` },
+                                        { label: 'Remaining', value: recurring.payments_remaining > 0 ? `${recurring.payments_remaining} payments` : 'Ongoing' },
+                                      ].map((item) => (
+                                        <div key={item.label}>
+                                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">{item.label}</p>
+                                          <div className="flex items-center gap-1.5">
+                                            {item.icon && getPaymentMethodIcon(recurring.payment_method)}
+                                            <p className={cn('text-sm font-bold', item.color || 'text-zinc-900')}>{item.value}</p>
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                    <p className="text-sm font-bold text-zinc-900">No giving history available</p>
-                                  </div>
-                                </td>
-                              </tr>
+
+                                    <div className="mt-4">
+                                      <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Progress</span>
+                                        <span className="text-xs font-bold text-zinc-600">
+                                          {Number(recurring.total_expected) > 0 
+                                            ? `${Math.round((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100)}%` 
+                                            : 'Ongoing'}
+                                        </span>
+                                      </div>
+                                      <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
+                                        <motion.div 
+                                          initial={{ width: 0 }}
+                                          animate={{ 
+                                            width: Number(recurring.total_expected) > 0 
+                                              ? `${Math.min((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100, 100)}%`
+                                              : '100%'
+                                          }}
+                                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                                          className={cn(
+                                            'h-full rounded-full',
+                                            recurring.status === 'active' ? 'bg-emerald-500' : 
+                                            recurring.status === 'completed' ? 'bg-blue-500' : 'bg-zinc-400'
+                                          )}
+                                        />
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </motion.div>
                             )}
-                          </tbody>
-                        </table>
+                          </TabsContent>
+
+                          <TabsContent value="giving" className="mt-0">
+                            <motion.div 
+                              {...fadeInUp}
+                              transition={smoothTransition}
+                              className="overflow-x-auto rounded-2xl border border-zinc-200"
+                            >
+                              <table className="w-full text-sm text-left">
+                                <thead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-50 border-b border-zinc-200">
+                                  <tr>
+                                    <th className="px-6 py-4">Date</th>
+                                    <th className="px-6 py-4">Type</th>
+                                    <th className="px-6 py-4">Method</th>
+                                    <th className="px-6 py-4">Amount</th>
+                                    <th className="px-6 py-4">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-100">
+                                  {selectedDonor.activities.filter(a => a.type === 'gift').length > 0 ? (
+                                    selectedDonor.activities.filter(a => a.type === 'gift').map((gift, i) => (
+                                      <motion.tr 
+                                        key={gift.id}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="hover:bg-zinc-50 transition-colors"
+                                      >
+                                        <td className="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap">
+                                          {format(new Date(gift.date), 'MMM d, yyyy')}
+                                        </td>
+                                        <td className="px-6 py-4 text-zinc-500">
+                                          {gift.title}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                          <span className="flex items-center gap-1.5 text-zinc-500">
+                                            {gift.gift_type && getGiftTypeIcon(gift.gift_type)}
+                                            {gift.gift_type || 'Online'}
+                                          </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-zinc-900">
+                                          {formatCurrency(gift.amount || 0)}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                          <Badge className={cn(
+                                            'font-black rounded-full text-[9px] uppercase tracking-widest border-0',
+                                            gift.status === 'Failed' 
+                                              ? 'bg-rose-50 text-rose-600'
+                                              : 'bg-emerald-50 text-emerald-700'
+                                          )}>
+                                            {gift.status || 'Succeeded'}
+                                          </Badge>
+                                        </td>
+                                      </motion.tr>
+                                    ))
+                                  ) : (
+                                    <tr>
+                                      <td colSpan={5}>
+                                        <motion.div 
+                                          {...fadeInUp}
+                                          className="p-16 text-center"
+                                        >
+                                          <motion.div
+                                            initial={{ scale: 0.8 }}
+                                            animate={{ scale: 1 }}
+                                            transition={springTransition}
+                                            className="h-14 w-14 bg-zinc-100 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                                          >
+                                            <History className="h-6 w-6 text-zinc-300" />
+                                          </motion.div>
+                                          <p className="text-sm font-bold text-zinc-900">No giving history available</p>
+                                        </motion.div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </motion.div>
+                          </TabsContent>
+                        </AnimatePresence>
                       </div>
-                    </TabsContent>
-                  </div>
-                </ScrollArea>
-              </Tabs>
-            </Card>
-          ) : (
-            <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
-              <CardContent className="p-16 text-center">
-                <div className="h-20 w-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8">
-                  <User className="h-10 w-10 text-zinc-200" />
-                </div>
-                <h3 className="font-black text-2xl text-zinc-900 tracking-tight">Select a Partner</h3>
-                <p className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto">Choose a donor from the list to view their profile, recurring donations, and giving history.</p>
-                {profile?.id && (
-                  <AddPartnerDialog
-                    missionaryId={profile.id}
-                    onSuccess={fetchDonors}
-                    trigger={
-                      <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
-                        <Plus className="h-4 w-4 mr-2" /> Add Partner
-                      </Button>
-                    }
-                  />
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                    </ScrollArea>
+                  </Tabs>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                {...scaleIn}
+                transition={smoothTransition}
+              >
+                <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
+                  <CardContent className="p-16 text-center">
+                    <motion.div 
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={springTransition}
+                      className="h-20 w-20 rounded-3xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mx-auto mb-8"
+                    >
+                      <User className="h-10 w-10 text-zinc-200" />
+                    </motion.div>
+                    <motion.h3 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="font-black text-2xl text-zinc-900 tracking-tight"
+                    >
+                      Select a Partner
+                    </motion.h3>
+                    <motion.p 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 }}
+                      className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto"
+                    >
+                      Choose a donor from the list to view their profile, recurring donations, and giving history.
+                    </motion.p>
+                    {profile?.id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <AddPartnerDialog
+                          missionaryId={profile.id}
+                          onSuccess={fetchDonors}
+                          trigger={
+                            <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
+                              <Plus className="h-4 w-4 mr-2" /> Add Partner
+                            </Button>
+                          }
+                        />
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
       <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
@@ -1784,10 +2096,19 @@ export default function DonorsPage() {
             <DialogDescription className="text-sm text-zinc-500">Select tags for {selectedDonor?.name}. Tags help you organize and filter your partners.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_TAGS.map((tag) => (
-                <button
+            <motion.div 
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="flex flex-wrap gap-2"
+            >
+              {AVAILABLE_TAGS.map((tag, i) => (
+                <motion.button
                   key={tag.id}
+                  variants={fadeInUp}
+                  transition={{ delay: i * 0.02 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => toggleTag(tag.id)}
                   className={cn(
                     'px-3 py-1.5 rounded-full text-xs font-bold border transition-all',
@@ -1796,11 +2117,22 @@ export default function DonorsPage() {
                       : 'bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100'
                   )}
                 >
-                  {selectedTags.includes(tag.id) && <Check className="h-3 w-3 inline mr-1" />}
+                  <AnimatePresence mode="wait">
+                    {selectedTags.includes(tag.id) && (
+                      <motion.span
+                        initial={{ width: 0, opacity: 0 }}
+                        animate={{ width: 'auto', opacity: 1 }}
+                        exit={{ width: 0, opacity: 0 }}
+                        className="inline-flex overflow-hidden"
+                      >
+                        <Check className="h-3 w-3 mr-1" />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                   {tag.label}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setIsTagDialogOpen(false)} className="h-10 px-6 rounded-xl border-zinc-200">Cancel</Button>
@@ -2157,6 +2489,6 @@ export default function DonorsPage() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   )
 }
