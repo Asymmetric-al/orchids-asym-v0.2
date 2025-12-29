@@ -170,78 +170,81 @@ function FollowerRequestItem({
   return (
     <div
       className={cn(
-        'transition-all duration-500 ease-in-out border-b border-border last:border-0 p-4',
-        status === 'approved' || status === 'ignored' ? 'bg-muted/50' : 'bg-card'
+        'transition-all duration-300 ease-out px-4 py-3',
+        status === 'approved' || status === 'ignored' ? 'bg-muted/30' : ''
       )}
     >
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
-              {request.initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-bold text-foreground truncate">{request.name}</p>
+      <div className="flex items-start gap-3">
+        <Avatar className="h-9 w-9 shrink-0 border border-border/50 shadow-sm">
+          <AvatarImage src={request.avatar_url || undefined} />
+          <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-bold">
+            {request.initials}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground truncate leading-tight" title={request.name}>
+                {request.name}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
                 {request.is_donor && (
-                  <Badge variant="secondary" className="text-[8px] h-4 px-1.5 bg-emerald-50 text-emerald-700 border-none font-bold uppercase tracking-wider mt-1">
+                  <Badge variant="secondary" className="text-[7px] h-3.5 px-1 bg-emerald-50 text-emerald-600 border-none font-bold uppercase tracking-wider">
                     Donor
                   </Badge>
                 )}
+                <span className="text-[9px] text-muted-foreground">{formatTimeAgo(request.created_at)}</span>
               </div>
-              <span className="text-[10px] text-muted-foreground">{formatTimeAgo(request.created_at)}</span>
             </div>
           </div>
-        </div>
 
-        <div className="h-9 relative">
-          {status === 'pending' && (
-            <div className="flex gap-2 absolute inset-0">
-              <Button
-                size="sm"
-                variant="maia"
-                className="flex-1 h-9 text-[10px] uppercase tracking-wider rounded-xl"
-                onClick={() => handleAction('approve')}
-              >
-                Accept
-              </Button>
-              <Button
-                size="sm"
-                variant="maia-outline"
-                className="flex-1 h-9 text-[10px] uppercase tracking-wider rounded-xl"
-                onClick={() => handleAction('ignore')}
-              >
-                Ignore
-              </Button>
-            </div>
-          )}
-
-          {status === 'processing' && (
-            <div className="flex items-center justify-center h-full absolute inset-0">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
-          )}
-
-          {status === 'approved' && (
-            <div className="flex items-center gap-2 h-full absolute inset-0 text-emerald-600 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="bg-emerald-100 rounded-full p-1">
-                <Check className="h-3 w-3" />
+          <div className="h-8 relative mt-2">
+            {status === 'pending' && (
+              <div className="flex gap-2 absolute inset-0">
+                <Button
+                  size="sm"
+                  variant="maia"
+                  className="flex-1 h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
+                  onClick={() => handleAction('approve')}
+                >
+                  Accept
+                </Button>
+                <Button
+                  size="sm"
+                  variant="maia-outline"
+                  className="flex-1 h-8 text-[9px] uppercase tracking-wider rounded-lg font-bold"
+                  onClick={() => handleAction('ignore')}
+                >
+                  Ignore
+                </Button>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider">Accepted</span>
-            </div>
-          )}
+            )}
 
-          {status === 'ignored' && (
-            <div className="flex items-center gap-2 h-full absolute inset-0 text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="bg-muted rounded-full p-1">
-                <X className="h-3 w-3" />
+            {status === 'processing' && (
+              <div className="flex items-center justify-center h-full absolute inset-0">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider">Removed</span>
-            </div>
-          )}
+            )}
+
+            {status === 'approved' && (
+              <div className="flex items-center gap-1.5 h-full absolute inset-0 text-emerald-600 animate-in fade-in slide-in-from-bottom-1 duration-200">
+                <div className="bg-emerald-100 rounded-full p-0.5">
+                  <Check className="h-3 w-3" />
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-wider">Accepted</span>
+              </div>
+            )}
+
+            {status === 'ignored' && (
+              <div className="flex items-center gap-1.5 h-full absolute inset-0 text-muted-foreground animate-in fade-in slide-in-from-bottom-1 duration-200">
+                <div className="bg-muted rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-wider">Removed</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1388,35 +1391,36 @@ export default function WorkerFeed() {
         </div>
 
         <div className="lg:col-span-3 space-y-6 sm:space-y-8 lg:space-y-10">
-            <Card className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card flex flex-col">
-              <div className="p-4 sm:p-6 border-b border-border bg-muted/30 flex flex-row items-center justify-between">
+            <Card className="rounded-2xl sm:rounded-3xl border border-border shadow-sm overflow-hidden bg-card">
+              <div className="px-4 py-3 flex items-center justify-between">
                 <h3 className="font-bold text-[11px] uppercase tracking-wider text-foreground">Follow Requests</h3>
                 {pendingRequests.length > 0 && (
-                  <Badge className="bg-destructive text-destructive-foreground border-none font-bold text-[10px] h-5 px-1.5 animate-pulse rounded-full">
+                  <Badge className="bg-primary text-primary-foreground border-none font-bold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
                     {pendingRequests.length}
                   </Badge>
                 )}
               </div>
-              <CardContent className="p-0">
+              
+              <div className="border-t border-border">
                 {isLoadingRequests ? (
-                  <div className="flex items-center justify-center py-10 sm:py-12">
+                  <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
                 ) : pendingRequests.length > 0 ? (
-                  <div className="divide-y divide-border">
+                  <div className="divide-y divide-border/50">
                     {pendingRequests.map((req) => (
                       <FollowerRequestItem key={req.id} request={req} onResolve={handleResolveRequest} />
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-10 sm:py-12 px-4 sm:px-6">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 border border-emerald-100">
-                      <Check className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" />
+                  <div className="text-center py-10 px-4">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+                      <Check className="h-5 w-5 text-emerald-500" />
                     </div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">All caught up!</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">All caught up!</p>
                   </div>
                 )}
-              </CardContent>
+              </div>
             </Card>
           </div>
       </div>
