@@ -990,6 +990,283 @@ function EmptyState({ icon: Icon, title, description }: { icon: React.ElementTyp
   )
 }
 
+function SecurityAccessDialog({
+  securityLevel,
+  setSecurityLevel,
+}: {
+  securityLevel: SecurityLevel
+  setSecurityLevel: (level: SecurityLevel) => void
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [localLevel, setLocalLevel] = useState<SecurityLevel>(securityLevel)
+  const [publicMirror, setPublicMirror] = useState(securityLevel === 'low')
+  const [autoApproval, setAutoApproval] = useState(securityLevel !== 'high')
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalLevel(securityLevel)
+      setPublicMirror(securityLevel === 'low')
+      setAutoApproval(securityLevel !== 'high')
+    }
+  }, [isOpen, securityLevel])
+
+  const handleLevelChange = (level: SecurityLevel) => {
+    setLocalLevel(level)
+    setPublicMirror(level === 'low')
+    setAutoApproval(level !== 'high')
+  }
+
+  const handlePublicMirrorChange = (checked: boolean) => {
+    setPublicMirror(checked)
+    if (checked) {
+      setLocalLevel('low')
+      setAutoApproval(true)
+    } else if (localLevel === 'low') {
+      setLocalLevel('medium')
+    }
+  }
+
+  const handleAutoApprovalChange = (checked: boolean) => {
+    setAutoApproval(checked)
+    if (!checked) {
+      setLocalLevel('high')
+      setPublicMirror(false)
+    } else if (localLevel === 'high') {
+      setLocalLevel('medium')
+    }
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    setSecurityLevel(localLevel)
+    setIsSaving(false)
+    setIsOpen(false)
+    toast.success('Security settings saved')
+  }
+
+  const securityOptions = [
+    {
+      level: 'high' as SecurityLevel,
+      icon: ShieldAlert,
+      title: 'High Security',
+      description: 'Manual approval required for all followers. Full control over who sees your updates.',
+      features: ['Manual follower approval', 'Granular permissions', 'Activity logging'],
+      color: 'text-rose-600',
+      bgColor: 'bg-rose-50',
+      borderColor: 'border-rose-200',
+      ringColor: 'ring-rose-500/20',
+    },
+    {
+      level: 'medium' as SecurityLevel,
+      icon: ShieldHalf,
+      title: 'Balanced',
+      description: 'Auto-approve donors while maintaining control over non-donor followers.',
+      features: ['Auto-approve donors', 'Review non-donors', 'Partner visibility'],
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-200',
+      ringColor: 'ring-amber-500/20',
+    },
+    {
+      level: 'low' as SecurityLevel,
+      icon: Shield,
+      title: 'Open Access',
+      description: 'Public feed visible on your giving page. Maximum reach for your updates.',
+      features: ['Public visibility', 'Auto-sync to page', 'Maximum engagement'],
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      ringColor: 'ring-emerald-500/20',
+    },
+  ]
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Security & Access</span>
+            <span className="sm:hidden">Security</span>
+          </Button>
+        </motion.div>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden gap-0 rounded-2xl border-border">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-bold tracking-tight">Security & Access</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Control who can see your feed and updates
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+          <div className="space-y-3">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Security Level
+            </Label>
+            <div className="space-y-3">
+              {securityOptions.map(({ level, icon: Icon, title, description, features, color, bgColor, borderColor, ringColor }) => {
+                const isSelected = localLevel === level
+                return (
+                  <motion.button
+                    key={level}
+                    type="button"
+                    onClick={() => handleLevelChange(level)}
+                    whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.995 }}
+                    className={cn(
+                      'w-full text-left p-4 rounded-xl border-2 transition-all duration-200',
+                      isSelected
+                        ? cn(borderColor, bgColor, 'ring-2', ringColor)
+                        : 'border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/30'
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={cn(
+                          'h-10 w-10 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                          isSelected ? cn(bgColor, color) : 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={cn('font-bold text-sm', isSelected ? color : 'text-foreground')}>
+                            {title}
+                          </span>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={springTransition}
+                            >
+                              <Badge className={cn('h-5 px-1.5 text-[8px] font-black uppercase tracking-wider border-0', bgColor, color)}>
+                                Active
+                              </Badge>
+                            </motion.div>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-2">{description}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {features.map((feature) => (
+                            <span
+                              key={feature}
+                              className={cn(
+                                'text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
+                                isSelected ? cn(bgColor, color) : 'bg-muted text-muted-foreground'
+                              )}
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div
+                        className={cn(
+                          'h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all',
+                          isSelected ? cn(borderColor, bgColor) : 'border-border'
+                        )}
+                      >
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={springTransition}
+                          >
+                            <Check className={cn('h-3 w-3', color)} />
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-border">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Quick Settings
+            </Label>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                    <Globe className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold cursor-pointer">Public Mirror</Label>
+                    <p className="text-[10px] text-muted-foreground">Sync updates to your giving page</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={publicMirror}
+                  onCheckedChange={handlePublicMirrorChange}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <Users className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold cursor-pointer">Auto-Approve Donors</Label>
+                    <p className="text-[10px] text-muted-foreground">Instantly accept donor follow requests</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={autoApproval}
+                  onCheckedChange={handleAutoApprovalChange}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="px-6 py-4 border-t border-border bg-muted/20">
+          <div className="flex items-center gap-3 w-full">
+            <Button
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="flex-1 h-10 rounded-xl text-xs font-bold"
+            >
+              Cancel
+            </Button>
+            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="flex-1">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="w-full h-10 rounded-xl text-xs font-bold"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </motion.div>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function WorkerFeed() {
   const [postType, setPostType] = useState('Update')
   const [postContent, setPostContent] = useState('')
@@ -1205,117 +1482,10 @@ export default function WorkerFeed() {
         title="Feed" 
         description="Share updates with your supporters and stay connected."
       >
-        <Dialog>
-          <DialogTrigger asChild>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium">
-                <ShieldCheck className="h-4 w-4 mr-2" />
-                Security & Access
-              </Button>
-            </motion.div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] rounded-2xl sm:rounded-3xl p-0 overflow-hidden border-border shadow-xl mx-4 sm:mx-0">
-            <DialogHeader className="p-6 sm:p-8 pb-4 bg-muted/30 border-b border-border">
-              <DialogTitle className="font-bold text-lg sm:text-xl tracking-tight">Security & Access</DialogTitle>
-              <DialogDescription className="font-medium text-sm">
-                Manage how your feed is shared and who can see your updates.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="p-6 sm:p-8 space-y-4 sm:space-y-6">
-              <motion.div 
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-                className="space-y-3 sm:space-y-4"
-              >
-                {[
-                  {
-                    level: 'high' as SecurityLevel,
-                    icon: ShieldAlert,
-                    title: 'High',
-                    description: 'Manual approval required. Granular permissions.',
-                  },
-                  {
-                    level: 'medium' as SecurityLevel,
-                    icon: ShieldHalf,
-                    title: 'Medium',
-                    description: 'Auto-follow for donors. Open to followers.',
-                  },
-                  {
-                    level: 'low' as SecurityLevel,
-                    icon: Shield,
-                    title: 'Low',
-                    description: 'Public feed on giving page. Auto-sync.',
-                  },
-                ].map(({ level, icon: Icon, title, description }, index) => (
-                  <motion.div
-                    key={level}
-                    variants={fadeInUp}
-                    transition={{ delay: index * 0.05 }}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => setSecurityLevel(level)}
-                    className={cn(
-                      'p-4 rounded-xl sm:rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 sm:gap-4',
-                      securityLevel === level ? 'border-primary bg-muted/50' : 'border-border hover:border-muted-foreground/30'
-                    )}
-                  >
-                    <motion.div
-                      animate={securityLevel === level ? { scale: [1, 1.1, 1] } : {}}
-                      transition={springTransition}
-                      className={cn(
-                        'p-2 rounded-full',
-                        securityLevel === level ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                      )}
-                    >
-                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </motion.div>
-                    <div>
-                      <p className="font-bold text-xs uppercase tracking-wider text-foreground">{title}</p>
-                      <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium leading-relaxed mt-1">
-                        {description}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              <div className="pt-4 border-t border-border space-y-4 sm:space-y-5">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-[11px] font-bold uppercase tracking-wider">Public Mirror</Label>
-                    <p className="text-[10px] text-muted-foreground font-medium">Sync to Giving Page</p>
-                  </div>
-                  <Switch
-                    checked={securityLevel === 'low'}
-                    onCheckedChange={(val) => setSecurityLevel(val ? 'low' : 'medium')}
-                    disabled={securityLevel === 'high'}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-[11px] font-bold uppercase tracking-wider">Auto-Approval</Label>
-                    <p className="text-[10px] text-muted-foreground font-medium">Instantly accept donors</p>
-                  </div>
-                  <Switch
-                    checked={securityLevel !== 'high'}
-                    onCheckedChange={(val) => setSecurityLevel(val ? 'medium' : 'high')}
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter className="p-6 sm:p-8 pt-0">
-              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="w-full">
-                <Button
-                  onClick={() => toast.success('Security settings saved')}
-                  className="w-full h-11 sm:h-12 rounded-xl bg-primary font-bold text-xs uppercase tracking-wider"
-                >
-                  Save Changes
-                </Button>
-              </motion.div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+<SecurityAccessDialog 
+            securityLevel={securityLevel}
+            setSecurityLevel={setSecurityLevel}
+          />
       </PageHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10">
