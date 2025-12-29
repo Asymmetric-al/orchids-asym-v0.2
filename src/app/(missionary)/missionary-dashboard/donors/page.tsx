@@ -44,7 +44,6 @@ import {
   Pencil,
   User,
   ArrowLeft,
-  CheckCircle2,
   ArrowUpRight,
   Calendar,
   History,
@@ -62,7 +61,7 @@ import { createClient } from '@/lib/supabase/client'
 import { AddPartnerDialog } from '@/features/missionary/components/add-partner-dialog'
 import { toast } from 'sonner'
 
-type ActivityType = 'gift' | 'note' | 'call' | 'email' | 'meeting' | 'task'
+type ActivityType = 'gift' | 'note' | 'call' | 'email' | 'meeting'
 
 interface Activity {
   id: string
@@ -137,7 +136,6 @@ const getActivityIcon = (type: ActivityType) => {
     case 'email': return <Mail className="h-4 w-4 text-white" />
     case 'note': return <MessageSquare className="h-4 w-4 text-white" />
     case 'meeting': return <Briefcase className="h-4 w-4 text-white" />
-    case 'task': return <CheckCircle2 className="h-4 w-4 text-white" />
     default: return <Clock className="h-4 w-4 text-white" />
   }
 }
@@ -149,7 +147,6 @@ const getActivityBg = (type: ActivityType) => {
     case 'email': return 'bg-purple-500'
     case 'note': return 'bg-zinc-500'
     case 'meeting': return 'bg-emerald-500'
-    case 'task': return 'bg-amber-500'
     default: return 'bg-zinc-400'
   }
 }
