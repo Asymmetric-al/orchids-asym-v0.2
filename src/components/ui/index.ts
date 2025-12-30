@@ -1,3 +1,15 @@
+/**
+ * UI Component Library
+ *
+ * This barrel file exports all shadcn/ui components for easy importing.
+ *
+ * Usage:
+ *   import { Button, Card, Input } from '@/components/ui'
+ *
+ * Individual imports still work for tree-shaking:
+ *   import { Button } from '@/components/ui/button'
+ */
+
 export * from './accordion'
 export * from './alert'
 export * from './alert-dialog'
@@ -29,12 +41,16 @@ export * from './item'
 export * from './kbd'
 export * from './label'
 export * from './menubar'
+export * from './motion-preset'
 export * from './navigation-menu'
 export * from './pagination'
 export * from './popover'
 export * from './progress'
 export * from './radio-group'
 export * from './resizable'
+export * from './responsive-container'
+export * from './RichTextEditor'
+export * from './ripple-button'
 export * from './scroll-area'
 export * from './select'
 export * from './separator'
@@ -48,6 +64,7 @@ export * from './switch'
 export * from './table'
 export * from './tabs'
 export * from './textarea'
+export * from './theme-toggle'
 export * from './toggle'
 export * from './toggle-group'
 export * from './tooltip'
