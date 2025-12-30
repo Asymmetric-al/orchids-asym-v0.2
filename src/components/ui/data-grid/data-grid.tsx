@@ -350,6 +350,7 @@ export function DataGrid<TData extends Record<string, unknown>>({
     handleCellChange,
   ])
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- "use no memo" directive applied, warning acknowledged
   const table = useReactTable({
     data: gridData,
     columns: tableColumns,
