@@ -118,7 +118,7 @@ export function DataTable<TData, TValue>({
     }
   )
 
-  const selectColumn: ColumnDef<TData, unknown> = {
+  const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(() => ({
     id: "select",
     header: ({ table }) => (
       <Checkbox
@@ -142,14 +142,14 @@ export function DataTable<TData, TValue>({
     enableSorting: false,
     enableHiding: false,
     size: 40,
-  }
+  }), [])
 
   const tableColumns = React.useMemo(() => {
     if (enableRowSelection) {
       return [selectColumn, ...columns]
     }
     return columns
-  }, [columns, enableRowSelection])
+  }, [columns, enableRowSelection, selectColumn])
 
   const table = useReactTable({
     data,

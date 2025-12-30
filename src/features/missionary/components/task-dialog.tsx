@@ -165,11 +165,30 @@ export function TaskDialog({
     },
   })
 
+  const fetchDonors = React.useCallback(async () => {
+    if (!profile?.id) return
+    setLoadingDonors(true)
+    try {
+      const { data, error } = await supabase
+        .from('donors')
+        .select('id, name, email, avatar_url')
+        .eq('missionary_id', profile.id)
+        .order('name')
+
+      if (error) throw error
+      setDonors(data || [])
+    } catch (e) {
+      console.error('Error fetching donors:', e)
+    } finally {
+      setLoadingDonors(false)
+    }
+  }, [profile?.id, supabase])
+
   React.useEffect(() => {
     if (open && profile?.id) {
       fetchDonors()
     }
-  }, [open, profile?.id])
+  }, [open, profile?.id, fetchDonors])
 
   React.useEffect(() => {
     if (task) {
@@ -198,26 +217,6 @@ export function TaskDialog({
       })
     }
   }, [task, defaultDonorId, form])
-
-  async function fetchDonors() {
-    if (!profile?.id) return
-    setLoadingDonors(true)
-    try {
-      const { data, error } = await supabase
-        .from('donors')
-        .select('id, name, email, avatar_url')
-        .eq('missionary_id', profile.id)
-        .order('name', { ascending: true })
-        .limit(100)
-
-      if (error) throw error
-      setDonors(data || [])
-    } catch (err) {
-      console.error('Failed to fetch donors:', err)
-    } finally {
-      setLoadingDonors(false)
-    }
-  }
 
   async function onSubmit(values: TaskFormValues) {
     if (!profile?.id) {

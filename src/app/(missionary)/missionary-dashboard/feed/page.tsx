@@ -1360,6 +1360,7 @@ export default function WorkerFeed() {
     }, 30000)
 
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only trigger on postContent changes for auto-save debounce
   }, [postContent])
 
   const handlePost = async (status: PostStatus = 'published') => {

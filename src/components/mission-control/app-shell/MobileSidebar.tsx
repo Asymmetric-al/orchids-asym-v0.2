@@ -1,4 +1,5 @@
 'use client'
+'use no memo'
 
 import { useState, useCallback, useMemo, memo } from 'react'
 import Link from 'next/link'
@@ -22,7 +23,7 @@ interface NavLinkProps {
 
 const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkProps) {
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
-  const IconComponent = getIcon(item.icon)
+  const IconComponent = useMemo(() => getIcon(item.icon), [item.icon])
 
   return (
     <Link
