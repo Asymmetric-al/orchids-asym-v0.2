@@ -1,163 +1,164 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { 
-  useReactTable, 
-  getCoreRowModel, 
-  flexRender, 
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  ColumnDef
-} from '@tanstack/react-table';
-import { CarePersonnel } from '../types';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, Search, ArrowUpDown, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import React from 'react'
+import Link from 'next/link'
+import { type ColumnDef } from '@tanstack/react-table'
+import { ChevronRight, ArrowUpDown } from 'lucide-react'
+
+import { CarePersonnel } from '../types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DataTable, DataTableColumnHeader, type DataTableFilterField } from '@/components/ui/data-table'
+import { cn } from '@/lib/utils'
 
 interface PersonnelListProps {
-  data: CarePersonnel[];
+  data: CarePersonnel[]
 }
 
-export function PersonnelList({ data }: PersonnelListProps) {
-  const [globalFilter, setGlobalFilter] = React.useState('');
-
-  const columns = React.useMemo<ColumnDef<CarePersonnel>[]>(
-    () => [
-        {
-          accessorKey: 'name',
-          header: ({ column }) => (
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="-ml-4 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-transparent">
-              Personnel
-              <ArrowUpDown className="ml-2 h-3 w-3" />
-            </Button>
-          ),
-          cell: ({ row }) => (
-            <div className="flex items-center gap-4">
-              <Avatar className="h-10 w-10 border border-zinc-100 shadow-sm">
-                <AvatarImage src={row.original.avatarUrl} />
-                <AvatarFallback className="text-[10px] font-black bg-zinc-900 text-white">{row.original.initials}</AvatarFallback>
-              </Avatar>
-              <div className="space-y-0.5">
-                <div className="font-black text-sm text-zinc-900 tracking-tight uppercase">{row.original.name}</div>
-                <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{row.original.role}</div>
-              </div>
-            </div>
-          ),
-        },
-        {
-          accessorKey: 'region',
-          header: 'Region',
-          cell: ({ row }) => <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{row.original.region}</span>,
-        },
-        {
-          accessorKey: 'status',
-          header: 'Status',
-          cell: ({ row }) => (
-            <Badge 
-              variant="outline" 
-              className={cn(
-                "text-[9px] font-black h-6 uppercase tracking-widest px-3 rounded-full border-none",
-                row.original.status === 'Healthy' ? "bg-emerald-50 text-emerald-700" :
-                row.original.status === 'At Risk' ? "bg-orange-50 text-orange-700" :
-                row.original.status === 'Crisis' ? "bg-rose-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]" :
-                "bg-zinc-50 text-zinc-700"
-              )}
-            >
-              {row.original.status}
-            </Badge>
-          ),
-        },
-        {
-          accessorKey: 'lastCheckIn',
-          header: 'Last Check-in',
-          cell: ({ row }) => (
-            <div className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">
-              {new Date(row.original.lastCheckIn).toLocaleDateString()}
-            </div>
-          ),
-        },
-        {
-          id: 'actions',
-          cell: ({ row }) => (
-            <Link href={`/mc/care/directory/${row.original.id}`}>
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl hover:bg-zinc-100 transition-all text-zinc-300 hover:text-zinc-900">
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </Link>
-          ),
-        },
-      ],
-      []
-    );
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      globalFilter,
+const columns: ColumnDef<CarePersonnel>[] = [
+  {
+    accessorKey: 'name',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Personnel" />,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-4">
+        <Avatar className="h-10 w-10 border border-border shadow-sm">
+          <AvatarImage src={row.original.avatarUrl} />
+          <AvatarFallback className="text-[10px] font-semibold bg-primary text-primary-foreground">
+            {row.original.initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="space-y-0.5">
+          <div className="font-semibold text-sm text-foreground tracking-tight">{row.original.name}</div>
+          <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{row.original.role}</div>
+        </div>
+      </div>
+    ),
+    meta: {
+      label: "Personnel",
     },
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-  });
+  },
+  {
+    accessorKey: 'region',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Region" />,
+    cell: ({ row }) => (
+      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {row.original.region}
+      </span>
+    ),
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+    meta: {
+      label: "Region",
+      filterVariant: "select",
+      filterOptions: [
+        { label: "Africa", value: "Africa" },
+        { label: "SE Asia", value: "SE Asia" },
+        { label: "Europe", value: "Europe" },
+        { label: "Latin America", value: "Latin America" },
+        { label: "Middle East", value: "Middle East" },
+        { label: "North America", value: "North America" },
+      ],
+    },
+  },
+  {
+    accessorKey: 'status',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+    cell: ({ row }) => (
+      <Badge 
+        variant="outline" 
+        className={cn(
+          "text-[9px] font-semibold h-6 uppercase tracking-wider px-3 rounded-full border-transparent shadow-none",
+          row.original.status === 'Healthy' ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400" :
+          row.original.status === 'At Risk' ? "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400" :
+          row.original.status === 'Crisis' ? "bg-destructive text-destructive-foreground shadow-lg" :
+          "bg-secondary text-secondary-foreground"
+        )}
+      >
+        {row.original.status}
+      </Badge>
+    ),
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
+    },
+    meta: {
+      label: "Status",
+      filterVariant: "select",
+      filterOptions: [
+        { label: "Healthy", value: "Healthy" },
+        { label: "Needs Attention", value: "Needs Attention" },
+        { label: "At Risk", value: "At Risk" },
+        { label: "Crisis", value: "Crisis" },
+      ],
+    },
+  },
+  {
+    accessorKey: 'lastCheckIn',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Last Check-in" />,
+    cell: ({ row }) => (
+      <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+        {new Date(row.original.lastCheckIn).toLocaleDateString()}
+      </div>
+    ),
+    meta: {
+      label: "Last Check-in",
+    },
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => (
+      <Link href={`/mc/care/directory/${row.original.id}`}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-muted transition-all text-muted-foreground hover:text-foreground">
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </Link>
+    ),
+  },
+]
 
+const filterFields: DataTableFilterField<CarePersonnel>[] = [
+  {
+    id: 'status',
+    label: 'Status',
+    variant: 'select',
+    options: [
+      { label: "Healthy", value: "Healthy" },
+      { label: "Needs Attention", value: "Needs Attention" },
+      { label: "At Risk", value: "At Risk" },
+      { label: "Crisis", value: "Crisis" },
+    ],
+  },
+  {
+    id: 'region',
+    label: 'Region',
+    variant: 'select',
+    options: [
+      { label: "Africa", value: "Africa" },
+      { label: "SE Asia", value: "SE Asia" },
+      { label: "Europe", value: "Europe" },
+      { label: "Latin America", value: "Latin America" },
+      { label: "Middle East", value: "Middle East" },
+      { label: "North America", value: "North America" },
+    ],
+  },
+]
+
+export function PersonnelList({ data }: PersonnelListProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-300" />
-          <Input 
-            placeholder="SEARCH PERSONNEL..." 
-            value={globalFilter ?? ''}
-            onChange={e => setGlobalFilter(e.target.value)}
-            className="pl-12 h-12 text-[10px] font-black tracking-[0.1em] uppercase rounded-2xl bg-zinc-50 border-none focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
-          />
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="flex-1 sm:flex-none h-10 px-6 text-[10px] font-black uppercase tracking-widest border-zinc-100 rounded-xl">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="flex-1 sm:flex-none h-10 px-6 text-[10px] font-black uppercase tracking-widest border-zinc-100 rounded-xl">
-            Next
-          </Button>
-        </div>
-      </div>
-
-      <div className="rounded-[2rem] border border-zinc-100 bg-white overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-zinc-50/50 border-b border-zinc-100">
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id} className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="divide-y divide-zinc-50">
-              {table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="hover:bg-zinc-50/50 transition-all cursor-pointer group">
-                  {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-8 py-6">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+    <DataTable
+      columns={columns}
+      data={data}
+      filterFields={filterFields}
+      searchKey="name"
+      searchPlaceholder="Search personnel..."
+      config={{
+        enableRowSelection: false,
+        enableColumnVisibility: true,
+        enablePagination: true,
+        enableFilters: true,
+        enableSorting: true,
+      }}
+    />
+  )
 }

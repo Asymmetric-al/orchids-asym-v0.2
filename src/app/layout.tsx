@@ -6,6 +6,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { Toaster } from "@/components/ui/sonner";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import Script from "next/script";
 
 const inter = Inter({
@@ -47,15 +48,17 @@ export default function RootLayout({
           data-orchids-project-id="48583689-5836-4c2d-98d2-e5c1a9812316"
         />
           <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <QueryProvider>
-              {children}
-            </QueryProvider>
-          </ThemeProvider>
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              <QueryProvider>
+                <NuqsAdapter>
+                  {children}
+                </NuqsAdapter>
+              </QueryProvider>
+            </ThemeProvider>
           <Toaster />
           <WebVitalsReporter />
           <VisualEditsMessenger />
