@@ -216,15 +216,15 @@ export default function Home() {
               <motion.div 
                 animate={{ y: [0, -20, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 max-w-[200px] hidden xl:block"
-              >
-                 <Sparkles className="h-5 w-5 text-zinc-400 mb-3" />
-                 <p className="text-xs font-bold text-slate-900 leading-tight">"Our fastest deployment yet. Resources reached the field in <span className="text-zinc-900">under 4 hours</span>."</p>
-                 <div className="mt-4 flex items-center gap-3">
-                    <div className="h-7 w-7 rounded-full bg-slate-200" />
-                    <div>
-                       <p className="text-[9px] font-black uppercase tracking-wider text-slate-900">Dr. Elias H.</p>
-                       <p className="text-[8px] text-slate-400">Field Lead</p>
+                 className="absolute -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 max-w-[200px] hidden xl:block"
+               >
+                  <Sparkles className="h-5 w-5 text-zinc-400 mb-3" />
+                  <p className="text-xs font-bold text-slate-900 leading-tight">&ldquo;Our fastest deployment yet. Resources reached the field in <span className="text-zinc-900">under 4 hours</span>.&rdquo;</p>
+                  <div className="mt-4 flex items-center gap-3">
+                     <div className="h-7 w-7 rounded-full bg-slate-200" />
+                     <div>
+                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-900">Dr. Elias H.</p>
+                        <p className="text-[8px] text-slate-400">Field Lead</p>
                     </div>
                  </div>
               </motion.div>
@@ -407,7 +407,7 @@ export default function Home() {
                  <span className="text-white">response.</span>
                </h2>
                <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-16 text-balance font-light leading-relaxed tracking-tight">
-                 The world doesn't need more awareness. It needs action. Join a movement of people who refuse to look away.
+                 The world doesn&apos;t need more awareness. It needs action. Join a movement of people who refuse to look away.
                </p>
                <div className="flex flex-col md:flex-row gap-4 justify-center">
                  <Button size="lg" className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 text-lg font-bold font-syne shadow-lg transition-all hover:scale-105 active:scale-95" asChild>

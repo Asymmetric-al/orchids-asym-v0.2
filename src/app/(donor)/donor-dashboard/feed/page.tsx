@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { 
   Heart, MessageCircle, MoreHorizontal, 
   Share2, Bookmark, Globe, Sparkles, Send,
@@ -572,12 +573,13 @@ const PostCard: React.FC<{
         
         {/* Images - Edge to Edge look but contained */}
         {post.images && post.images.length > 0 && !imageError && (
-          <div className="rounded-2xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50">
-            <img 
+          <div className="rounded-2xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 relative aspect-video">
+            <Image 
               src={post.images[0]} 
               alt="Post content" 
-              className="w-full h-auto object-cover max-h-[600px]" 
-              loading="lazy"
+              fill
+              className="object-cover" 
+              unoptimized
               onError={() => setImageError(true)}
             />
           </div>

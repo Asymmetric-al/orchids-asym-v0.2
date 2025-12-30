@@ -303,7 +303,7 @@ export default function FAQPage() {
            <div className="relative z-10 text-center md:text-left">
               <h2 className="text-3xl font-bold mb-3 tracking-tight">Still have questions?</h2>
               <p className="text-slate-300 text-lg max-w-md font-light leading-relaxed">
-                Can't find the answer you're looking for? Our Donor Relations team is here to help personally.
+                Can&apos;t find the answer you&apos;re looking for? Our Donor Relations team is here to help personally.
               </p>
            </div>
 

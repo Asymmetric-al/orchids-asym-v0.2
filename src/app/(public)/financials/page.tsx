@@ -128,10 +128,10 @@ export default function FinancialsPage() {
 
             <div className="bg-slate-950 text-white p-8 rounded-2xl relative overflow-hidden">
                <div className="relative z-10">
-                 <h3 className="font-bold text-xl mb-4">Our Promise</h3>
-                 <p className="text-slate-300 text-lg italic font-light leading-relaxed">
-                   "We pledge to treat every resource entrusted to us with maximum care, ensuring it reaches the intended need with speed and integrity."
-                 </p>
+                  <h3 className="font-bold text-xl mb-4">Our Promise</h3>
+                  <p className="text-slate-300 text-lg italic font-light leading-relaxed">
+                    &ldquo;We pledge to treat every resource entrusted to us with maximum care, ensuring it reaches the intended need with speed and integrity.&rdquo;
+                  </p>
                </div>
                {/* Pattern */}
                <div className="absolute top-0 right-0 p-8 opacity-10">

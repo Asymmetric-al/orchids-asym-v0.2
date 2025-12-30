@@ -630,11 +630,11 @@ export default function EventsPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="space-y-4 text-left">
-                                    <div className="space-y-1">
-                                        <Label className="text-xs uppercase text-slate-400 font-bold">Arrival Info</Label>
-                                        <p className="text-sm text-slate-600 leading-relaxed italic">"{venue.directions}"</p>
-                                    </div>
+                                 <div className="space-y-4 text-left">
+                                     <div className="space-y-1">
+                                         <Label className="text-xs uppercase text-slate-400 font-bold">Arrival Info</Label>
+                                         <p className="text-sm text-slate-600 leading-relaxed italic">&ldquo;{venue.directions}&rdquo;</p>
+                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
