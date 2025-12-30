@@ -9,12 +9,10 @@ import {
   Settings,
   BarChart3,
   UserCircle,
-  Building2,
   CreditCard,
   FileText,
-  Globe,
   Newspaper,
-  Mail,
+  CheckSquare,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -34,13 +32,19 @@ import { cn } from '@/lib/utils'
 
 type UserRole = 'donor' | 'missionary' | 'admin'
 
+interface NavItem {
+  title: string
+  href: string
+  icon: typeof Home
+}
+
 interface AppSidebarProps {
   role?: UserRole
   tenantLogo?: string
   tenantName?: string
 }
 
-const donorNavItems = [
+const donorNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/donor-dashboard', icon: Home },
   { title: 'Feed', href: '/donor-dashboard/feed', icon: Newspaper },
   { title: 'My Giving', href: '/donor-dashboard/pledges', icon: Heart },
@@ -49,35 +53,22 @@ const donorNavItems = [
   { title: 'Settings', href: '/donor-dashboard/settings', icon: Settings },
 ]
 
-const missionaryNavItems = [
+const missionaryNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/missionary-dashboard', icon: Home },
   { title: 'Donors', href: '/missionary-dashboard/donors', icon: Users },
   { title: 'Feed', href: '/missionary-dashboard/feed', icon: Newspaper },
   { title: 'Analytics', href: '/missionary-dashboard/analytics', icon: BarChart3 },
-  { title: 'Tasks', href: '/missionary-dashboard/tasks', icon: FileText },
-  { title: 'Newsletter', href: '/missionary-dashboard/newsletter', icon: Mail },
+  { title: 'Tasks', href: '/missionary-dashboard/tasks', icon: CheckSquare },
   { title: 'Profile', href: '/missionary-dashboard/profile', icon: UserCircle },
   { title: 'Settings', href: '/missionary-dashboard/settings', icon: Settings },
 ]
 
-const adminNavItems = [
-  { title: 'Dashboard', href: '/mc', icon: Home },
-  { title: 'Missionaries', href: '/mc/missionaries', icon: Globe },
-  { title: 'Donors', href: '/mc/donors', icon: Users },
-  { title: 'Donations', href: '/mc/contributions', icon: CreditCard },
-  { title: 'Reports', href: '/mc/reports', icon: BarChart3 },
-  { title: 'Organization', href: '/mc/organization', icon: Building2 },
-  { title: 'Settings', href: '/mc/settings', icon: Settings },
-]
-
-function getNavItems(role: UserRole) {
+function getNavItems(role: UserRole): NavItem[] {
   switch (role) {
     case 'donor':
       return donorNavItems
     case 'missionary':
       return missionaryNavItems
-    case 'admin':
-      return adminNavItems
     default:
       return donorNavItems
   }

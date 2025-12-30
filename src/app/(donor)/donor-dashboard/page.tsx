@@ -13,9 +13,7 @@ import {
 import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { MissionBriefing } from '@/features/donor/components/MissionBriefing';
-import { ImpactTile } from '@/features/donor/components/ImpactTile';
-import { DashboardSkeleton, Greeting } from '@/features/donor/components/DashboardUI';
+import { MissionBriefing, ImpactTile, DashboardSkeleton, Greeting } from '@/features/donor/components'
 
 import { RECENT_UPDATES, WORKER_FEEDS } from '@/lib/donor-dashboard/mock';
 

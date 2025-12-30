@@ -2,6 +2,12 @@
  * Missionary Feature Module
  *
  * Components and utilities for the missionary dashboard.
+ * 
+ * The missionary dashboard enables missionaries to:
+ * - Track donation metrics and support levels
+ * - Manage donor relationships
+ * - Post updates to their support network
+ * - Manage tasks and follow-ups
  */
 
 export { DashboardHome } from './components/dashboard-home'
@@ -16,4 +22,8 @@ export { QuickActions } from './components/quick-actions'
 export { TasksPreview } from './components/tasks-preview'
 export { TaskDialog } from './components/task-dialog'
 export { AddPartnerDialog } from './components/add-partner-dialog'
-export { DashboardSkeleton, MetricTileSkeleton, ChartSkeleton } from './components/skeletons'
+export { 
+  MetricsSkeleton as MissionaryMetricsSkeleton, 
+  ChartSkeleton as MissionaryChartSkeleton,
+  ActivityFeedSkeleton as MissionaryActivityFeedSkeleton,
+} from './components/skeletons'

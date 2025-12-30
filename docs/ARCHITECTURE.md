@@ -29,15 +29,38 @@ This document provides a comprehensive overview of the codebase architecture for
 | TanStack DB | Client-side collections |
 | Stripe | Payment processing |
 
-### Multi-Tenant Architecture
+### Application Sections
 
-The platform serves three user roles across isolated tenant data:
+The platform consists of **four main sections**, each serving a distinct user type:
 
-| Role | Route Group | Primary Purpose |
-|------|-------------|-----------------|
-| **Admin** | `(admin)/mc/*` | Organization management (Mission Control) |
-| **Missionary** | `(missionary)/missionary-dashboard/*` | Donor engagement, support tracking |
-| **Donor** | `(donor)/donor-dashboard/*` | Giving management, impact feed |
+| Section | Route Group | Purpose | Users |
+|---------|-------------|---------|-------|
+| **Mission Control** | `(admin)/mc/*` | Organization admin dashboard | Staff, Finance, Admin |
+| **Missionary Dashboard** | `(missionary)/missionary-dashboard/*` | Personal donor engagement & support tracking | Missionaries |
+| **Donor Portal** | `(donor)/donor-dashboard/*` | Giving management & impact feed | Donors |
+| **Public Website** | `(public)/*` | Tenant-branded giving pages & checkout | Public visitors |
+
+#### 1. Mission Control (Admin Dashboard)
+- **Route**: `/mc/*`
+- **Purpose**: Central hub for organization staff to manage missionaries, donors, contributions, and reporting
+- **Key Features**: CRM, Contributions, Email Studio, PDF Studio, Reports, Automations
+
+#### 2. Missionary Dashboard
+- **Route**: `/missionary-dashboard/*`
+- **Purpose**: Personal workspace for missionaries to track support, engage donors, and share updates
+- **Key Features**: Donation analytics, donor management, social feed, tasks, profile
+
+#### 3. Donor Portal
+- **Route**: `/donor-dashboard/*`
+- **Purpose**: Self-service portal for donors to manage giving, view impact, and follow missionaries
+- **Key Features**: Giving history, wallet/payment methods, pledges, tax receipts, missionary feed
+
+#### 4. Public Website
+- **Route**: `/*` (root public routes)
+- **Purpose**: Tenant-branded public pages for missionary profiles and donation checkout
+- **Key Features**: Worker profiles, giving pages, checkout flow, about/FAQ pages
+
+### Data Isolation
 
 Data isolation is enforced via Supabase Row Level Security (RLS) using `tenant_id`.
 
@@ -289,11 +312,14 @@ function MyForm() {
 
 | Type | Convention | Example |
 |------|------------|---------|
-| Components | PascalCase | `MetricCard.tsx` |
+| Components | kebab-case | `metric-card.tsx` |
 | Hooks | kebab-case with `use-` prefix | `use-donation-metrics.ts` |
 | Utilities | kebab-case | `format-currency.ts` |
-| Types | kebab-case or PascalCase | `database.ts` |
+| Types | kebab-case | `database.ts` |
 | Constants | kebab-case | `navigation.ts` |
+| Barrel exports | `index.ts` | `components/index.ts` |
+
+**Note**: All file names use kebab-case for consistency. Component function names inside files use PascalCase (e.g., `export function MetricCard()`).
 
 ### Component Structure
 

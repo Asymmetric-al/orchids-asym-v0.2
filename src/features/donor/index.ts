@@ -2,8 +2,12 @@
  * Donor Feature Module
  *
  * Components and utilities for the donor portal.
+ * 
+ * The donor portal allows supporters to:
+ * - View and manage their giving history
+ * - Track impact from supported missionaries
+ * - Access tax receipts and statements
+ * - Follow missionary updates and prayer requests
  */
 
-export { ImpactTile } from './components/ImpactTile'
-export { MissionBriefing } from './components/MissionBriefing'
-export { DashboardSkeleton, Greeting } from './components/DashboardUI'
+export * from './components'
