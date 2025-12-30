@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardSkeleton() {
@@ -31,6 +31,12 @@ function getGreeting() {
 }
 
 export function Greeting() {
-  const greeting = useMemo(() => getGreeting(), []);
+  const [greeting, setGreeting] = useState<string | null>(null);
+  
+  useEffect(() => {
+    setGreeting(getGreeting());
+  }, []);
+  
+  if (!greeting) return null;
   return <>{greeting}</>;
 }
