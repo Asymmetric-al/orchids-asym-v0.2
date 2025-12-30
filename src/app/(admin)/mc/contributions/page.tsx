@@ -23,7 +23,7 @@ import {
   FileDown, Phone
 } from 'lucide-react';
 import { format, subDays, subMonths } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -997,40 +997,34 @@ export default function ContributionsHub() {
                         </TableRow>
                     ))}
                 </TableHeader>
-                <TableBody>
-                    <AnimatePresence>
-                        {table.getRowModel().rows.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <motion.tr 
-                                    key={row.id} 
-                                    layout
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    data-state={row.getIsSelected() && "selected"}
-                                    className="hover:bg-slate-50/50 border-slate-100 transition-colors data-[state=selected]:bg-slate-50 h-14 border-b"
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-2">
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
-                                </motion.tr>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-64 text-center text-slate-500">
-                                    <div className="flex flex-col items-center justify-center">
-                                    <Search className="h-10 w-10 text-slate-300 mb-2" />
-                                    <p className="text-lg font-medium text-slate-900">No transactions found</p>
-                                    <p className="text-sm text-slate-500">Try adjusting your filters or search terms.</p>
-                                    <Button variant="link" onClick={handleClearFilters} className="mt-2">Clear all filters</Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </AnimatePresence>
-                </TableBody>
+              <TableBody>
+                          {table.getRowModel().rows.length ? (
+                              table.getRowModel().rows.map((row) => (
+                                  <TableRow 
+                                      key={row.id} 
+                                      data-state={row.getIsSelected() && "selected"}
+                                      className="hover:bg-slate-50/50 border-slate-100 transition-colors data-[state=selected]:bg-slate-50 h-14 border-b"
+                                  >
+                                      {row.getVisibleCells().map((cell) => (
+                                          <TableCell key={cell.id} className="py-2">
+                                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                          </TableCell>
+                                      ))}
+                                  </TableRow>
+                              ))
+                          ) : (
+                              <TableRow>
+                                  <TableCell colSpan={columns.length} className="h-64 text-center text-slate-500">
+                                      <div className="flex flex-col items-center justify-center">
+                                      <Search className="h-10 w-10 text-slate-300 mb-2" />
+                                      <p className="text-lg font-medium text-slate-900">No transactions found</p>
+                                      <p className="text-sm text-slate-500">Try adjusting your filters or search terms.</p>
+                                      <Button variant="link" onClick={handleClearFilters} className="mt-2">Clear all filters</Button>
+                                      </div>
+                                  </TableCell>
+                              </TableRow>
+                          )}
+                  </TableBody>
             </Table>
         </div>
         
