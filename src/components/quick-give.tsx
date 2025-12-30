@@ -43,44 +43,60 @@ function parseToNumber(intPart: string, decPart: string) {
 
 const sizeConfig = {
   xs: {
-    container: "h-8 w-[100px]",
-    iconWrapper: "pl-2",
+    container: "h-8",
+    containerIdle: "w-[90px]",
+    containerActive: "w-[140px]",
     icon: "h-3 w-3",
     input: "text-sm",
-    currencyLabel: "text-[8px] pr-2",
-    buttonWrapper: "pr-1",
-    button: "h-5 px-2 text-[10px]",
+    inputWidth: "w-[40px]",
+    currencyLabel: "text-[8px]",
+    button: "h-6 px-3 text-[10px]",
     arrow: "ml-0.5 h-2.5 w-2.5",
+    gap: "gap-0.5",
+    paddingLeft: "pl-2",
+    paddingRight: "pr-1.5",
   },
   sm: {
-    container: "h-9 w-[140px]",
-    iconWrapper: "pl-2.5",
+    container: "h-9",
+    containerIdle: "w-[110px]",
+    containerActive: "w-[170px]",
     icon: "h-3.5 w-3.5",
     input: "text-base",
-    currencyLabel: "text-[9px] pr-2.5",
-    buttonWrapper: "pr-1",
-    button: "h-6 px-2.5 text-xs",
+    inputWidth: "w-[50px]",
+    currencyLabel: "text-[9px]",
+    button: "h-6 px-4 text-xs",
     arrow: "ml-1 h-3 w-3",
+    gap: "gap-0.5",
+    paddingLeft: "pl-2.5",
+    paddingRight: "pr-1.5",
   },
   default: {
-    container: "h-11 w-[180px]",
-    iconWrapper: "pl-3",
+    container: "h-11",
+    containerIdle: "w-[140px]",
+    containerActive: "w-[210px]",
     icon: "h-4 w-4",
     input: "text-lg",
-    currencyLabel: "text-[10px] pr-3",
-    buttonWrapper: "pr-1.5",
-    button: "h-7 px-3 text-xs",
-    arrow: "ml-1 h-3.5 w-3.5",
+    inputWidth: "w-[60px]",
+    currencyLabel: "text-[10px]",
+    button: "h-8 px-5 text-sm",
+    arrow: "ml-1.5 h-3.5 w-3.5",
+    gap: "gap-0.5",
+    paddingLeft: "pl-3",
+    paddingRight: "pr-1.5",
   },
   lg: {
-    container: "h-14 w-[220px]",
-    iconWrapper: "pl-4",
+    container: "h-14",
+    containerIdle: "w-[170px]",
+    containerActive: "w-[260px]",
     icon: "h-5 w-5",
     input: "text-xl",
-    currencyLabel: "text-xs pr-4",
-    buttonWrapper: "pr-2",
-    button: "h-9 px-4 text-sm",
-    arrow: "ml-1.5 h-4 w-4",
+    inputWidth: "w-[70px]",
+    currencyLabel: "text-xs",
+    button: "h-10 px-6 text-sm",
+    arrow: "ml-2 h-4 w-4",
+    gap: "gap-1",
+    paddingLeft: "pl-4",
+    paddingRight: "pr-2",
   },
 }
 
@@ -155,27 +171,30 @@ export function QuickGive({
       <motion.div
         layout
         onClick={focusInput}
+        animate={{ width: hasValue ? "auto" : undefined }}
+        transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
         className={cn(
           "relative flex items-center overflow-hidden rounded-full border bg-background cursor-text",
-          "transition-all duration-200",
+          "transition-colors duration-200",
           config.container,
+          config.paddingLeft,
+          config.paddingRight,
+          !hasValue && config.containerIdle,
           isFocused
             ? "border-foreground/80 shadow-[0_2px_12px_rgba(0,0,0,0.08)] ring-1 ring-foreground/10"
             : "border-border/80 shadow-sm hover:border-muted-foreground/50 hover:shadow"
         )}
       >
-        <div className={cn("flex-shrink-0 flex items-center", config.iconWrapper)}>
+        <div className={cn("flex items-center", config.gap)}>
           <DollarSign
             className={cn(
-              "transition-colors duration-150",
+              "flex-shrink-0 transition-colors duration-150",
               config.icon,
               isFocused || displayValue ? "text-foreground" : "text-muted-foreground/40"
             )}
             strokeWidth={2.5}
           />
-        </div>
 
-        <div className="flex-1 flex items-center justify-center min-w-0">
           <input
             ref={inputRef}
             type="text"
@@ -189,23 +208,26 @@ export function QuickGive({
             placeholder="0"
             aria-label="Donation amount"
             className={cn(
-              "w-full h-full bg-transparent border-0 outline-none ring-0 focus:ring-0 text-center",
-              "font-semibold tracking-tight text-foreground font-sans",
+              "h-full bg-transparent border-0 outline-none ring-0 focus:ring-0",
+              "font-semibold tracking-tight text-foreground font-sans text-left",
               "placeholder:text-muted-foreground/40 placeholder:font-normal",
-              config.input
+              config.input,
+              config.inputWidth
             )}
           />
         </div>
+
+        <div className="flex-1" />
 
         <AnimatePresence mode="wait">
           {hasValue ? (
             <motion.div
               key="button"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9, x: -10 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9, x: -10 }}
               transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
-              className={cn("flex-shrink-0 flex items-center", config.buttonWrapper)}
+              className="flex-shrink-0"
             >
               <MotionButton
                 type="button"
@@ -213,8 +235,8 @@ export function QuickGive({
                   e.stopPropagation()
                   handleGive()
                 }}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className={cn(
                   "rounded-full font-semibold shadow-sm whitespace-nowrap",
