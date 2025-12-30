@@ -59,7 +59,7 @@ export default function SignStudioPublicSigningPage({ params }: { params: Promis
               <div className="h-24 w-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                  <CheckCircle2 className="h-12 w-12 text-emerald-600" />
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">You're all set!</h2>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">You&apos;re all set!</h2>
               <p className="text-slate-600 mb-8 leading-relaxed text-lg">
                  The document has been signed successfully. A copy has been emailed to you and the sender.
               </p>

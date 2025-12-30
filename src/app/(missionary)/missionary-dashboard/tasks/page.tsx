@@ -846,7 +846,7 @@ export default function TasksPage() {
                 className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer bg-zinc-100 text-zinc-700 border border-zinc-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
                 onClick={() => setSearchTerm('')}
               >
-                Search: "{searchTerm}"
+                Search: &quot;{searchTerm}&quot;
                 <X className="h-3 w-3 ml-1" />
               </Badge>
             )}
@@ -888,7 +888,7 @@ export default function TasksPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Task</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-500">
-              Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{taskToDelete?.title}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

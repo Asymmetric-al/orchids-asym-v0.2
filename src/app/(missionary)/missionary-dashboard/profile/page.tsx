@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useState, useRef, useCallback, useEffect } from 'react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
@@ -1425,9 +1426,9 @@ export default function ProfilePage() {
 
                                   <TabsContent value="story" className="outline-none flex-1 overflow-y-auto text-left pb-4">
                                     <div className="space-y-3">
-                                      <p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
-                                        "{profile.ministryFocus || 'Your tagline will appear here'}"
-                                      </p>
+<p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
+                                          &quot;{profile.ministryFocus || 'Your tagline will appear here'}&quot;
+                                        </p>
                                       <div className="text-[10px] text-zinc-500 leading-relaxed whitespace-pre-wrap">
                                         {profile.bio || 'Your bio will appear here. Share your story, calling, and ministry work with potential supporters.'}
                                       </div>
@@ -1502,12 +1503,15 @@ export default function ProfilePage() {
                           </div>
 
                           <div className="relative" style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}>
-                            <div className="h-[72px]">
-                              <img
-                                src={profile.coverUrl || PLACEHOLDER_COVER}
-                                alt="Cover"
-                                className="w-full h-full object-cover"
-                              />
+<div className="h-[72px]">
+                                <Image
+                                  src={profile.coverUrl || PLACEHOLDER_COVER}
+                                  alt="Cover"
+                                  width={400}
+                                  height={72}
+                                  unoptimized
+                                  className="w-full h-full object-cover"
+                                />
                               <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
                             </div>
 
@@ -1555,9 +1559,9 @@ export default function ProfilePage() {
                                   </div>
                                 </div>
 
-                                <p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
-                                  "{profile.ministryFocus || 'Your tagline will appear here'}"
-                                </p>
+<p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
+                                    &quot;{profile.ministryFocus || 'Your tagline will appear here'}&quot;
+                                  </p>
                                 <p className="text-[10px] text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
                                   {profile.bio || 'Your bio will appear here. Share your story with supporters.'}
                                 </p>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import {
   BadgePercentIcon,
   ChartNoAxesCombinedIcon,
@@ -94,12 +95,15 @@ const SalesMetricsCard = ({ className }: { className?: string }) => {
         <div className='grid gap-6 lg:grid-cols-5'>
           <div className='flex flex-col gap-7 lg:col-span-3'>
             <span className='text-lg font-semibold'>Sales metrics</span>
-            <div className='flex items-center gap-3'>
-              <img
-                src='https://cdn.shadcnstudio.com/ss-assets/logo/logo-square.png'
-                className='size-10.5 rounded-lg'
-                alt='logo'
-              />
+<div className='flex items-center gap-3'>
+                <Image
+                  src='https://cdn.shadcnstudio.com/ss-assets/logo/logo-square.png'
+                  className='size-10.5 rounded-lg'
+                  alt='logo'
+                  width={42}
+                  height={42}
+                  unoptimized
+                />
               <div className='flex flex-col gap-0.5'>
                 <span className='text-xl font-medium'>Sandy&apos; Company</span>
                 <span className='text-muted-foreground text-sm'>sandy@company.com</span>

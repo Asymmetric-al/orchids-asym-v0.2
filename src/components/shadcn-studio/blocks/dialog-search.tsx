@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import Image from 'next/image'
 
 import {
   UsersIcon,
@@ -74,15 +75,18 @@ const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
             className='[&_[cmdk-group-heading]]:text-muted-foreground !px-4 !py-6 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:uppercase'
           >
             <CommandItem onSelect={() => setOpen(false)} className='gap-3 !py-1.5 text-base'>
-              <Avatar className='size-9.5'>
-                <AvatarFallback>
-                  <img
-                    src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/jira.png'
-                    alt='Jira'
-                    className='size-6'
-                  />
-                </AvatarFallback>
-              </Avatar>
+<Avatar className='size-9.5'>
+                  <AvatarFallback>
+                    <Image
+                      src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/jira.png'
+                      alt='Jira'
+                      className='size-6'
+                      width={24}
+                      height={24}
+                      unoptimized
+                    />
+                  </AvatarFallback>
+                </Avatar>
               <div className='flex w-full flex-col items-start'>
                 <span className='font-medium'>Jira</span>
                 <span className='text-muted-foreground text-sm'>Project management</span>
@@ -109,15 +113,18 @@ const SearchDialog = ({ defaultOpen = false, trigger, className }: Props) => {
               </div>
             </CommandItem>
             <CommandItem onSelect={() => setOpen(false)} className='gap-3 !py-1.5 text-base'>
-              <Avatar className='size-9.5'>
-                <AvatarFallback>
-                  <img
-                    src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/inferno.png'
-                    alt='Inferno'
-                    className='size-6'
-                  />
-                </AvatarFallback>
-              </Avatar>
+<Avatar className='size-9.5'>
+                  <AvatarFallback>
+                    <Image
+                      src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/inferno.png'
+                      alt='Inferno'
+                      className='size-6'
+                      width={24}
+                      height={24}
+                      unoptimized
+                    />
+                  </AvatarFallback>
+                </Avatar>
               <div className='flex w-full flex-col items-start'>
                 <span className='font-medium'>Inferno</span>
                 <span className='text-muted-foreground text-sm'>Real-time photo sharing app</span>

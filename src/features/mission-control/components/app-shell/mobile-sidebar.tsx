@@ -21,8 +21,8 @@ interface NavLinkProps {
 }
 
 const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkProps) {
-  const Icon = useMemo(() => getIcon(item.icon), [item.icon])
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
+  const IconComponent = getIcon(item.icon)
 
   return (
     <Link
@@ -34,7 +34,7 @@ const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkPro
         isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground'
       )}
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      <IconComponent className="h-4 w-4 shrink-0" />
       <span>{item.title}</span>
     </Link>
   )

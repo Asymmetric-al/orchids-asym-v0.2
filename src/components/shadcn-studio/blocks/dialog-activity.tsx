@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 
+import Image from 'next/image'
 import { ImageIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -74,12 +75,15 @@ const ActivityDialog = ({ defaultOpen = false, trigger }: Props) => {
                 </p>
                 <p>39 mins ago</p>
               </div>
-              <div className='bg-muted flex items-center gap-1 rounded-md px-1.5 py-1'>
-                <img
-                  src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/image-14.png'
-                  className='h-5'
-                  alt=''
-                />
+<div className='bg-muted flex items-center gap-1 rounded-md px-1.5 py-1'>
+                  <Image
+                    src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/image-14.png'
+                    className='h-5'
+                    alt=''
+                    width={20}
+                    height={20}
+                    unoptimized
+                  />
                 <span className='text-sm font-medium'>invoices.pdf</span>
               </div>
             </div>
@@ -99,12 +103,15 @@ const ActivityDialog = ({ defaultOpen = false, trigger }: Props) => {
                 </p>
                 <p>1 hour ago</p>
               </div>
-              <div className='bg-muted flex w-full items-center gap-4 rounded-md border px-4 py-2.5'>
-                <img
-                  src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/image-13.png'
-                  className='size-8 rounded-sm'
-                  alt=''
-                />
+<div className='bg-muted flex w-full items-center gap-4 rounded-md border px-4 py-2.5'>
+                  <Image
+                    src='https://cdn.shadcnstudio.com/ss-assets/blocks/dashboard-application/dashboard-dialog/image-13.png'
+                    className='size-8 rounded-sm'
+                    alt=''
+                    width={32}
+                    height={32}
+                    unoptimized
+                  />
                 <span className='text-sm font-medium'>Launcher-Uikit.fig</span>
               </div>
             </div>

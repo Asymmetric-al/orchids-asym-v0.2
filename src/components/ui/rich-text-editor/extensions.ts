@@ -1,6 +1,4 @@
 import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 
@@ -24,12 +22,11 @@ export const extensions = [
         class: 'border-l-4 border-primary pl-4 italic',
       },
     },
-  }),
-  Underline,
-  Link.configure({
-    openOnClick: false,
-    HTMLAttributes: {
-      class: 'text-primary underline cursor-pointer',
+    link: {
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-primary underline cursor-pointer',
+      },
     },
   }),
   Image.configure({

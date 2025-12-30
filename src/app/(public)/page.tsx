@@ -225,7 +225,7 @@ export default function Home() {
                 className="absolute -top-6 -right-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 max-w-[200px] hidden xl:block"
               >
                  <Sparkles className="h-5 w-5 text-zinc-400 mb-3" />
-                 <p className="text-xs font-bold text-slate-900 leading-tight">"Our fastest deployment yet. Resources reached the field in <span className="text-zinc-900">under 4 hours</span>."</p>
+                 <p className="text-xs font-bold text-slate-900 leading-tight">&quot;Our fastest deployment yet. Resources reached the field in <span className="text-zinc-900">under 4 hours</span>.&quot;</p>
                  <div className="mt-4 flex items-center gap-3">
                     <div className="h-7 w-7 rounded-full bg-slate-200" />
                     <div>

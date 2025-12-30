@@ -226,9 +226,9 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
 
                     <TabsContent value="story" className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="prose prose-lg prose-slate max-w-none text-slate-600 leading-relaxed font-light">
-                            <p className="font-medium text-xl text-slate-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
-                                "{worker.description}"
-                            </p>
+<p className="font-medium text-xl text-slate-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic">
+                                  &quot;{worker.description}&quot;
+                              </p>
                             <h3>The Mission</h3>
                             <p>
                                 We are committed to long-term sustainable change. By partnering with local leaders and utilizing indigenous resources, we ensure that every project has community buy-in and lasting impact. Your support doesn&apos;t just provide temporary relief; it builds a foundation for the future.

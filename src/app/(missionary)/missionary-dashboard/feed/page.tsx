@@ -1012,13 +1012,14 @@ function SecurityAccessDialog({
   const [publicMirror, setPublicMirror] = useState(securityLevel === 'low')
   const [autoApproval, setAutoApproval] = useState(securityLevel !== 'high')
 
-  useEffect(() => {
-    if (isOpen) {
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (open) {
       setLocalLevel(securityLevel)
       setPublicMirror(securityLevel === 'low')
       setAutoApproval(securityLevel !== 'high')
     }
-  }, [isOpen, securityLevel])
+    setIsOpen(open)
+  }, [securityLevel])
 
   const handleLevelChange = (level: SecurityLevel) => {
     setLocalLevel(level)
@@ -1092,7 +1093,7 @@ function SecurityAccessDialog({
   ]
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium gap-2">
@@ -1602,12 +1603,15 @@ export default function WorkerFeed() {
                                   exit={{ opacity: 0, scale: 0.8 }}
                                   transition={springTransition}
                                   className="relative group/img shrink-0"
-                                >
-                                  <img
-                                    src={item.url}
-                                    alt={`Attached media ${idx + 1}`}
-                                    className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
-                                  />
+                                  >
+                                    <Image
+                                      src={item.url}
+                                      alt={`Attached media ${idx + 1}`}
+                                      width={64}
+                                      height={64}
+                                      unoptimized
+                                      className="h-14 w-14 sm:h-16 sm:w-16 object-cover rounded-lg border border-border shadow-sm"
+                                    />
                                   <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}

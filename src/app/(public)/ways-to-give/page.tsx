@@ -104,7 +104,7 @@ export default function WaysToGivePage() {
                         </div>
                         <h3 className="text-xl font-bold text-slate-900">Honor & Memorial</h3>
                     </div>
-                    <p className="text-sm text-slate-500 leading-relaxed">Give a gift in honor of a loved one. We'll send a beautiful physical card notifying them of your support.</p>
+                    <p className="text-sm text-slate-500 leading-relaxed">Give a gift in honor of a loved one. We&apos;ll send a beautiful physical card notifying them of your support.</p>
                 </CardContent>
             </Card>
          </div>

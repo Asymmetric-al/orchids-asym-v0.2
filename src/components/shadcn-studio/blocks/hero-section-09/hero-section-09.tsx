@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { SquarePlusIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -19,29 +20,38 @@ const HeroSection = () => {
               transition={{ duration: 0.5 }}
               className='flex items-center gap-4 rounded-md border px-4 py-2.5'
             >
-              <p className='font-semibold uppercase'>Compatible With:</p>
+<p className='font-semibold uppercase'>Compatible With:</p>
 
-              <a href='#'>
-                <img
-                  src='https://cdn.shadcnstudio.com/ss-assets/brand-logo/tailwind-logo.png'
-                  alt='TailwindCSS Logo'
-                  className='w-7'
-                />
-              </a>
-              <a href='#'>
-                <img
-                  src='https://cdn.shadcnstudio.com/ss-assets/brand-logo/nextjs-logo.png'
-                  alt='Next.js logo'
-                  className='w-5.5'
-                />
-              </a>
-              <a href='#'>
-                <img
-                  src='https://cdn.shadcnstudio.com/ss-assets/brand-logo/shadcn-logo.png'
-                  alt='Shadcn logo'
-                  className='w-5.5'
-                />
-              </a>
+                <a href='#'>
+                  <Image
+                    src='https://cdn.shadcnstudio.com/ss-assets/brand-logo/tailwind-logo.png'
+                    alt='TailwindCSS Logo'
+                    className='w-7'
+                    width={28}
+                    height={28}
+                    unoptimized
+                  />
+                </a>
+                <a href='#'>
+                  <Image
+                    src='https://cdn.shadcnstudio.com/ss-assets/brand-logo/nextjs-logo.png'
+                    alt='Next.js logo'
+                    className='w-5.5'
+                    width={22}
+                    height={22}
+                    unoptimized
+                  />
+                </a>
+                <a href='#'>
+                  <Image
+                    src='https://cdn.shadcnstudio.com/ss-assets/brand-logo/shadcn-logo.png'
+                    alt='Shadcn logo'
+                    className='w-5.5'
+                    width={22}
+                    height={22}
+                    unoptimized
+                  />
+                </a>
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -110,24 +120,30 @@ const HeroSection = () => {
             </MotionPreset>
           </div>
 
-          <MotionPreset
-            fade
-            slide={{ direction: 'right' }}
-            delay={1.2}
-            transition={{ duration: 0.5 }}
-            className='absolute right-0 shrink-0 max-lg:hidden lg:max-[1100px]:top-10 lg:max-xl:translate-x-40 xl:top-0 xl:w-[87.4%]'
-          >
-            <img
-              src='https://cdn.shadcnstudio.com/ss-assets/blocks/marketing/hero/image-20.png'
-              alt='Mobile screen'
-              className='dark:hidden'
-            />
-            <img
-              src='https://cdn.shadcnstudio.com/ss-assets/blocks/marketing/hero/image-20-dark.png'
-              alt='Mobile screen'
-              className='hidden dark:inline-block'
-            />
-          </MotionPreset>
+<MotionPreset
+              fade
+              slide={{ direction: 'right' }}
+              delay={1.2}
+              transition={{ duration: 0.5 }}
+              className='absolute right-0 shrink-0 max-lg:hidden lg:max-[1100px]:top-10 lg:max-xl:translate-x-40 xl:top-0 xl:w-[87.4%]'
+            >
+              <Image
+                src='https://cdn.shadcnstudio.com/ss-assets/blocks/marketing/hero/image-20.png'
+                alt='Mobile screen'
+                className='dark:hidden'
+                width={1200}
+                height={800}
+                unoptimized
+              />
+              <Image
+                src='https://cdn.shadcnstudio.com/ss-assets/blocks/marketing/hero/image-20-dark.png'
+                alt='Mobile screen'
+                className='hidden dark:inline-block'
+                width={1200}
+                height={800}
+                unoptimized
+              />
+            </MotionPreset>
         </div>
       </div>
     </section>
