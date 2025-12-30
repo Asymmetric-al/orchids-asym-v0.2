@@ -47,6 +47,7 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { QuickGive } from '@/components/quick-give'
 
 const fadeInUp = {
   initial: { opacity: 0, y: 12 },
@@ -1300,36 +1301,34 @@ export default function ProfilePage() {
                           {profile.bio || 'Your bio will appear here.'}
                         </p>
 
-                        <div className="flex justify-center gap-3 mt-5">
-                          <AnimatePresence>
-                            {profile.instagram && (
-                              <SocialIcon platform="instagram" url={profile.instagram} />
-                            )}
-                            {profile.facebook && (
-                              <SocialIcon platform="facebook" url={profile.facebook} />
-                            )}
-                            {profile.twitter && (
-                              <SocialIcon platform="twitter" url={profile.twitter} />
-                            )}
-                            {profile.youtube && (
-                              <SocialIcon platform="youtube" url={profile.youtube} />
-                            )}
-                            {profile.website && (
-                              <SocialIcon platform="website" url={profile.website} />
-                            )}
-                          </AnimatePresence>
-                        </div>
+                          <div className="flex justify-center gap-3 mt-4">
+                            <AnimatePresence>
+                              {profile.instagram && (
+                                <SocialIcon platform="instagram" url={profile.instagram} />
+                              )}
+                              {profile.facebook && (
+                                <SocialIcon platform="facebook" url={profile.facebook} />
+                              )}
+                              {profile.twitter && (
+                                <SocialIcon platform="twitter" url={profile.twitter} />
+                              )}
+                              {profile.youtube && (
+                                <SocialIcon platform="youtube" url={profile.youtube} />
+                              )}
+                              {profile.website && (
+                                <SocialIcon platform="website" url={profile.website} />
+                              )}
+                            </AnimatePresence>
+                          </div>
 
-                        <motion.div
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          transition={springTransition}
-                        >
-                          <Button className="w-full mt-6 sm:mt-8 bg-zinc-900 text-white hover:bg-zinc-800 rounded-xl h-11 sm:h-12 text-xs font-semibold">
-                            Support
-                          </Button>
-                        </motion.div>
-                      </div>
+                          <div className="mt-5 sm:mt-6 flex justify-center">
+                            <QuickGive 
+                              workerId="preview" 
+                              className="max-w-[85%]"
+                              size="default"
+                            />
+                          </div>
+                        </div>
 
                       <div className="absolute top-0 left-0 right-0 h-6 sm:h-8 flex justify-center pt-1 pointer-events-none">
                         <div className="bg-zinc-900 h-4 sm:h-5 w-24 sm:w-28 rounded-full" />
@@ -1392,32 +1391,26 @@ export default function ProfilePage() {
                             {profile.bio || 'Your bio will appear here.'}
                           </p>
 
-                          <div className="flex items-center justify-between mt-4">
-                            <div className="flex gap-2">
-                              <AnimatePresence>
-                                {profile.instagram && (
-                                  <SocialIcon platform="instagram" url={profile.instagram} />
-                                )}
-                                {profile.facebook && (
-                                  <SocialIcon platform="facebook" url={profile.facebook} />
-                                )}
-                                {profile.twitter && (
-                                  <SocialIcon platform="twitter" url={profile.twitter} />
-                                )}
-                              </AnimatePresence>
+                            <div className="flex items-center justify-between mt-4">
+                              <div className="flex gap-2">
+                                <AnimatePresence>
+                                  {profile.instagram && (
+                                    <SocialIcon platform="instagram" url={profile.instagram} />
+                                  )}
+                                  {profile.facebook && (
+                                    <SocialIcon platform="facebook" url={profile.facebook} />
+                                  )}
+                                  {profile.twitter && (
+                                    <SocialIcon platform="twitter" url={profile.twitter} />
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                              <QuickGive 
+                                workerId="preview" 
+                                size="compact"
+                                className="max-w-[140px]"
+                              />
                             </div>
-                            <motion.div
-                              whileHover={{ scale: 1.03 }}
-                              whileTap={{ scale: 0.97 }}
-                            >
-                              <Button
-                                size="sm"
-                                className="h-6 rounded text-[9px] font-medium px-3"
-                              >
-                                Support
-                              </Button>
-                            </motion.div>
-                          </div>
                         </div>
                       </div>
                     </motion.div>
