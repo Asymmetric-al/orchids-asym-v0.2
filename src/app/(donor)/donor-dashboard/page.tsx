@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
@@ -132,18 +131,16 @@ export default function DonorDashboardPage() {
                 <CardContent className="p-0">
                    <div className="divide-y divide-zinc-50">
                       {RECENT_UPDATES.map(update => (
-                          <Link href="/donor-dashboard/feed" key={update.id} className="flex gap-4 p-5 hover:bg-zinc-50/50 transition-colors group">
-                             <div className="shrink-0 pt-0.5">
-                                {update.image ? (
-                                  <div className="h-10 w-10 rounded-lg overflow-hidden relative border border-zinc-100 shadow-sm">
-                                    <Image src={update.image} alt="" fill className="object-cover grayscale active:grayscale-0 group-hover:grayscale-0 transition-all" unoptimized />
-                                  </div>
-                                ) : (
-                                  <div className="h-10 w-10 rounded-lg bg-zinc-100 flex items-center justify-center font-bold text-zinc-400 text-xs">
-                                     {update.avatar}
-                                  </div>
-                                )}
-                             </div>
+                         <Link href="/donor-dashboard/feed" key={update.id} className="flex gap-4 p-5 hover:bg-zinc-50/50 transition-colors group">
+                            <div className="shrink-0 pt-0.5">
+                               {update.image ? (
+                                 <img src={update.image} alt="" className="h-10 w-10 rounded-lg object-cover border border-zinc-100 shadow-sm grayscale active:grayscale-0 group-hover:grayscale-0 transition-all" />
+                               ) : (
+                                 <div className="h-10 w-10 rounded-lg bg-zinc-100 flex items-center justify-center font-bold text-zinc-400 text-xs">
+                                    {update.avatar}
+                                 </div>
+                               )}
+                            </div>
                             <div className="flex-1 min-w-0">
                                <div className="flex justify-between items-baseline mb-0.5">
                                   <span className="text-[11px] font-bold text-zinc-900 truncate tracking-tight uppercase">{update.author}</span>

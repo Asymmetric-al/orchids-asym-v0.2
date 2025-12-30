@@ -1,6 +1,6 @@
 'use client'
 
-import { createElement, useState, useCallback, useMemo, memo } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,7 @@ interface NavLinkProps {
 }
 
 const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkProps) {
-  const IconComponent = getIcon(item.icon)
+  const Icon = useMemo(() => getIcon(item.icon), [item.icon])
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
 
   return (
@@ -34,7 +34,7 @@ const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkPro
         isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground'
       )}
     >
-      {createElement(IconComponent, { className: "h-4 w-4 shrink-0" })}
+      <Icon className="h-4 w-4 shrink-0" />
       <span>{item.title}</span>
     </Link>
   )

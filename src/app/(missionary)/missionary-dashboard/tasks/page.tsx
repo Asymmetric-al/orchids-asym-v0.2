@@ -843,12 +843,12 @@ export default function TasksPage() {
             {searchTerm && (
               <Badge
                 variant="secondary"
-                 className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer bg-zinc-100 text-zinc-700 border border-zinc-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
-                 onClick={() => setSearchTerm('')}
-               >
-                 Search: &ldquo;{searchTerm}&rdquo;
-                 <X className="h-3 w-3 ml-1" />
-               </Badge>
+                className="rounded-full px-3 py-1 text-xs font-medium cursor-pointer bg-zinc-100 text-zinc-700 border border-zinc-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition-colors"
+                onClick={() => setSearchTerm('')}
+              >
+                Search: "{searchTerm}"
+                <X className="h-3 w-3 ml-1" />
+              </Badge>
             )}
           </motion.div>
         )}
@@ -888,7 +888,7 @@ export default function TasksPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Task</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-500">
-              Are you sure you want to delete &ldquo;{taskToDelete?.title}&rdquo;? This action cannot be undone.
+              Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

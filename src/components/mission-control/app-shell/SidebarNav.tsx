@@ -1,6 +1,6 @@
 'use client'
 
-import { createElement, memo, useCallback, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -24,7 +24,7 @@ interface NavLinkProps {
 }
 
 const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProps) {
-  const IconComponent = getIcon(item.icon)
+  const Icon = useMemo(() => getIcon(item.icon), [item.icon])
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
 
   const linkContent = (
@@ -38,12 +38,12 @@ const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProp
         collapsed && 'justify-center px-2'
       )}
     >
-      {createElement(IconComponent, {
-        className: cn(
+      <Icon
+        className={cn(
           'h-5 w-5 shrink-0 transition-colors',
           isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'
-        )
-      })}
+        )}
+      />
       {!collapsed && <span className="truncate">{item.title}</span>}
     </Link>
   )

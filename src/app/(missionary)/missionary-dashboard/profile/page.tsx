@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import Image from 'next/image'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
@@ -1424,15 +1423,15 @@ export default function ProfilePage() {
                                     </TabsTrigger>
                                   </TabsList>
 
-                                   <TabsContent value="story" className="outline-none flex-1 overflow-y-auto text-left pb-4">
-                                     <div className="space-y-3">
-                                       <p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
-                                         &ldquo;{profile.ministryFocus || 'Your tagline will appear here'}&rdquo;
-                                       </p>
-                                       <div className="text-[10px] text-zinc-500 leading-relaxed whitespace-pre-wrap">
-                                         {profile.bio || 'Your bio will appear here. Share your story, calling, and ministry work with potential supporters.'}
-                                       </div>
-                                     </div>
+                                  <TabsContent value="story" className="outline-none flex-1 overflow-y-auto text-left pb-4">
+                                    <div className="space-y-3">
+                                      <p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
+                                        "{profile.ministryFocus || 'Your tagline will appear here'}"
+                                      </p>
+                                      <div className="text-[10px] text-zinc-500 leading-relaxed whitespace-pre-wrap">
+                                        {profile.bio || 'Your bio will appear here. Share your story, calling, and ministry work with potential supporters.'}
+                                      </div>
+                                    </div>
                                   </TabsContent>
 
                                   <TabsContent value="updates" className="outline-none flex-1 overflow-y-auto pb-4">
@@ -1502,17 +1501,15 @@ export default function ProfilePage() {
                             <div className="h-2 w-2 rounded-full bg-zinc-300" />
                           </div>
 
-                           <div className="relative" style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}>
-                             <div className="h-[72px] relative">
-                               <Image
-                                 src={profile.coverUrl || PLACEHOLDER_COVER}
-                                 alt="Cover"
-                                 fill
-                                 className="object-cover"
-                                 unoptimized
-                               />
-                               <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
-                             </div>
+                          <div className="relative" style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}>
+                            <div className="h-[72px]">
+                              <img
+                                src={profile.coverUrl || PLACEHOLDER_COVER}
+                                alt="Cover"
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
+                            </div>
 
                             <div className="px-5 pb-4">
                               <div className="flex items-end gap-3 -mt-6">
@@ -1555,16 +1552,16 @@ export default function ProfilePage() {
                                         <SocialIcon key="desktop-twitter" platform="twitter" url={profile.twitter} />
                                       )}
                                     </AnimatePresence>
-                                   </div>
-                                 </div>
+                                  </div>
+                                </div>
 
-                                 <p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
-                                   &ldquo;{profile.ministryFocus || 'Your tagline will appear here'}&rdquo;
-                                 </p>
-                                 <p className="text-[10px] text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
-                                   {profile.bio || 'Your bio will appear here. Share your story with supporters.'}
-                                 </p>
-                             </div>
+                                <p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
+                                  "{profile.ministryFocus || 'Your tagline will appear here'}"
+                                </p>
+                                <p className="text-[10px] text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+                                  {profile.bio || 'Your bio will appear here. Share your story with supporters.'}
+                                </p>
+                            </div>
                           </div>
                         </motion.div>
                       </DesktopPreviewFrame>

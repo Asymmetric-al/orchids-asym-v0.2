@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Target, Users, Shield, Heart, ArrowRight, Activity, Globe, Zap, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -97,17 +96,17 @@ export default function AboutPage() {
                  className="relative"
                >
                   <div className="aspect-square bg-slate-50 rounded-3xl p-8 flex items-center justify-center border border-slate-100 shadow-xl overflow-hidden relative group">
-                      <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-700">
-                         <Image src="https://images.unsplash.com/photo-1536053468241-7649c0d6628c?q=80&w=2000" fill className="object-cover" alt="Community" unoptimized />
-                      </div>
-                      <div className="relative z-10 text-center space-y-4">
-                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-slate-100">
-                            <Globe className="h-8 w-8 text-emerald-500" />
-                         </div>
-                         <p className="text-3xl font-bold font-syne text-slate-950 tracking-tighter">100% Direct-to-Field</p>
-                         <p className="text-slate-500 max-w-xs mx-auto text-sm font-medium">No middle-management. No administrative leakage. Your support goes exactly where it&apos;s needed.</p>
-                      </div>
-                   </div>
+                     <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-700">
+                        <img src="https://images.unsplash.com/photo-1536053468241-7649c0d6628c?q=80&w=2000" className="w-full h-full object-cover" alt="Community" />
+                     </div>
+                     <div className="relative z-10 text-center space-y-4">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-slate-100">
+                           <Globe className="h-8 w-8 text-emerald-500" />
+                        </div>
+                        <p className="text-3xl font-bold font-syne text-slate-950 tracking-tighter">100% Direct-to-Field</p>
+                        <p className="text-slate-500 max-w-xs mx-auto text-sm font-medium">No middle-management. No administrative leakage. Your support goes exactly where it's needed.</p>
+                     </div>
+                  </div>
                </motion.div>
            </div>
          </div>
@@ -183,22 +182,20 @@ export default function AboutPage() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                   transition={{ delay: i * 0.1, duration: 0.8 }}
-                   className="group cursor-pointer"
-                 >
-                   <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-all duration-700">
-                     <Image 
-                       src={person.img} 
-                       alt={person.name} 
-                       fill
-                       className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-all duration-[1s] group-hover:scale-110" 
-                       unoptimized
-                     />
-                     <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-all duration-700" />
-                   </div>
-                   <div className="space-y-1 text-center">
-                     <h3 className="text-2xl font-bold text-slate-950 font-syne group-hover:text-emerald-600 transition-colors">{person.name}</h3>
-                     <p className="text-slate-400 font-black text-[9px] uppercase tracking-[0.3em]">{person.role}</p>
+                  transition={{ delay: i * 0.1, duration: 0.8 }}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-all duration-700">
+                    <img 
+                      src={person.img} 
+                      alt={person.name} 
+                      className="w-full h-full object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-all duration-[1s] group-hover:scale-110" 
+                    />
+                    <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-all duration-700" />
+                  </div>
+                  <div className="space-y-1 text-center">
+                    <h3 className="text-2xl font-bold text-slate-950 font-syne group-hover:text-emerald-600 transition-colors">{person.name}</h3>
+                    <p className="text-slate-400 font-black text-[9px] uppercase tracking-[0.3em]">{person.role}</p>
                   </div>
                 </motion.div>
               ))}
@@ -224,7 +221,7 @@ export default function AboutPage() {
                 <span className="text-emerald-500">Method.</span>
               </h2>
               <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-16 font-light leading-relaxed tracking-tight">
-                Don&apos;t just watch the world change. Be the reason it does. Join our global sustainer community today.
+                Don't just watch the world change. Be the reason it does. Join our global sustainer community today.
               </p>
               <div className="flex flex-col md:flex-row gap-4 justify-center">
                 <Button size="lg" className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne shadow-xl transition-all hover:scale-105 active:scale-95" asChild>

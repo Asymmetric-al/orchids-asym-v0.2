@@ -166,6 +166,12 @@ export function TaskDialog({
   })
 
   React.useEffect(() => {
+    if (open && profile?.id) {
+      fetchDonors()
+    }
+  }, [open, profile?.id])
+
+  React.useEffect(() => {
     if (task) {
       form.reset({
         title: task.title || '',
@@ -193,7 +199,7 @@ export function TaskDialog({
     }
   }, [task, defaultDonorId, form])
 
-  const fetchDonors = React.useCallback(async () => {
+  async function fetchDonors() {
     if (!profile?.id) return
     setLoadingDonors(true)
     try {
@@ -211,13 +217,7 @@ export function TaskDialog({
     } finally {
       setLoadingDonors(false)
     }
-  }, [profile?.id])
-
-  React.useEffect(() => {
-    if (open && profile?.id) {
-      fetchDonors()
-    }
-  }, [open, profile?.id, fetchDonors])
+  }
 
   async function onSubmit(values: TaskFormValues) {
     if (!profile?.id) {

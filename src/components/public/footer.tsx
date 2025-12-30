@@ -13,7 +13,7 @@ export function Footer() {
               <span className="font-bold text-lg tracking-tight">GIVE<span className="font-light opacity-60">HOPE</span></span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
-              Bridging the gap between compassion and action. Supporting verified field partners in the world&apos;s most fractured regions.
+              Bridging the gap between compassion and action. Supporting verified field partners in the world's most fractured regions.
             </p>
           </div>
           

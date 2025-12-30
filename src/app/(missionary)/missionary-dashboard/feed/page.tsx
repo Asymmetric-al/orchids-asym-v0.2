@@ -1005,14 +1005,13 @@ function SecurityAccessDialog({
   const [publicMirror, setPublicMirror] = useState(securityLevel === 'low')
   const [autoApproval, setAutoApproval] = useState(securityLevel !== 'high')
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open)
-    if (open) {
+  useEffect(() => {
+    if (isOpen) {
       setLocalLevel(securityLevel)
       setPublicMirror(securityLevel === 'low')
       setAutoApproval(securityLevel !== 'high')
     }
-  }, [securityLevel])
+  }, [isOpen, securityLevel])
 
   const handleLevelChange = (level: SecurityLevel) => {
     setLocalLevel(level)
@@ -1083,10 +1082,10 @@ function SecurityAccessDialog({
       borderColor: 'border-emerald-200',
       ringColor: 'ring-emerald-500/20',
     },
-    ]
+  ]
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-medium gap-2">
@@ -1338,8 +1337,6 @@ export default function WorkerFeed() {
     fetchFollowerRequests()
   }, [fetchPosts, fetchFollowerRequests])
 
-  const handlePostRef = React.useRef<(status: PostStatus) => Promise<void>>(undefined)
-
   useEffect(() => {
     if (
       !postContent ||
@@ -1351,11 +1348,11 @@ export default function WorkerFeed() {
       return
 
     const timer = setTimeout(() => {
-      handlePostRef.current?.('draft')
+      handlePost('draft')
     }, 30000)
 
     return () => clearTimeout(timer)
-  }, [postContent, isSaving, activeTab, editingPostId])
+  }, [postContent])
 
   const handlePost = async (status: PostStatus = 'published') => {
     const plainText = postContent.replace(/<[^>]*>?/gm, '').trim()
@@ -1406,8 +1403,6 @@ export default function WorkerFeed() {
       setIsSaving(false)
     }
   }
-
-  handlePostRef.current = handlePost
 
   const handleEditDraft = (draft: Post) => {
     setPostContent(draft.content)

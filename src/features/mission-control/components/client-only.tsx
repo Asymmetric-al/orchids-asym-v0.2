@@ -1,15 +1,15 @@
 'use client'
 
-import { useSyncExternalStore, type ReactNode } from 'react'
-
-const emptySubscribe = () => () => {}
-const getClientSnapshot = () => true
-const getServerSnapshot = () => false
+import { useEffect, useState, type ReactNode } from 'react'
 
 export function ClientOnly({ children, fallback = null }: { children: ReactNode; fallback?: ReactNode }) {
-  const isClient = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot)
+  const [mounted, setMounted] = useState(false)
 
-  if (!isClient) {
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
     return fallback
   }
 

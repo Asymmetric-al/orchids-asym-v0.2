@@ -32,15 +32,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.transparenttextures.com',
       },
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
     ],
   },
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Ensure we pin the root to the project directory to avoid watching parent folders
   outputFileTracingRoot: __dirname,
 };
 
