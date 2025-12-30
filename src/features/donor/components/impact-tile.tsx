@@ -4,6 +4,7 @@ import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
+import type { WorkerFeed } from '@/lib/mock-data'
 
 interface ImpactTileProps {
   title: string
@@ -12,7 +13,7 @@ interface ImpactTileProps {
   colorClass: string
   bgClass: string
   contextKeys?: string[]
-  feeds?: Record<string, unknown>[]
+  feeds?: WorkerFeed[]
   className?: string
 }
 
