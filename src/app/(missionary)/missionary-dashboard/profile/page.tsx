@@ -478,6 +478,101 @@ function MotionCard({
 
 type PreviewMode = 'mobile' | 'desktop'
 
+const MOBILE_PREVIEW_WIDTH = 320
+const MOBILE_PREVIEW_HEIGHT = 568
+const DESKTOP_PREVIEW_WIDTH = 400
+const DESKTOP_PREVIEW_HEIGHT = 300
+
+function MobilePreviewFrame({ children }: { children: React.ReactNode }) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const [scale, setScale] = React.useState(1)
+
+  React.useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const calculateScale = () => {
+      const containerWidth = container.offsetWidth
+      const padding = 16
+      const availableWidth = containerWidth - padding
+      const newScale = Math.min(1, availableWidth / MOBILE_PREVIEW_WIDTH)
+      setScale(newScale)
+    }
+
+    calculateScale()
+    const resizeObserver = new ResizeObserver(calculateScale)
+    resizeObserver.observe(container)
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  return (
+    <div ref={containerRef} className="w-full flex justify-center">
+      <div 
+        className="origin-top"
+        style={{
+          transform: `scale(${scale})`,
+          width: MOBILE_PREVIEW_WIDTH,
+          height: MOBILE_PREVIEW_HEIGHT * scale,
+        }}
+      >
+        <div
+          style={{
+            width: MOBILE_PREVIEW_WIDTH,
+            height: MOBILE_PREVIEW_HEIGHT,
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DesktopPreviewFrame({ children }: { children: React.ReactNode }) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const [scale, setScale] = React.useState(1)
+
+  React.useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const calculateScale = () => {
+      const containerWidth = container.offsetWidth
+      const padding = 16
+      const availableWidth = containerWidth - padding
+      const newScale = Math.min(1, availableWidth / DESKTOP_PREVIEW_WIDTH)
+      setScale(newScale)
+    }
+
+    calculateScale()
+    const resizeObserver = new ResizeObserver(calculateScale)
+    resizeObserver.observe(container)
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  return (
+    <div ref={containerRef} className="w-full flex justify-center">
+      <div 
+        className="origin-top"
+        style={{
+          transform: `scale(${scale})`,
+          width: DESKTOP_PREVIEW_WIDTH,
+          height: DESKTOP_PREVIEW_HEIGHT * scale,
+        }}
+      >
+        <div
+          style={{
+            width: DESKTOP_PREVIEW_WIDTH,
+            height: DESKTOP_PREVIEW_HEIGHT,
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -1245,17 +1340,19 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <AnimatePresence mode="wait">
-                  {previewMode === 'mobile' ? (
-                      <motion.div
-                        key="mobile-preview"
-                        initial={{ opacity: 0, scale: 0.97, x: 10 }}
-                        animate={{ opacity: 1, scale: 1, x: 0 }}
-                        exit={{ opacity: 0, scale: 0.97, x: -10 }}
-                        transition={gentleTransition}
-                        className="border-[10px] sm:border-[12px] border-zinc-900 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative"
-                      >
-                        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32">
+                  <AnimatePresence mode="wait">
+                    {previewMode === 'mobile' ? (
+                      <MobilePreviewFrame>
+                        <motion.div
+                          key="mobile-preview"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={gentleTransition}
+                          className="border-[12px] border-zinc-900 rounded-[3rem] overflow-hidden shadow-2xl bg-white relative"
+                          style={{ width: MOBILE_PREVIEW_WIDTH, height: MOBILE_PREVIEW_HEIGHT }}
+                        >
+                          <div className="absolute top-0 left-0 right-0 h-[120px]">
                             <motion.img
                               key={profile.coverUrl || 'placeholder'}
                               src={profile.coverUrl || PLACEHOLDER_COVER}
@@ -1268,9 +1365,9 @@ export default function ProfilePage() {
                             <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
                           </div>
 
-                          <div className="absolute top-16 sm:top-20 left-0 right-0 flex justify-center">
+                          <div className="absolute top-[72px] left-0 right-0 flex justify-center">
                             <motion.div 
-                              className="h-18 w-18 sm:h-20 sm:w-20 rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
+                              className="h-[72px] w-[72px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
                               layout
                               transition={springTransition}
                             >
@@ -1283,33 +1380,33 @@ export default function ProfilePage() {
                             </motion.div>
                           </div>
 
-                        <div className="mt-36 sm:mt-40 px-4 sm:px-5 text-center flex flex-col h-[calc(100%-9rem)] sm:h-[calc(100%-10rem)]">
-                          <div className="flex-shrink-0">
-                            <h2 className="text-base sm:text-lg font-bold text-zinc-900 tracking-tight">
-                              {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                            </h2>
-                            <div className="flex items-center justify-center gap-1 text-[10px] sm:text-xs text-zinc-500 mt-0.5">
-                              <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                              <span>{profile.location || 'Location'}</span>
+                          <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col">
+                            <div className="flex-shrink-0">
+                              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                                {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                              </h2>
+                              <div className="flex items-center justify-center gap-1 text-xs text-zinc-500 mt-0.5">
+                                <MapPin className="h-3 w-3" />
+                                <span>{profile.location || 'Location'}</span>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="mt-3 sm:mt-4 flex justify-center">
-                            <QuickGive 
-                              workerId="preview" 
-                              size="sm"
-                            />
-                          </div>
+                            <div className="mt-4 flex justify-center">
+                              <QuickGive 
+                                workerId="preview" 
+                                size="sm"
+                              />
+                            </div>
 
-                          <p className="text-[10px] sm:text-xs font-medium text-zinc-600 mt-3 sm:mt-4 line-clamp-2 leading-relaxed">
-                            {profile.ministryFocus || 'Your tagline will appear here'}
-                          </p>
+                            <p className="text-xs font-medium text-zinc-600 mt-4 line-clamp-2 leading-relaxed">
+                              {profile.ministryFocus || 'Your tagline will appear here'}
+                            </p>
 
-                          <p className="text-[10px] sm:text-xs text-zinc-400 mt-2 sm:mt-3 line-clamp-3 px-1 leading-relaxed flex-grow">
-                            {profile.bio || 'Your bio will appear here.'}
-                          </p>
+                            <p className="text-xs text-zinc-400 mt-3 line-clamp-4 px-1 leading-relaxed flex-grow">
+                              {profile.bio || 'Your bio will appear here. Share your story, calling, and ministry work with potential supporters.'}
+                            </p>
 
-                          <div className="flex justify-center gap-2 mt-auto pb-2">
+                            <div className="flex justify-center gap-3 mt-auto pb-3">
                               <AnimatePresence>
                                 {profile.instagram && (
                                   <SocialIcon key="mobile-instagram" platform="instagram" url={profile.instagram} />
@@ -1328,90 +1425,94 @@ export default function ProfilePage() {
                                 )}
                               </AnimatePresence>
                             </div>
-                        </div>
-
-                        <div className="absolute top-0 left-0 right-0 h-5 sm:h-6 flex justify-center pt-0.5 pointer-events-none">
-                          <div className="bg-zinc-900 h-3.5 sm:h-4 w-20 sm:w-24 rounded-full" />
-                        </div>
-                        <div className="absolute bottom-0.5 left-0 right-0 flex justify-center pointer-events-none">
-                          <div className="bg-zinc-200 h-1 w-24 sm:w-28 rounded-full" />
-                        </div>
-                      </motion.div>
-                  ) : (
-                    <motion.div
-                      key="desktop-preview"
-                      initial={{ opacity: 0, scale: 0.97, x: -10 }}
-                      animate={{ opacity: 1, scale: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.97, x: 10 }}
-                      transition={gentleTransition}
-                      className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
-                    >
-                      <div className="h-2.5 bg-zinc-100 border-b border-zinc-200 flex items-center px-2 gap-1">
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                        <div className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                      </div>
-
-                      <div className="relative">
-                          <div className="h-16">
-                            <img
-                              src={profile.coverUrl || PLACEHOLDER_COVER}
-                              alt="Cover"
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent" />
                           </div>
 
-                          <div className="px-4 pb-4">
-                            <div className="flex items-end gap-3 -mt-5">
-                              <Avatar className="h-10 w-10 border-2 border-white shadow-md ring-2 ring-white/50">
-                                <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
-                                <AvatarFallback className="bg-zinc-100 text-xs font-semibold">
-                                  {initials || 'U'}
-                                </AvatarFallback>
-                              </Avatar>
-                            <div className="flex-1 pb-0.5 min-w-0">
-                              <h2 className="text-sm font-bold text-zinc-900 tracking-tight truncate">
-                                {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                              </h2>
-                              <p className="text-[10px] text-zinc-500 flex items-center gap-0.5">
-                                <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
-                                <span className="truncate">{profile.location || 'Location'}</span>
+                          <div className="absolute top-0 left-0 right-0 h-6 flex justify-center pt-0.5 pointer-events-none">
+                            <div className="bg-zinc-900 h-4 w-24 rounded-full" />
+                          </div>
+                          <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
+                            <div className="bg-zinc-200 h-1 w-28 rounded-full" />
+                          </div>
+                        </motion.div>
+                      </MobilePreviewFrame>
+                    ) : (
+                      <DesktopPreviewFrame>
+                        <motion.div
+                          key="desktop-preview"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={gentleTransition}
+                          className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
+                          style={{ width: DESKTOP_PREVIEW_WIDTH, height: DESKTOP_PREVIEW_HEIGHT }}
+                        >
+                          <div className="h-[24px] bg-zinc-100 border-b border-zinc-200 flex items-center px-3 gap-1.5">
+                            <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                            <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                            <div className="h-2 w-2 rounded-full bg-zinc-300" />
+                          </div>
+
+                          <div className="relative" style={{ height: DESKTOP_PREVIEW_HEIGHT - 24 }}>
+                            <div className="h-[72px]">
+                              <img
+                                src={profile.coverUrl || PLACEHOLDER_COVER}
+                                alt="Cover"
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute inset-x-0 top-0 h-[72px] bg-gradient-to-t from-white/40 via-transparent to-transparent" />
+                            </div>
+
+                            <div className="px-5 pb-4">
+                              <div className="flex items-end gap-3 -mt-6">
+                                <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-2 ring-white/50">
+                                  <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+                                  <AvatarFallback className="bg-zinc-100 text-sm font-semibold">
+                                    {initials || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 pb-0.5 min-w-0">
+                                  <h2 className="text-base font-bold text-zinc-900 tracking-tight truncate">
+                                    {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                                  </h2>
+                                  <p className="text-xs text-zinc-500 flex items-center gap-0.5">
+                                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">{profile.location || 'Location'}</span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 flex items-center justify-between gap-3">
+                                <QuickGive 
+                                  workerId="preview" 
+                                  size="xs"
+                                />
+                                <div className="flex gap-2 flex-shrink-0">
+                                  <AnimatePresence>
+                                    {profile.instagram && (
+                                      <SocialIcon key="desktop-instagram" platform="instagram" url={profile.instagram} />
+                                    )}
+                                    {profile.facebook && (
+                                      <SocialIcon key="desktop-facebook" platform="facebook" url={profile.facebook} />
+                                    )}
+                                    {profile.twitter && (
+                                      <SocialIcon key="desktop-twitter" platform="twitter" url={profile.twitter} />
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              </div>
+
+                              <p className="text-xs font-medium text-zinc-600 mt-4 line-clamp-1 leading-relaxed">
+                                {profile.ministryFocus || 'Your tagline will appear here'}
+                              </p>
+                              <p className="text-xs text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
+                                {profile.bio || 'Your bio will appear here. Share your story with supporters.'}
                               </p>
                             </div>
                           </div>
-
-                            <div className="mt-3 flex items-center justify-between gap-2">
-                              <QuickGive 
-                                workerId="preview" 
-                                size="xs"
-                              />
-                              <div className="flex gap-1.5 flex-shrink-0">
-                                <AnimatePresence>
-                                  {profile.instagram && (
-                                    <SocialIcon key="desktop-instagram" platform="instagram" url={profile.instagram} />
-                                  )}
-                                  {profile.facebook && (
-                                    <SocialIcon key="desktop-facebook" platform="facebook" url={profile.facebook} />
-                                  )}
-                                  {profile.twitter && (
-                                    <SocialIcon key="desktop-twitter" platform="twitter" url={profile.twitter} />
-                                  )}
-                                </AnimatePresence>
-                              </div>
-                            </div>
-
-                          <p className="text-[10px] font-medium text-zinc-600 mt-3 line-clamp-1 leading-relaxed">
-                            {profile.ministryFocus || 'Tagline'}
-                          </p>
-                          <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
-                            {profile.bio || 'Your bio will appear here.'}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        </motion.div>
+                      </DesktopPreviewFrame>
+                    )}
+                  </AnimatePresence>
 
                 <motion.p 
                   className="text-[10px] text-zinc-400 text-center mt-3 flex items-center justify-center gap-1"
