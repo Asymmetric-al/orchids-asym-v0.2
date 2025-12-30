@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import {
   Carousel,
   CarouselContent,
@@ -838,17 +839,23 @@ function PostCard({
                 className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-all duration-500"
               >
                 {post.media.length === 1 ? (
-                  <img src={post.media[0].url} alt="Update" className="w-full h-auto object-cover max-h-[400px] sm:max-h-[600px]" />
+                  <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
+                    <Image src={post.media[0].url} alt="Update" fill className="object-cover" sizes="(max-width: 768px) 100vw, 700px" />
+                  </div>
                 ) : (
                   <Carousel className="w-full">
                     <CarouselContent>
                       {post.media.map((item: any, idx: number) => (
                         <CarouselItem key={idx}>
-                          <img
-                            src={item.url}
-                            alt={`Update ${idx + 1}`}
-                            className="w-full h-auto object-cover max-h-[400px] sm:max-h-[600px]"
-                          />
+                          <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
+                            <Image
+                              src={item.url}
+                              alt={`Update ${idx + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 700px"
+                            />
+                          </div>
                         </CarouselItem>
                       ))}
                     </CarouselContent>

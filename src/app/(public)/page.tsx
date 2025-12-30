@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Activity, Users, Globe, ChevronRight, Sparkles, Heart, ShieldCheck, Zap } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -63,10 +64,13 @@ export default function Home() {
       <section className="relative h-[100svh] min-h-[800px] flex items-center justify-center overflow-hidden bg-slate-950 text-white">
         {/* Background Image with Parallax-ish Effect */}
         <motion.div style={{ scale: heroScale, opacity: heroOpacity }} className="absolute inset-0 z-0 select-none">
-          <img 
+          <Image 
             src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop" 
-            alt="Humanitarian Aid" 
-            className="w-full h-full object-cover opacity-60 saturate-[0.8] contrast-[1.1]"
+            alt="Humanitarian Aid"
+            fill
+            className="object-cover opacity-60 saturate-[0.8] contrast-[1.1]"
+            priority
+            sizes="100vw"
           />
           {/* Complex Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/30" />
@@ -199,10 +203,12 @@ export default function Home() {
               className="relative lg:ml-auto group"
             >
               <div className="relative z-10 aspect-[3/4] w-full max-w-lg rounded-3xl overflow-hidden bg-slate-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
-                 <img 
+                 <Image 
                    src="https://images.unsplash.com/photo-1594708767771-a7502209ff51?q=80&w=2000&auto=format&fit=crop" 
-                   alt="Field Work" 
-                   className="w-full h-full object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-[3s] group-hover:scale-110"
+                   alt="Field Work"
+                   fill
+                   className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-[3s] group-hover:scale-110"
+                   sizes="(max-width: 768px) 100vw, 500px"
                  />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                  
@@ -347,10 +353,12 @@ export default function Home() {
                   className="group cursor-pointer"
                 >
                   <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-slate-200 shadow-xl group-hover:shadow-zinc-500/10 transition-all duration-700">
-                    <img 
+                    <Image 
                       src={item.img} 
-                      alt={item.title} 
-                      className="w-full h-full object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-[2s] group-hover:scale-110" 
+                      alt={item.title}
+                      fill
+                      className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-[2s] group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/0 transition-all duration-700" />
                     <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
@@ -407,7 +415,7 @@ export default function Home() {
                  <span className="text-white">response.</span>
                </h2>
                <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-16 text-balance font-light leading-relaxed tracking-tight">
-                 The world doesn't need more awareness. It needs action. Join a movement of people who refuse to look away.
+                 The world doesn&apos;t need more awareness. It needs action. Join a movement of people who refuse to look away.
                </p>
                <div className="flex flex-col md:flex-row gap-4 justify-center">
                  <Button size="lg" className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-zinc-200 hover:text-slate-900 text-lg font-bold font-syne shadow-lg transition-all hover:scale-105 active:scale-95" asChild>

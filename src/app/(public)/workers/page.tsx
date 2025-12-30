@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, MapPin, Filter, ArrowRight, Heart, 
@@ -232,17 +233,19 @@ export default function WorkerListPage() {
                     className="group flex flex-col h-full cursor-pointer"
                   >
                     {/* Image Container */}
-                    <div className="relative aspect-[4/5] rounded-3xl overflow-hidden mb-6 bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-all duration-700">
-                      <Link href={`/workers/${worker.id}`} className="absolute inset-0 z-10">
-                        <span className="sr-only">View {worker.title}</span>
-                      </Link>
-                      
-                      <img 
-                        src={worker.image} 
-                        alt={worker.title} 
-                        className="w-full h-full object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-[2s] group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/0 to-transparent opacity-60 group-hover:opacity-40 transition-all" />
+                      <div className="relative aspect-[4/5] rounded-3xl overflow-hidden mb-6 bg-slate-100 shadow-xl group-hover:shadow-emerald-500/10 transition-all duration-700">
+                        <Link href={`/workers/${worker.id}`} className="absolute inset-0 z-10">
+                          <span className="sr-only">View {worker.title}</span>
+                        </Link>
+                        
+                        <Image 
+                          src={worker.image} 
+                          alt={worker.title}
+                          fill
+                          className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-[2s] group-hover:scale-110"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/0 to-transparent opacity-60 group-hover:opacity-40 transition-all" />
                       
                       {/* Floating Badges */}
                       <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-20">
@@ -317,7 +320,7 @@ export default function WorkerListPage() {
             </div>
             <h3 className="text-2xl font-bold text-slate-950 font-syne mb-2">Protocol: No Match</h3>
             <p className="text-slate-500 max-w-sm mx-auto mb-8 text-base font-light tracking-tight">
-              We couldn't find any verified partners matching your criteria. Reset filters to view all active missions.
+              We couldn&apos;t find any verified partners matching your criteria. Reset filters to view all active missions.
             </p>
             <Button onClick={clearFilters} variant="outline" className="h-12 px-8 rounded-full border-slate-200 font-bold font-syne text-[10px] uppercase tracking-widest">
               Reset Security Filters
@@ -336,7 +339,7 @@ export default function WorkerListPage() {
           <Sparkles className="h-8 w-8 text-amber-500 mx-auto mb-8" />
           <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter mb-6 font-syne">Undirected Impact.</h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto mb-12 font-light leading-relaxed tracking-tight">
-            Can't decide who to support? Donate to our <strong>Global Resilience</strong> fund. Resources are instantly routed to the highest-priority urgent needs.
+            Can&apos;t decide who to support? Donate to our <strong>Global Resilience</strong> fund. Resources are instantly routed to the highest-priority urgent needs.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" className="h-14 px-10 rounded-full bg-white text-slate-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-bold font-syne transition-all hover:scale-105 shadow-xl" asChild>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { 
   CreditCard, Plus, Trash2, 
   AlertCircle, ArrowRightLeft,
@@ -691,9 +692,9 @@ export default function DonorWalletPage() {
                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {attachedPledges.map(pledge => (
                                        <div key={pledge.id} className="flex items-center gap-4 p-3 rounded-2xl bg-zinc-50/80 border border-zinc-100 hover:border-zinc-300 hover:bg-white transition-all group/pledge cursor-default shadow-sm hover:shadow-md">
-                                          {pledge.avatar ? (
-                                             <img src={pledge.avatar} alt="" className="h-10 w-10 rounded-full object-cover bg-white ring-2 ring-white shadow-sm" />
-                                          ) : (
+                                           {pledge.avatar ? (
+                                              <Image src={pledge.avatar} alt="" width={40} height={40} className="h-10 w-10 rounded-full object-cover bg-white ring-2 ring-white shadow-sm" />
+                                           ) : (
                                              <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-zinc-400 text-xs font-bold ring-2 ring-white shadow-sm">GH</div>
                                           )}
                                           <div className="flex-1 min-w-0">
@@ -794,7 +795,7 @@ export default function DonorWalletPage() {
                 <div className="flex flex-col items-center gap-4">
                     <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex items-center gap-4 w-full">
                         {pledgeToSwap?.avatar ? (
-                            <img src={pledgeToSwap.avatar} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-sm" />
+                            <Image src={pledgeToSwap.avatar} alt="" width={48} height={48} className="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-sm" />
                         ) : (
                             <div className="h-12 w-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 font-bold text-sm">GH</div>
                         )}
@@ -872,7 +873,7 @@ export default function DonorWalletPage() {
                         <li key={p.id} className="text-sm flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
                            <div className="flex items-center gap-3">
                               {p.avatar ? (
-                                 <img src={p.avatar} className="w-8 h-8 rounded-full bg-white border border-zinc-200" alt="" />
+                                 <Image src={p.avatar} width={32} height={32} className="w-8 h-8 rounded-full bg-white border border-zinc-200" alt="" />
                               ) : (
                                  <div className="w-8 h-8 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-xs font-bold">GH</div>
                               )}

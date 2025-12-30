@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
@@ -132,10 +133,10 @@ export default function DonorDashboardPage() {
                    <div className="divide-y divide-zinc-50">
                       {RECENT_UPDATES.map(update => (
                          <Link href="/donor-dashboard/feed" key={update.id} className="flex gap-4 p-5 hover:bg-zinc-50/50 transition-colors group">
-                            <div className="shrink-0 pt-0.5">
-                               {update.image ? (
-                                 <img src={update.image} alt="" className="h-10 w-10 rounded-lg object-cover border border-zinc-100 shadow-sm grayscale active:grayscale-0 group-hover:grayscale-0 transition-all" />
-                               ) : (
+                             <div className="shrink-0 pt-0.5">
+                                {update.image ? (
+                                  <Image src={update.image} alt="" width={40} height={40} className="h-10 w-10 rounded-lg object-cover border border-zinc-100 shadow-sm grayscale active:grayscale-0 group-hover:grayscale-0 transition-all" />
+                                ) : (
                                  <div className="h-10 w-10 rounded-lg bg-zinc-100 flex items-center justify-center font-bold text-zinc-400 text-xs">
                                     {update.avatar}
                                  </div>

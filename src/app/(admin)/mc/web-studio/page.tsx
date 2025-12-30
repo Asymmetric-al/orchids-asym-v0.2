@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { 
   Eye, Globe, Smartphone, Monitor, Image as ImageIcon, Plus, 
   ExternalLink, Edit2, Loader2, Target,
@@ -53,22 +54,22 @@ const INITIAL_PROJECTS: ProjectPage[] = [
 const PreviewContent = ({ mode, coverImage, profileImage, basicInfo, projects }: any) => {
   return (
     <div className="bg-white min-h-full font-sans text-slate-900 pb-10 text-left">
-       {/* Cover */}
-       <div className={cn("bg-slate-100 w-full relative overflow-hidden shrink-0 group", mode === 'mobile' ? "h-32" : "h-48")}>
-           {coverImage ? (
-               <img src={coverImage} className="w-full h-full object-cover" alt="Cover" />
-           ) : (
-               <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-slate-200">
-                    <ImageIcon className="h-8 w-8 opacity-50" />
-               </div>
-           )}
-       </div>
+        {/* Cover */}
+        <div className={cn("bg-slate-100 w-full relative overflow-hidden shrink-0 group", mode === 'mobile' ? "h-32" : "h-48")}>
+            {coverImage ? (
+                <Image src={coverImage} fill className="object-cover" alt="Cover" />
+            ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center text-slate-200">
+                     <ImageIcon className="h-8 w-8 opacity-50" />
+                </div>
+            )}
+        </div>
 
-       {/* Profile Section */}
-       <div className={cn("relative", mode === 'mobile' ? "px-4 -mt-10" : "max-w-4xl mx-auto px-6 -mt-16")}>
-            <div className={cn("relative rounded-2xl border-[4px] border-white bg-white overflow-hidden shadow-lg z-20", mode === 'mobile' ? "h-20 w-20 mx-auto" : "h-32 w-32")}>
-                    <img src={profileImage} className="h-full w-full object-cover" alt="Profile" />
-            </div>
+        {/* Profile Section */}
+        <div className={cn("relative", mode === 'mobile' ? "px-4 -mt-10" : "max-w-4xl mx-auto px-6 -mt-16")}>
+             <div className={cn("relative rounded-2xl border-[4px] border-white bg-white overflow-hidden shadow-lg z-20", mode === 'mobile' ? "h-20 w-20 mx-auto" : "h-32 w-32")}>
+                     <Image src={profileImage} fill className="object-cover" alt="Profile" />
+             </div>
             
             <div className={cn("space-y-4 z-10 relative", mode === 'mobile' ? "pt-3 text-center" : "pt-4 flex flex-col items-start")}>
                 <div className="w-full">

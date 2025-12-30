@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { 
   Heart, MessageCircle, MoreHorizontal, 
   Share2, Bookmark, Globe, Sparkles, Send,
@@ -572,12 +573,13 @@ const PostCard: React.FC<{
         
         {/* Images - Edge to Edge look but contained */}
         {post.images && post.images.length > 0 && !imageError && (
-          <div className="rounded-2xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50">
-            <img 
+          <div className="rounded-2xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 relative h-[400px]">
+            <Image 
               src={post.images[0]} 
-              alt="Post content" 
-              className="w-full h-auto object-cover max-h-[600px]" 
-              loading="lazy"
+              alt="Post content"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 700px"
               onError={() => setImageError(true)}
             />
           </div>
@@ -725,7 +727,7 @@ export default function DonorFeedPage() {
             <h3 className="text-xl font-bold text-zinc-900 mb-2">No posts found</h3>
             <p className="text-zinc-500 max-w-xs mx-auto">
               {filter === 'Saved' 
-                ? "You haven't bookmarked any updates yet. Tap the bookmark icon on any post to save it here."
+                ? "You haven&apos;t bookmarked any updates yet. Tap the bookmark icon on any post to save it here."
                 : "Try changing the filter or check back later for new stories."
               }
             </p>

@@ -2,6 +2,7 @@
 
 import React, { useState, use } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getFieldWorkerById } from '@/lib/mock';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -81,11 +82,13 @@ const UpdateCard = ({ update, worker }: { update: any; worker: any }) => (
                 />
                 
                 {update.image && (
-                    <div className="rounded-lg overflow-hidden mb-4 border border-slate-100">
-                        <img 
+                    <div className="rounded-lg overflow-hidden mb-4 border border-slate-100 relative h-[300px]">
+                        <Image 
                             src={update.image} 
                             alt="Update visual" 
-                            className="w-full h-auto object-cover max-h-[300px] hover:scale-105 transition-transform duration-700" 
+                            fill
+                            className="object-cover hover:scale-105 transition-transform duration-700"
+                            sizes="(max-width: 768px) 100vw, 500px"
                         />
                     </div>
                 )}
@@ -166,10 +169,13 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                 <div className="space-y-6">
                     {/* Main Image */}
                     <div className="rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-white aspect-video relative group">
-                        <img 
+                        <Image 
                             src={worker.image} 
-                            alt={worker.title} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                            alt={worker.title}
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            sizes="(max-width: 768px) 100vw, 800px"
+                            priority
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
                         <div className="absolute bottom-6 left-6 text-white flex items-center gap-2">
@@ -225,7 +231,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                             </p>
                             <h3>The Mission</h3>
                             <p>
-                                We are committed to long-term sustainable change. By partnering with local leaders and utilizing indigenous resources, we ensure that every project has community buy-in and lasting impact. Your support doesn't just provide temporary relief; it builds a foundation for the future.
+                                We are committed to long-term sustainable change. By partnering with local leaders and utilizing indigenous resources, we ensure that every project has community buy-in and lasting impact. Your support doesn&apos;t just provide temporary relief; it builds a foundation for the future.
                             </p>
                             <p>
                                 From organizing community health workshops to overseeing construction projects, our days are filled with the hard but rewarding work of transformation. We believe that true change happens in the context of relationship.
