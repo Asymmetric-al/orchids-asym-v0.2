@@ -6,14 +6,12 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, MapPin, Filter, ArrowRight, Heart, 
-  Globe, TrendingUp, Users, ChevronDown, X,
-  Zap, Sparkles, Activity
+  Globe, ChevronDown, X,
+  Sparkles, Activity
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -23,7 +21,7 @@ import {
   DropdownMenuCheckboxItem
 } from '@/components/ui/dropdown-menu';
 import { QuickGive } from '@/components/feature/QuickGive';
-import { getFieldWorkers } from '@/lib/mock';
+import { getFieldWorkers } from '@/lib/mock-data';
 import { formatCurrency, cn } from '@/lib/utils';
 
 // --- Animations ---
