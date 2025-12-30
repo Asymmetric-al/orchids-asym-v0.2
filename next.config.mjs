@@ -1,12 +1,5 @@
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  cacheComponents: true,
   images: {
     remotePatterns: [
       {
@@ -38,8 +31,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Ensure we pin the root to the project directory to avoid watching parent folders
-  outputFileTracingRoot: __dirname,
 };
 
 export default nextConfig;

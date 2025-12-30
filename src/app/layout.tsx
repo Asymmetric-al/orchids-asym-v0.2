@@ -3,12 +3,12 @@ import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
-import { TanStackDBProvider } from "@/lib/db";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import Script from "next/script";
+import { TanStackDBProvider } from "@/lib/db/provider";
 
 const inter = Inter({
   variable: "--font-inter",
