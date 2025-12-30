@@ -32,7 +32,7 @@ interface Particle {
   y: number
 }
 
-const FloatingEmoji = ({ emoji }: { emoji: string }) => {
+const FloatingEmoji = ({ emoji, offsetX, offsetRotate }: { emoji: string; offsetX: number; offsetRotate: number }) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0, y: 0, x: 0 }}
@@ -40,8 +40,8 @@ const FloatingEmoji = ({ emoji }: { emoji: string }) => {
         opacity: [0, 1, 1, 0], 
         scale: [0, 1.8, 1.2, 0.8], 
         y: [-20, -120],
-        x: (Math.random() - 0.5) * 80,
-        rotate: (Math.random() - 0.5) * 90
+        x: offsetX,
+        rotate: offsetRotate
       }}
       transition={{ 
         duration: 1.2, 
@@ -68,7 +68,7 @@ const ReactionButton = ({
   label: string
   onClick: () => void
 }) => {
-  const [particles, setParticles] = useState<{ id: number, emoji: string }[]>([])
+  const [particles, setParticles] = useState<{ id: number, emoji: string, offsetX: number, offsetRotate: number }[]>([])
 
   const config = {
     heart: { 
@@ -100,7 +100,9 @@ const ReactionButton = ({
     if (!isActive) {
       const newParticles = Array.from({ length: 8 }).map((_, i) => ({
         id: Date.now() + i,
-        emoji: emoji
+        emoji: emoji,
+        offsetX: (Math.random() - 0.5) * 80,
+        offsetRotate: (Math.random() - 0.5) * 90
       }))
       setParticles(prev => [...prev, ...newParticles])
       setTimeout(() => {
@@ -114,7 +116,7 @@ const ReactionButton = ({
     <div className="relative">
       <AnimatePresence>
         {particles.map(p => (
-          <FloatingEmoji key={p.id} emoji={p.emoji} />
+          <FloatingEmoji key={p.id} emoji={p.emoji} offsetX={p.offsetX} offsetRotate={p.offsetRotate} />
         ))}
       </AnimatePresence>
       <motion.button

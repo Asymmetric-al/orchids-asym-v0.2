@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useMemo } from 'react'
+import { memo, useId } from 'react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 export interface RevenueDataPoint {
@@ -35,7 +35,8 @@ const chartConfig = {
 }
 
 export const RevenueChart = memo(function RevenueChart({ data, height = 280 }: RevenueChartProps) {
-  const gradientId = useMemo(() => `revenueGradient-${Math.random().toString(36).slice(2, 9)}`, [])
+  const id = useId()
+  const gradientId = `revenueGradient-${id.replace(/:/g, '')}`
 
   return (
     <div style={{ height }}>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import type { Tile } from '@/lib/mission-control/types'
 import { getIcon, ChevronRight } from '../icons'
@@ -11,7 +12,7 @@ interface TileCardProps {
 }
 
 export function TileCard({ tile }: TileCardProps) {
-  const Icon = getIcon(tile.icon)
+  const Icon = useMemo(() => getIcon(tile.icon), [tile.icon])
 
   return (
     <Card className="group relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-zinc-200/50 hover:border-zinc-300">

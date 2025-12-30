@@ -24,7 +24,7 @@ interface NavLinkProps {
 }
 
 const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProps) {
-  const Icon = getIcon(item.icon)
+  const Icon = useMemo(() => getIcon(item.icon), [item.icon])
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
 
   const linkContent = (

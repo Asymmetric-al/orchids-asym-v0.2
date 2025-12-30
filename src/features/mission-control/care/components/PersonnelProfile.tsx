@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CarePersonnel, ActivityLogEntry, CareThread, CarePlan } from '../types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,12 +21,11 @@ interface PersonnelProfileProps {
 }
 
 export function PersonnelProfile({ personnel, activities }: PersonnelProfileProps) {
-  // Mock heatmap data for demo
-  const heatmapData = activities.map(a => ({
+  const heatmapData = useMemo(() => activities.map((a, index) => ({
     date: a.date.split('T')[0],
-    intensity: Math.floor(Math.random() * 4) + 1,
+    intensity: (index % 4) + 1,
     type: a.type
-  }));
+  })), [activities]);
 
   const localTime = new Date().toLocaleTimeString('en-US', { timeZone: personnel.timezone, hour: '2-digit', minute: '2-digit' });
 
