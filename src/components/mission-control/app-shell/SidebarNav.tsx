@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useMC } from '@/lib/mission-control/context'
 import { getMainNavItems, getToolsNavItems } from '@/lib/mission-control/nav'
-import { getIcon, ChevronLeft, ChevronRight, LayoutDashboard } from '../icons'
+import { DynamicIcon, ChevronLeft, ChevronRight, LayoutDashboard } from '../icons'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -26,7 +26,6 @@ interface NavLinkProps {
 
 const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProps) {
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
-  const IconComponent = useMemo(() => getIcon(item.icon), [item.icon])
 
   const linkContent = (
     <Link
@@ -39,7 +38,8 @@ const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProp
         collapsed && 'justify-center px-2'
       )}
     >
-      <IconComponent
+      <DynamicIcon
+        name={item.icon}
         className={cn(
           'h-5 w-5 shrink-0 transition-colors',
           isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'

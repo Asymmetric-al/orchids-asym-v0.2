@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardSkeleton() {
@@ -31,11 +31,13 @@ function getGreeting() {
 }
 
 export function Greeting() {
-  const [greeting, setGreeting] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   
-  useEffect(() => {
-    setGreeting(getGreeting());
+  React.useLayoutEffect(() => {
+    setIsMounted(true);
   }, []);
+  
+  const greeting = useMemo(() => (isMounted ? getGreeting() : null), [isMounted]);
   
   if (!greeting) return null;
   return <>{greeting}</>;

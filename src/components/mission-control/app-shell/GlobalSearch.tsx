@@ -31,7 +31,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
   useEffect(() => {
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onKeyDown])
+  }, [])
 
   const filteredTiles = useMemo(() => TILES.filter((tile) => tile.roles.includes(role)), [role])
 

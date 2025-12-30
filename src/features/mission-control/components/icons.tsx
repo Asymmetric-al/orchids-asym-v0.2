@@ -52,6 +52,7 @@ import {
   ChevronsUpDown,
   Check,
   type LucideIcon,
+  type LucideProps,
 } from 'lucide-react'
 
 export const ICON_MAP: Record<string, LucideIcon> = {
@@ -112,6 +113,15 @@ export const ICON_MAP: Record<string, LucideIcon> = {
 
 export function getIcon(name: string): LucideIcon {
   return ICON_MAP[name] || Settings
+}
+
+interface DynamicIconProps extends LucideProps {
+  name: string
+}
+
+export function DynamicIcon({ name, ...props }: DynamicIconProps) {
+  const IconComponent = ICON_MAP[name] || Settings
+  return <IconComponent {...props} />
 }
 
 export {

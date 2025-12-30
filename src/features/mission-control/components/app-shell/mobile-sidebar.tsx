@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useMC } from '@/lib/mission-control/context'
 import { getMainNavItems, getToolsNavItems } from '@/lib/mission-control/nav'
-import { getIcon } from '../icons'
+import { DynamicIcon } from '../icons'
 import { Menu, LayoutDashboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -23,7 +23,6 @@ interface NavLinkProps {
 
 const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkProps) {
   const href = item.route === '/' ? '/mc' : `/mc${item.route}`
-  const IconComponent = useMemo(() => getIcon(item.icon), [item.icon])
 
   return (
     <Link
@@ -35,7 +34,7 @@ const NavLink = memo(function NavLink({ item, isActive, onNavigate }: NavLinkPro
         isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground'
       )}
     >
-      <IconComponent className="h-4 w-4 shrink-0" />
+      <DynamicIcon name={item.icon} className="h-4 w-4 shrink-0" />
       <span>{item.title}</span>
     </Link>
   )

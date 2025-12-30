@@ -29,7 +29,7 @@ export function WebVitalsReporter({ analyticsEndpoint, debug }: WebVitalsReporte
       onViolation,
       debug: debug ?? process.env.NODE_ENV === 'development',
     })
-  }, [analyticsEndpoint, debug, onViolation])
+  }, [analyticsEndpoint, debug])
 
   return null
 }

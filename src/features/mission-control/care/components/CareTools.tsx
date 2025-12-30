@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useEffectEvent } from 'react';
+import React, { useCallback, useEffectEvent } from 'react';
 import { 
   CommandDialog, CommandEmpty, CommandGroup, 
   CommandInput, CommandItem, CommandList 
 } from '@/components/ui/command';
 import { 
-  Search, User, Heart, MessageSquare, 
-  Calendar, Settings, Zap
+  Search, User, Heart, 
+  Settings, Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { CarePersonnel } from '../types';
+import { Button } from '@/components/ui/button';
 
 interface CareToolsProps {
   personnel: CarePersonnel[];
@@ -30,12 +31,12 @@ export function CareTools({ personnel }: CareToolsProps) {
   React.useEffect(() => {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onKeyDown]);
+  }, []);
 
-  const navigate = useEffectEvent((path: string) => {
+  const navigate = useCallback((path: string) => {
     setOpen(false);
     router.push(path);
-  });
+  }, [router]);
 
   return (
     <>
@@ -84,5 +85,3 @@ export function CareTools({ personnel }: CareToolsProps) {
     </>
   );
 }
-
-import { Button } from '@/components/ui/button';
