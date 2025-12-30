@@ -44,8 +44,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  Undo2,
-} from 'lucide-react'
+    Undo,
+  } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const fadeInUp = {
@@ -898,7 +898,7 @@ export default function ProfilePage() {
                         onClick={handleDiscard}
                         className="h-9 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900"
                       >
-                        <Undo2 className="mr-1.5 h-4 w-4" />
+                          <Undo className="mr-1.5 h-4 w-4" />
                         Discard
                       </Button>
                     </motion.div>
