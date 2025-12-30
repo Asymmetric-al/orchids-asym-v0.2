@@ -43,48 +43,44 @@ function parseToNumber(intPart: string, decPart: string) {
 
 const sizeConfig = {
   xs: {
-    container: "h-8 max-w-[120px]",
+    container: "h-8 w-[100px]",
+    iconWrapper: "pl-2",
     icon: "h-3 w-3",
     input: "text-sm",
-    currencyLabel: "text-[8px]",
-    buttonWrapper: 3,
-    button: "ml-0.5 h-5 px-2 text-[10px]",
+    currencyLabel: "text-[8px] pr-2",
+    buttonWrapper: "pr-1",
+    button: "h-5 px-2 text-[10px]",
     arrow: "ml-0.5 h-2.5 w-2.5",
-    gap: "gap-0.5",
-    padding: "px-2",
   },
   sm: {
-    container: "h-9 max-w-[160px]",
+    container: "h-9 w-[140px]",
+    iconWrapper: "pl-2.5",
     icon: "h-3.5 w-3.5",
     input: "text-base",
-    currencyLabel: "text-[9px]",
-    buttonWrapper: 4,
-    button: "ml-1 h-6 px-2.5 text-xs",
+    currencyLabel: "text-[9px] pr-2.5",
+    buttonWrapper: "pr-1",
+    button: "h-6 px-2.5 text-xs",
     arrow: "ml-1 h-3 w-3",
-    gap: "gap-1",
-    padding: "px-3",
   },
   default: {
-    container: "h-11 max-w-[200px]",
+    container: "h-11 w-[180px]",
+    iconWrapper: "pl-3",
     icon: "h-4 w-4",
     input: "text-lg",
-    currencyLabel: "text-[10px]",
-    buttonWrapper: 5,
-    button: "ml-1 h-7 px-3 text-xs",
+    currencyLabel: "text-[10px] pr-3",
+    buttonWrapper: "pr-1.5",
+    button: "h-7 px-3 text-xs",
     arrow: "ml-1 h-3.5 w-3.5",
-    gap: "gap-1",
-    padding: "px-3",
   },
   lg: {
-    container: "h-14 max-w-xs",
+    container: "h-14 w-[220px]",
+    iconWrapper: "pl-4",
     icon: "h-5 w-5",
     input: "text-xl",
-    currencyLabel: "text-xs",
-    buttonWrapper: 6,
-    button: "ml-1.5 h-9 px-4 text-sm",
+    currencyLabel: "text-xs pr-4",
+    buttonWrapper: "pr-2",
+    button: "h-9 px-4 text-sm",
     arrow: "ml-1.5 h-4 w-4",
-    gap: "gap-1.5",
-    padding: "px-4",
   },
 }
 
@@ -155,79 +151,61 @@ export function QuickGive({
   }
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("flex justify-center", className)}>
       <motion.div
         layout
         onClick={focusInput}
         className={cn(
-          "relative flex w-full items-center justify-center overflow-hidden rounded-full border bg-background cursor-text",
+          "relative flex items-center overflow-hidden rounded-full border bg-background cursor-text",
           "transition-all duration-200",
           config.container,
-          config.padding,
           isFocused
             ? "border-foreground/80 shadow-[0_2px_12px_rgba(0,0,0,0.08)] ring-1 ring-foreground/10"
             : "border-border/80 shadow-sm hover:border-muted-foreground/50 hover:shadow"
         )}
       >
-        <div className={cn("flex items-center justify-center", config.gap)}>
+        <div className={cn("flex-shrink-0 flex items-center", config.iconWrapper)}>
           <DollarSign
             className={cn(
-              "flex-shrink-0 transition-colors duration-150",
+              "transition-colors duration-150",
               config.icon,
               isFocused || displayValue ? "text-foreground" : "text-muted-foreground/40"
             )}
             strokeWidth={2.5}
           />
-
-          <div className="relative flex items-center">
-            <input
-              ref={inputRef}
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              value={displayValue}
-              onChange={onChange}
-              onKeyDown={onKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="0"
-              aria-label="Donation amount"
-              style={{ width: Math.max(16, (displayValue.length || 1) * 10 + 4) }}
-              className={cn(
-                "h-full bg-transparent border-0 outline-none ring-0 focus:ring-0 text-center",
-                "font-semibold tracking-tight text-foreground font-sans",
-                "placeholder:text-muted-foreground/40 placeholder:font-normal",
-                config.input
-              )}
-            />
-
-            <AnimatePresence>
-              {!hasValue && !isFocused && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className={cn(
-                    "ml-1 flex-shrink-0 select-none font-semibold text-muted-foreground/40 uppercase tracking-wide",
-                    config.currencyLabel
-                  )}
-                >
-                  {currencyLabel}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
-        <AnimatePresence mode="popLayout">
-          {hasValue && (
+        <div className="flex-1 flex items-center justify-center min-w-0">
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
+            value={displayValue}
+            onChange={onChange}
+            onKeyDown={onKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder="0"
+            aria-label="Donation amount"
+            className={cn(
+              "w-full h-full bg-transparent border-0 outline-none ring-0 focus:ring-0 text-center",
+              "font-semibold tracking-tight text-foreground font-sans",
+              "placeholder:text-muted-foreground/40 placeholder:font-normal",
+              config.input
+            )}
+          />
+        </div>
+
+        <AnimatePresence mode="wait">
+          {hasValue ? (
             <motion.div
-              initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-              animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
-              exit={{ width: 0, opacity: 0, marginLeft: 0 }}
-              transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-              className="flex items-center justify-end overflow-hidden"
+              key="button"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
+              className={cn("flex-shrink-0 flex items-center", config.buttonWrapper)}
             >
               <MotionButton
                 type="button"
@@ -235,9 +213,6 @@ export function QuickGive({
                   e.stopPropagation()
                   handleGive()
                 }}
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -250,6 +225,20 @@ export function QuickGive({
                 <ArrowRight className={config.arrow} />
               </MotionButton>
             </motion.div>
+          ) : (
+            <motion.span
+              key="currency"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className={cn(
+                "flex-shrink-0 select-none font-semibold text-muted-foreground/40 uppercase tracking-wide",
+                config.currencyLabel
+              )}
+            >
+              {currencyLabel}
+            </motion.span>
           )}
         </AnimatePresence>
       </motion.div>
