@@ -4,12 +4,22 @@ export {
   donorsCollection,
   postsCollection,
   postCommentsCollection,
-  postLikesCollection,
-  postPrayersCollection,
   donationsCollection,
   fundsCollection,
-  recurringGivingCollection,
   followsCollection,
+  getQueryClient,
+  setQueryClient,
+} from './collections'
+
+export type {
+  Profile,
+  Missionary,
+  Donor,
+  Post,
+  PostComment,
+  Donation,
+  Fund,
+  Follow,
 } from './collections'
 
 export {
@@ -20,6 +30,7 @@ export {
   useCommentsWithAuthors,
   useFundsWithProgress,
   useMissionaryDashboard,
+  useMissionaryStats,
 } from './hooks'
 
 export { TanStackDBProvider } from './provider'

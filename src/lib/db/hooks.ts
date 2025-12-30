@@ -23,11 +23,11 @@ export function usePostsWithAuthors(missionaryId?: string) {
     return query
       .join(
         { missionary: missionariesCollection },
-        ({ post, missionary }) => eq(post.missionary_id, missionary.id)
+        ({ post, missionary }) => eq(post.missionary_id, missionary!.id)
       )
       .join(
         { profile: profilesCollection },
-        ({ missionary, profile }) => eq(missionary.profile_id, profile.id)
+        ({ missionary, profile }) => eq(missionary!.profile_id, profile.id)
       )
       .select(({ post, profile }) => ({
         ...post,
@@ -43,16 +43,16 @@ export function usePostsForFollowedMissionaries(donorId: string) {
       .from({ post: postsCollection })
       .join(
         { follow: followsCollection },
-        ({ post, follow }) => eq(post.missionary_id, follow.missionary_id)
+        ({ post, follow }) => eq(post.missionary_id, follow!.missionary_id)
       )
-      .where(({ follow }) => eq(follow.donor_id, donorId))
+      .where(({ follow }) => eq(follow!.donor_id, donorId))
       .join(
         { missionary: missionariesCollection },
-        ({ post, missionary }) => eq(post.missionary_id, missionary.id)
+        ({ post, missionary }) => eq(post.missionary_id, missionary!.id)
       )
       .join(
         { profile: profilesCollection },
-        ({ missionary, profile }) => eq(missionary.profile_id, profile.id)
+        ({ missionary, profile }) => eq(missionary!.profile_id, profile.id)
       )
       .select(({ post, profile }) => ({
         ...post,
@@ -69,15 +69,15 @@ export function useDonorGivingHistory(donorId: string) {
       .where(({ donation }) => eq(donation.donor_id, donorId))
       .join(
         { missionary: missionariesCollection },
-        ({ donation, missionary }) => eq(donation.missionary_id, missionary.id)
+        ({ donation, missionary }) => eq(donation.missionary_id, missionary!.id)
       )
       .join(
         { profile: profilesCollection },
-        ({ missionary, profile }) => eq(missionary.profile_id, profile.id)
+        ({ missionary, profile }) => eq(missionary!.profile_id, profile.id)
       )
       .leftJoin(
         { fund: fundsCollection },
-        ({ donation, fund }) => eq(donation.fund_id, fund.id)
+        ({ donation, fund }) => eq(donation.fund_id, fund!.id)
       )
       .select(({ donation, profile, fund }) => ({
         ...donation,
@@ -97,11 +97,11 @@ export function useMissionarySupporters(missionaryId: string) {
       )
       .join(
         { donor: donorsCollection },
-        ({ donation, donor }) => eq(donation.donor_id, donor.id)
+        ({ donation, donor }) => eq(donation.donor_id, donor!.id)
       )
       .join(
         { profile: profilesCollection },
-        ({ donor, profile }) => eq(donor.profile_id, profile.id)
+        ({ donor, profile }) => eq(donor!.profile_id, profile.id)
       )
       .select(({ profile }) => ({
         ...profile,
@@ -139,18 +139,15 @@ export function useFundsWithProgress(missionaryId?: string) {
     return query
       .leftJoin(
         { missionary: missionariesCollection },
-        ({ fund, missionary }) => eq(fund.missionary_id, missionary.id)
+        ({ fund, missionary }) => eq(fund.missionary_id, missionary!.id)
       )
       .leftJoin(
         { profile: profilesCollection },
-        ({ missionary, profile }) => eq(missionary.profile_id, profile.id)
+        ({ missionary, profile }) => eq(missionary!.profile_id, profile.id)
       )
       .select(({ fund, profile }) => ({
         ...fund,
         missionary: profile ?? null,
-        progressPercent: fund.target_amount > 0 
-          ? Math.round((fund.current_amount / fund.target_amount) * 100) 
-          : 0,
       }))
   })
 }

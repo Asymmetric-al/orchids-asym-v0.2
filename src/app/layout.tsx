@@ -3,7 +3,7 @@ import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
-import { QueryProvider } from "@/providers/query-provider";
+import { TanStackDBProvider } from "@/lib/db";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { Toaster } from "@/components/ui/sonner";
@@ -56,13 +56,13 @@ export default function RootLayout({
                   storageKey="give-hope-theme"
                   disableTransitionOnChange
                 >
-                <QueryProvider>
-                  <Suspense fallback={null}>
-                    <NuqsAdapter>
-                      {children}
-                    </NuqsAdapter>
-                  </Suspense>
-                </QueryProvider>
+<TanStackDBProvider>
+                    <Suspense fallback={null}>
+                      <NuqsAdapter>
+                        {children}
+                      </NuqsAdapter>
+                    </Suspense>
+                  </TanStackDBProvider>
               </ThemeProvider>
           <Toaster />
           <WebVitalsReporter />

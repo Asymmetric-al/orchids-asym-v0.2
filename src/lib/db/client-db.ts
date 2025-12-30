@@ -91,19 +91,28 @@ export const postsCollection = createCollection<Post>(
       if (error) throw error
       return data ?? []
     },
-    onInsert: async (post) => {
+    onInsert: async ({ transaction }) => {
       const supabase = getSupabase()
-      const { error } = await supabase.from('posts').insert(post)
+      const posts = transaction.mutations.map((m) => m.modified)
+      const { error } = await supabase.from('posts').insert(posts)
       if (error) throw error
     },
-    onUpdate: async (post) => {
+    onUpdate: async ({ transaction }) => {
       const supabase = getSupabase()
-      const { error } = await supabase.from('posts').update(post).eq('id', post.id)
-      if (error) throw error
+      await Promise.all(
+        transaction.mutations.map(async (mutation) => {
+          const { error } = await supabase
+            .from('posts')
+            .update(mutation.modified)
+            .eq('id', mutation.key as string)
+          if (error) throw error
+        })
+      )
     },
-    onDelete: async (post) => {
+    onDelete: async ({ transaction }) => {
       const supabase = getSupabase()
-      const { error } = await supabase.from('posts').delete().eq('id', post.id)
+      const ids = transaction.mutations.map((m) => m.key as string)
+      const { error } = await supabase.from('posts').delete().in('id', ids)
       if (error) throw error
     },
   })
@@ -123,9 +132,10 @@ export const postCommentsCollection = createCollection<PostComment>(
       if (error) throw error
       return data ?? []
     },
-    onInsert: async (comment) => {
+    onInsert: async ({ transaction }) => {
       const supabase = getSupabase()
-      const { error } = await supabase.from('post_comments').insert(comment)
+      const comments = transaction.mutations.map((m) => m.modified)
+      const { error } = await supabase.from('post_comments').insert(comments)
       if (error) throw error
     },
   })
@@ -173,14 +183,16 @@ export const followsCollection = createCollection<Follow>(
       if (error) throw error
       return data ?? []
     },
-    onInsert: async (follow) => {
+    onInsert: async ({ transaction }) => {
       const supabase = getSupabase()
-      const { error } = await supabase.from('follows').insert(follow)
+      const follows = transaction.mutations.map((m) => m.modified)
+      const { error } = await supabase.from('follows').insert(follows)
       if (error) throw error
     },
-    onDelete: async (follow) => {
+    onDelete: async ({ transaction }) => {
       const supabase = getSupabase()
-      const { error } = await supabase.from('follows').delete().eq('id', follow.id)
+      const ids = transaction.mutations.map((m) => m.key as string)
+      const { error } = await supabase.from('follows').delete().in('id', ids)
       if (error) throw error
     },
   })
