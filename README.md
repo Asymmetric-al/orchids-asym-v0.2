@@ -88,15 +88,42 @@ A seamless experience for kingdom partners to manage their giving and follow mis
 
 ## Development
 
+**Package Manager**: This project uses **bun** (v1.3+). Do not use npm/yarn/pnpm.
+
 ```bash
 # Install dependencies
-npm install
+bun install
 
-# Run development server
-npm run dev
+# Run development server (Turbopack enabled)
+bun run dev
 
 # Lint & Typecheck (Recommended before commit)
-npm run lint && npm run typecheck
+bun run lint && bun run typecheck
+
+# Run E2E tests
+bun run test:e2e
+```
+
+### Key Dependencies
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| Next.js | 16.1.1 | App Router + Turbopack |
+| React | 19.2.3 | Concurrent features |
+| TypeScript | 5.9.3 | Strict mode |
+| motion | 12.x | Animation library (formerly framer-motion) |
+| @tanstack/react-query | 5.x | Server state management |
+| @supabase/ssr | 0.8.x | Server-side Supabase client |
+| @sentry/nextjs | 10.x | Error monitoring |
+
+### Verification Steps
+
+```bash
+# Full verification suite
+bun run typecheck && bun run lint && bun run build
+
+# Check for outdated packages
+bun outdated
 ```
 
 ## Key Conventions
