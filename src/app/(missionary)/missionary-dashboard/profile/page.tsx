@@ -1234,7 +1234,7 @@ export default function ProfilePage() {
               variants={fadeInUp}
               transition={{ ...gentleTransition, delay: 0.15 }}
             >
-              <div className="sticky top-24">
+              <div className="sticky top-24 pb-6">
                 <div className="flex items-center justify-between mb-3 px-1">
                   <span className="text-xs font-medium text-zinc-500">
                     Live Preview
