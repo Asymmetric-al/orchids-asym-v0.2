@@ -1366,20 +1366,44 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="mt-44 sm:mt-52 px-4 sm:px-6 text-center">
-                        <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
-                          {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                        </h2>
-                        <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 mt-1">
-                          <MapPin className="h-3 w-3" />
-                          <span>{profile.location || 'Location'}</span>
-                        </div>
-                        <p className="text-xs font-medium text-zinc-600 mt-2 line-clamp-2">
-                          {profile.ministryFocus || 'Your tagline will appear here'}
-                        </p>
+                          <motion.h2 
+                            className="text-lg sm:text-xl font-bold text-zinc-900"
+                            key={`name-${profile.firstName}-${profile.lastName}`}
+                            initial={false}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                          </motion.h2>
+                          <motion.div 
+                            className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 mt-1"
+                            key={`location-${profile.location}`}
+                            initial={false}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            <MapPin className="h-3 w-3" />
+                            <span>{profile.location || 'Location'}</span>
+                          </motion.div>
+                          <motion.p 
+                            className="text-xs font-medium text-zinc-600 mt-2 line-clamp-2"
+                            key={`tagline-${profile.ministryFocus}`}
+                            initial={false}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {profile.ministryFocus || 'Your tagline will appear here'}
+                          </motion.p>
 
-                        <p className="text-xs text-zinc-400 mt-4 line-clamp-3 px-2">
-                          {profile.bio || 'Your bio will appear here.'}
-                        </p>
+                          <motion.p 
+                            className="text-xs text-zinc-400 mt-4 line-clamp-3 px-2"
+                            key={`bio-${profile.bio?.slice(0, 20)}`}
+                            initial={false}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            {profile.bio || 'Your bio will appear here.'}
+                          </motion.p>
 
                         <div className="flex justify-center gap-3 mt-5">
                           <AnimatePresence>
@@ -1447,31 +1471,55 @@ export default function ProfilePage() {
                           )}
                         </div>
 
-                        <div className="px-4 pb-4">
-                          <div className="flex items-end gap-3 -mt-6">
-                            <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                              <AvatarImage src={profile.avatarUrl} />
-                              <AvatarFallback className="bg-zinc-100 text-xs font-bold">
-                                {initials || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 pb-0.5">
-                              <h2 className="text-sm font-bold text-zinc-900">
-                                {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                              </h2>
-                              <p className="text-[10px] text-zinc-500 flex items-center gap-1">
-                                <MapPin className="h-2.5 w-2.5" />
-                                {profile.location || 'Location'}
-                              </p>
+                          <div className="px-4 pb-4">
+                            <div className="flex items-end gap-3 -mt-6">
+                              <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                                <AvatarImage src={profile.avatarUrl} />
+                                <AvatarFallback className="bg-zinc-100 text-xs font-bold">
+                                  {initials || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 pb-0.5">
+                                <motion.h2 
+                                  className="text-sm font-bold text-zinc-900"
+                                  key={`desktop-name-${profile.firstName}-${profile.lastName}`}
+                                  initial={false}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ duration: 0.15 }}
+                                >
+                                  {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                                </motion.h2>
+                                <motion.p 
+                                  className="text-[10px] text-zinc-500 flex items-center gap-1"
+                                  key={`desktop-location-${profile.location}`}
+                                  initial={false}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ duration: 0.15 }}
+                                >
+                                  <MapPin className="h-2.5 w-2.5" />
+                                  {profile.location || 'Location'}
+                                </motion.p>
+                              </div>
                             </div>
-                          </div>
 
-                          <p className="text-[10px] font-medium text-zinc-600 mt-3 line-clamp-1">
-                            {profile.ministryFocus || 'Tagline'}
-                          </p>
-                          <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2">
-                            {profile.bio || 'Your bio will appear here.'}
-                          </p>
+                            <motion.p 
+                              className="text-[10px] font-medium text-zinc-600 mt-3 line-clamp-1"
+                              key={`desktop-tagline-${profile.ministryFocus}`}
+                              initial={false}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              {profile.ministryFocus || 'Tagline'}
+                            </motion.p>
+                            <motion.p 
+                              className="text-[10px] text-zinc-400 mt-1 line-clamp-2"
+                              key={`desktop-bio-${profile.bio?.slice(0, 20)}`}
+                              initial={false}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              {profile.bio || 'Your bio will appear here.'}
+                            </motion.p>
 
                           <div className="flex items-center justify-between mt-4">
                             <div className="flex gap-2">
@@ -1505,14 +1553,23 @@ export default function ProfilePage() {
                   )}
                 </AnimatePresence>
 
-                <motion.p 
-                  className="text-[10px] text-zinc-400 text-center mt-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Changes update in real-time
-                </motion.p>
+                <AnimatePresence>
+                  {isEditing && (
+                    <motion.p 
+                      className="text-[10px] text-zinc-400 text-center mt-3 flex items-center justify-center gap-1"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      Preview updates as you type
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           </div>
