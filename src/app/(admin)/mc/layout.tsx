@@ -115,7 +115,10 @@ const modulesItems: MenuItem[] = [
   {
     icon: ActivityIcon,
     label: 'Feed Hub',
-    href: '/mc/feed'
+    items: [
+      { label: 'Content Moderation', href: '/mc/feed' },
+      { label: 'Org Updates', href: '/mc/feed/org-updates' },
+    ]
   },
   {
     icon: SparklesIcon,

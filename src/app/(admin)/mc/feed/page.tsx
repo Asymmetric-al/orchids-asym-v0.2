@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   Search,
   Filter,
@@ -9,12 +10,9 @@ import {
   MessageCircle,
   Loader2,
   Globe,
-  ChevronDown,
-  X,
   Lock,
   Users,
   Check,
-  Shield,
   ShieldAlert,
   ShieldCheck,
   Pin,
@@ -29,29 +27,22 @@ import {
   TrendingUp,
   Activity,
   Building2,
-  Send,
-  Image as ImageIcon,
-  RotateCcw,
   CheckCircle2,
-  XCircle,
   AlertCircle,
   ChevronRight,
   ExternalLink,
   RefreshCw,
   Download,
   ArrowUpDown,
-  Megaphone,
   Sparkles,
-  UserPlus,
-  Star,
+  PenSquare,
 } from 'lucide-react'
-import { motion, AnimatePresence, LayoutGroup } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
@@ -95,36 +86,15 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import dynamic from 'next/dynamic'
 import { PageHeader } from '@/components/page-header'
 
-const RichTextEditor = dynamic(
-  () => import('@/components/ui/RichTextEditor').then((mod) => mod.RichTextEditor),
-  {
-    ssr: false,
-    loading: () => <div className="h-[200px] w-full bg-muted rounded-xl animate-pulse" />,
-  }
-)
-
-const springTransition = { type: 'spring' as const, stiffness: 400, damping: 30 }
-const smoothTransition = { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] }
+const smoothTransition = { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] }
 
 type PostStatus = 'published' | 'flagged' | 'hidden' | 'pending_review'
 type Visibility = 'public' | 'partners' | 'private'
 type ModerationAction = 'approve' | 'hide' | 'flag' | 'delete' | 'edit'
-
-interface ModerationLog {
-  id: string
-  action: ModerationAction
-  actor: string
-  timestamp: string
-  reason?: string
-  previousState?: string
-  newState?: string
-}
 
 interface Post {
   id: string
@@ -149,7 +119,6 @@ interface Post {
     role: 'missionary' | 'organization'
     location?: string
   }
-  moderationHistory?: ModerationLog[]
 }
 
 interface Comment {
@@ -323,47 +292,41 @@ function StatCard({
   variant?: 'default' | 'warning' | 'danger' | 'success'
 }) {
   const variantStyles = {
-    default: 'bg-card border-border',
-    warning: 'bg-amber-50 border-amber-200',
-    danger: 'bg-rose-50 border-rose-200',
-    success: 'bg-emerald-50 border-emerald-200',
+    default: 'bg-card',
+    warning: 'bg-amber-50',
+    danger: 'bg-rose-50',
+    success: 'bg-emerald-50',
   }
   const iconStyles = {
-    default: 'bg-muted text-muted-foreground',
+    default: 'bg-zinc-100 text-zinc-600',
     warning: 'bg-amber-100 text-amber-600',
     danger: 'bg-rose-100 text-rose-600',
     success: 'bg-emerald-100 text-emerald-600',
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={smoothTransition}
-    >
-      <Card className={cn('border shadow-sm', variantStyles[variant])}>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-              <p className="text-2xl font-bold tracking-tight">{value}</p>
-              {trend !== undefined && (
-                <p className={cn(
-                  'text-[10px] font-medium flex items-center gap-1',
-                  trend > 0 ? 'text-emerald-600' : trend < 0 ? 'text-rose-600' : 'text-muted-foreground'
-                )}>
-                  <TrendingUp className={cn('h-3 w-3', trend < 0 && 'rotate-180')} />
-                  {trend > 0 ? '+' : ''}{trend}% {trendLabel}
-                </p>
-              )}
-            </div>
-            <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', iconStyles[variant])}>
-              <Icon className="h-5 w-5" />
-            </div>
+    <Card className={cn('rounded-2xl border border-border shadow-sm', variantStyles[variant])}>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+            {trend !== undefined && (
+              <p className={cn(
+                'text-[10px] font-medium flex items-center gap-1',
+                trend > 0 ? 'text-emerald-600' : trend < 0 ? 'text-rose-600' : 'text-muted-foreground'
+              )}>
+                <TrendingUp className={cn('h-3 w-3', trend < 0 && 'rotate-180')} />
+                {trend > 0 ? '+' : ''}{trend}% {trendLabel}
+              </p>
+            )}
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+          <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', iconStyles[variant])}>
+            <Icon className="h-5 w-5" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -409,9 +372,9 @@ function ModerationQueue({
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed border-border">
+      <div className="text-center py-20 bg-emerald-50/50 rounded-2xl border-2 border-dashed border-emerald-200">
         <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
-        <h3 className="font-bold text-lg">All Clear!</h3>
+        <h3 className="font-bold text-lg text-foreground">All Clear!</h3>
         <p className="text-sm text-muted-foreground mt-1">No items require moderation at this time.</p>
       </div>
     )
@@ -428,45 +391,45 @@ function ModerationQueue({
             transition={{ ...smoothTransition, delay: index * 0.05 }}
           >
             <Card className={cn(
-              'overflow-hidden border shadow-sm transition-all hover:shadow-md',
+              'rounded-2xl border shadow-sm transition-all hover:shadow-md',
               post.isFlagged && 'border-amber-300 bg-amber-50/30'
             )}>
-              <CardContent className="p-4">
+              <CardContent className="p-5">
                 <div className="flex gap-4">
-                  <Avatar className="h-10 w-10 shrink-0 border border-border">
+                  <Avatar className="h-11 w-11 shrink-0 border-2 border-background shadow-sm">
                     <AvatarImage src={post.author.avatar_url} />
-                    <AvatarFallback className="text-xs font-bold">
+                    <AvatarFallback className="text-xs font-bold bg-zinc-100">
                       {post.author.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex-1 min-w-0 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm truncate">{post.author.name}</span>
-                          <Badge variant="secondary" className="text-[8px] h-4 px-1.5 shrink-0">
+                          <span className="font-bold text-sm text-foreground truncate">{post.author.name}</span>
+                          <Badge variant="secondary" className="text-[8px] h-5 px-2 rounded-full shrink-0 font-bold uppercase tracking-wider">
                             {post.post_type}
                           </Badge>
                           {post.isFlagged && (
-                            <Badge variant="destructive" className="text-[8px] h-4 px-1.5 gap-1 shrink-0">
+                            <Badge variant="destructive" className="text-[8px] h-5 px-2 gap-1 rounded-full shrink-0 font-bold uppercase tracking-wider">
                               <Flag className="h-2.5 w-2.5" /> Flagged
                             </Badge>
                           )}
                           {post.isPinned && (
-                            <Badge className="text-[8px] h-4 px-1.5 gap-1 bg-blue-100 text-blue-700 shrink-0">
+                            <Badge className="text-[8px] h-5 px-2 gap-1 bg-blue-100 text-blue-700 rounded-full shrink-0 font-bold uppercase tracking-wider border-0">
                               <Pin className="h-2.5 w-2.5" /> Pinned
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-muted-foreground">{formatTimeAgo(post.created_at)}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-muted-foreground font-medium">{formatTimeAgo(post.created_at)}</span>
                           <span className="text-muted-foreground/30">•</span>
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                             {post.visibility === 'public' ? <Globe className="h-3 w-3" /> : 
                              post.visibility === 'partners' ? <Users className="h-3 w-3" /> : 
                              <Lock className="h-3 w-3" />}
-                            {post.visibility}
+                            <span className="capitalize">{post.visibility}</span>
                           </span>
                         </div>
                       </div>
@@ -478,7 +441,7 @@ function ModerationQueue({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-emerald-600 hover:bg-emerald-50"
+                                className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
                                 onClick={() => handleActionClick(post.id, 'approve')}
                               >
                                 <Check className="h-4 w-4" />
@@ -494,7 +457,7 @@ function ModerationQueue({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-amber-600 hover:bg-amber-50"
+                                className="h-9 w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
                                 onClick={() => handleActionClick(post.id, 'hide')}
                               >
                                 <EyeOff className="h-4 w-4" />
@@ -510,7 +473,7 @@ function ModerationQueue({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-rose-600 hover:bg-rose-50"
+                                className="h-9 w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
                                 onClick={() => handleActionClick(post.id, 'delete')}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -522,22 +485,22 @@ function ModerationQueue({
 
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => setSelectedPost(post)}>
+                          <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                            <DropdownMenuItem onClick={() => setSelectedPost(post)} className="rounded-lg">
                               <Eye className="h-4 w-4 mr-2" /> View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem className="rounded-lg">
                               <Edit3 className="h-4 w-4 mr-2" /> Edit Post
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem className="rounded-lg">
                               <UserX className="h-4 w-4 mr-2" /> View Author Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-amber-600">
+                            <DropdownMenuItem className="text-amber-600 rounded-lg">
                               <AlertTriangle className="h-4 w-4 mr-2" /> Warn Author
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -546,7 +509,7 @@ function ModerationQueue({
                     </div>
 
                     {post.flagReason && (
-                      <div className="flex items-center gap-2 px-3 py-2 bg-amber-100 rounded-lg text-amber-800">
+                      <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-100 rounded-xl text-amber-800">
                         <AlertCircle className="h-4 w-4 shrink-0" />
                         <span className="text-xs font-medium">{post.flagReason}</span>
                       </div>
@@ -558,21 +521,21 @@ function ModerationQueue({
                     />
 
                     {post.media && post.media.length > 0 && (
-                      <div className="flex gap-2 mt-2">
+                      <div className="flex gap-2">
                         {post.media.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="relative h-16 w-16 rounded-lg overflow-hidden border border-border">
+                          <div key={idx} className="relative h-16 w-16 rounded-xl overflow-hidden border border-border">
                             <Image src={item.url} alt="" fill className="object-cover" sizes="64px" />
                           </div>
                         ))}
                         {post.media.length > 3 && (
-                          <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                          <div className="h-16 w-16 rounded-xl bg-zinc-100 flex items-center justify-center text-xs font-bold text-muted-foreground">
                             +{post.media.length - 3}
                           </div>
                         )}
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground font-medium">
                       <span className="flex items-center gap-1">❤️ {post.likes_count}</span>
                       <span className="flex items-center gap-1">🙏 {post.prayers_count}</span>
                       <span className="flex items-center gap-1">🔥 {post.fires_count}</span>
@@ -589,7 +552,7 @@ function ModerationQueue({
       </div>
 
       <AlertDialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {pendingAction?.action === 'delete' ? 'Delete Post?' : 'Hide Post?'}
@@ -601,21 +564,21 @@ function ModerationQueue({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Reason (optional)
             </Label>
             <Input
               value={actionReason}
               onChange={(e) => setActionReason(e.target.value)}
               placeholder="Add a reason for this action..."
-              className="mt-2"
+              className="mt-2 rounded-xl"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmAction}
-              className={pendingAction?.action === 'delete' ? 'bg-destructive hover:bg-destructive/90' : ''}
+              className={cn('rounded-xl', pendingAction?.action === 'delete' && 'bg-destructive hover:bg-destructive/90')}
             >
               {pendingAction?.action === 'delete' ? 'Delete' : 'Hide'}
             </AlertDialogAction>
@@ -624,7 +587,7 @@ function ModerationQueue({
       </AlertDialog>
 
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle>Post Details</DialogTitle>
             <DialogDescription>Review and manage this post</DialogDescription>
@@ -632,12 +595,12 @@ function ModerationQueue({
           {selectedPost && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
                   <AvatarImage src={selectedPost.author.avatar_url} />
-                  <AvatarFallback>{selectedPost.author.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="font-bold">{selectedPost.author.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-bold">{selectedPost.author.name}</p>
+                  <p className="font-bold text-foreground">{selectedPost.author.name}</p>
                   <p className="text-sm text-muted-foreground">{selectedPost.author.location}</p>
                 </div>
               </div>
@@ -650,7 +613,7 @@ function ModerationQueue({
               {selectedPost.media && selectedPost.media.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
                   {selectedPost.media.map((item, idx) => (
-                    <div key={idx} className="relative aspect-video rounded-lg overflow-hidden">
+                    <div key={idx} className="relative aspect-video rounded-xl overflow-hidden">
                       <Image src={item.url} alt="" fill className="object-cover" sizes="300px" />
                     </div>
                   ))}
@@ -660,28 +623,28 @@ function ModerationQueue({
               <Separator />
 
               <div className="grid grid-cols-4 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold">{selectedPost.likes_count}</p>
-                  <p className="text-xs text-muted-foreground">Likes</p>
+                <div className="p-3 bg-zinc-50 rounded-xl">
+                  <p className="text-2xl font-bold text-foreground">{selectedPost.likes_count}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Likes</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{selectedPost.prayers_count}</p>
-                  <p className="text-xs text-muted-foreground">Prayers</p>
+                <div className="p-3 bg-zinc-50 rounded-xl">
+                  <p className="text-2xl font-bold text-foreground">{selectedPost.prayers_count}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Prayers</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{selectedPost.fires_count}</p>
-                  <p className="text-xs text-muted-foreground">Fires</p>
+                <div className="p-3 bg-zinc-50 rounded-xl">
+                  <p className="text-2xl font-bold text-foreground">{selectedPost.fires_count}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Fires</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{selectedPost.comments_count}</p>
-                  <p className="text-xs text-muted-foreground">Comments</p>
+                <div className="p-3 bg-zinc-50 rounded-xl">
+                  <p className="text-2xl font-bold text-foreground">{selectedPost.comments_count}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Comments</p>
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedPost(null)}>Close</Button>
-            <Button onClick={() => { handleActionClick(selectedPost!.id, 'approve'); setSelectedPost(null); }}>
+            <Button variant="outline" onClick={() => setSelectedPost(null)} className="rounded-xl">Close</Button>
+            <Button onClick={() => { handleActionClick(selectedPost!.id, 'approve'); setSelectedPost(null); }} className="rounded-xl">
               <Check className="h-4 w-4 mr-2" /> Approve
             </Button>
           </DialogFooter>
@@ -738,9 +701,9 @@ function AllPostsFeed({
 
   if (filteredPosts.length === 0) {
     return (
-      <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed border-border">
+      <div className="text-center py-20 bg-zinc-50 rounded-2xl border-2 border-dashed border-border">
         <Search className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-        <h3 className="font-bold text-lg">No posts found</h3>
+        <h3 className="font-bold text-lg text-foreground">No posts found</h3>
         <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters or search query.</p>
       </div>
     )
@@ -756,15 +719,15 @@ function AllPostsFeed({
           transition={{ ...smoothTransition, delay: index * 0.03 }}
         >
           <Card className={cn(
-            'overflow-hidden border shadow-sm hover:shadow-md transition-all',
+            'rounded-2xl border shadow-sm hover:shadow-md transition-all',
             post.status === 'hidden' && 'opacity-60',
             post.isFlagged && 'border-amber-300'
           )}>
-            <CardContent className="p-4">
+            <CardContent className="p-5">
               <div className="flex gap-4">
-                <Avatar className="h-10 w-10 shrink-0 border border-border">
+                <Avatar className="h-11 w-11 shrink-0 border-2 border-background shadow-sm">
                   <AvatarImage src={post.author.avatar_url} />
-                  <AvatarFallback className="text-xs font-bold">
+                  <AvatarFallback className="text-xs font-bold bg-zinc-100">
                     {post.author.role === 'organization' ? (
                       <Building2 className="h-4 w-4" />
                     ) : (
@@ -773,41 +736,41 @@ function AllPostsFeed({
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex-1 min-w-0 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm truncate">{post.author.name}</span>
+                        <span className="font-bold text-sm text-foreground truncate">{post.author.name}</span>
                         {post.author.role === 'organization' && (
-                          <Badge className="text-[8px] h-4 px-1.5 bg-primary/10 text-primary shrink-0">
+                          <Badge className="text-[8px] h-5 px-2 bg-primary/10 text-primary shrink-0 rounded-full font-bold uppercase tracking-wider border-0">
                             <Building2 className="h-2.5 w-2.5 mr-0.5" /> Org
                           </Badge>
                         )}
-                        <Badge variant="secondary" className="text-[8px] h-4 px-1.5 shrink-0">
+                        <Badge variant="secondary" className="text-[8px] h-5 px-2 shrink-0 rounded-full font-bold uppercase tracking-wider">
                           {post.post_type}
                         </Badge>
                         {post.status === 'hidden' && (
-                          <Badge variant="outline" className="text-[8px] h-4 px-1.5 gap-1 shrink-0">
+                          <Badge variant="outline" className="text-[8px] h-5 px-2 gap-1 shrink-0 rounded-full font-bold uppercase tracking-wider">
                             <EyeOff className="h-2.5 w-2.5" /> Hidden
                           </Badge>
                         )}
                         {post.isFlagged && (
-                          <Badge variant="destructive" className="text-[8px] h-4 px-1.5 gap-1 shrink-0">
+                          <Badge variant="destructive" className="text-[8px] h-5 px-2 gap-1 shrink-0 rounded-full font-bold uppercase tracking-wider">
                             <Flag className="h-2.5 w-2.5" /> Flagged
                           </Badge>
                         )}
                         {post.isPinned && (
-                          <Badge className="text-[8px] h-4 px-1.5 gap-1 bg-blue-100 text-blue-700 shrink-0">
+                          <Badge className="text-[8px] h-5 px-2 gap-1 bg-blue-100 text-blue-700 shrink-0 rounded-full font-bold uppercase tracking-wider border-0">
                             <Pin className="h-2.5 w-2.5" /> Pinned
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-muted-foreground">{formatTimeAgo(post.created_at)}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-muted-foreground font-medium">{formatTimeAgo(post.created_at)}</span>
                         {post.author.location && (
                           <>
                             <span className="text-muted-foreground/30">•</span>
-                            <span className="text-[10px] text-muted-foreground">{post.author.location}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium">{post.author.location}</span>
                           </>
                         )}
                       </div>
@@ -815,43 +778,43 @@ function AllPostsFeed({
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-xl">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-52">
-                        <DropdownMenuLabel className="text-[10px] uppercase tracking-wider">Quick Actions</DropdownMenuLabel>
+                      <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                        <DropdownMenuLabel className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Quick Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onAction(post.id, 'edit')}>
+                        <DropdownMenuItem onClick={() => onAction(post.id, 'edit')} className="rounded-lg">
                           <Edit3 className="h-4 w-4 mr-2" /> Edit Post
                         </DropdownMenuItem>
                         {post.isPinned ? (
-                          <DropdownMenuItem>
+                          <DropdownMenuItem className="rounded-lg">
                             <Pin className="h-4 w-4 mr-2" /> Unpin Post
                           </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem>
+                          <DropdownMenuItem className="rounded-lg">
                             <Pin className="h-4 w-4 mr-2" /> Pin to Top
                           </DropdownMenuItem>
                         )}
                         {post.status === 'hidden' ? (
-                          <DropdownMenuItem onClick={() => onAction(post.id, 'approve')}>
+                          <DropdownMenuItem onClick={() => onAction(post.id, 'approve')} className="rounded-lg">
                             <Eye className="h-4 w-4 mr-2" /> Restore Post
                           </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem onClick={() => onAction(post.id, 'hide')}>
+                          <DropdownMenuItem onClick={() => onAction(post.id, 'hide')} className="rounded-lg">
                             <EyeOff className="h-4 w-4 mr-2" /> Hide Post
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-lg">
                           <ExternalLink className="h-4 w-4 mr-2" /> View Public Post
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-lg">
                           <UserX className="h-4 w-4 mr-2" /> View Author
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => onAction(post.id, 'delete')}>
+                        <DropdownMenuItem className="text-destructive rounded-lg" onClick={() => onAction(post.id, 'delete')}>
                           <Trash2 className="h-4 w-4 mr-2" /> Delete Post
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -864,16 +827,16 @@ function AllPostsFeed({
                   />
 
                   {post.media && post.media.length > 0 && (
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex gap-2">
                       {post.media.slice(0, 4).map((item, idx) => (
-                        <div key={idx} className="relative h-20 w-20 rounded-lg overflow-hidden border border-border">
+                        <div key={idx} className="relative h-20 w-20 rounded-xl overflow-hidden border border-border">
                           <Image src={item.url} alt="" fill className="object-cover" sizes="80px" />
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <div className="flex items-center gap-4 pt-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 pt-1 text-xs text-muted-foreground font-medium">
                     <span className="flex items-center gap-1">❤️ {post.likes_count}</span>
                     <span className="flex items-center gap-1">🙏 {post.prayers_count}</span>
                     <span className="flex items-center gap-1">🔥 {post.fires_count}</span>
@@ -884,7 +847,7 @@ function AllPostsFeed({
                       {post.visibility === 'public' ? <Globe className="h-3 w-3" /> : 
                        post.visibility === 'partners' ? <Users className="h-3 w-3" /> : 
                        <Lock className="h-3 w-3" />}
-                      {post.visibility}
+                      <span className="capitalize">{post.visibility}</span>
                     </span>
                   </div>
                 </div>
@@ -897,153 +860,6 @@ function AllPostsFeed({
   )
 }
 
-function OrgPublishingPanel() {
-  const [postContent, setPostContent] = useState('')
-  const [postType, setPostType] = useState('Announcement')
-  const [visibility, setVisibility] = useState<Visibility>('public')
-  const [isPinned, setIsPinned] = useState(false)
-  const [isPublishing, setIsPublishing] = useState(false)
-  const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: string }[]>([])
-
-  const handlePublish = async () => {
-    if (!postContent.trim()) return
-    setIsPublishing(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    toast.success('Organization update published!')
-    setPostContent('')
-    setSelectedMedia([])
-    setIsPinned(false)
-    setIsPublishing(false)
-  }
-
-  const handleAddMedia = () => {
-    const demoImages = [
-      'https://images.unsplash.com/photo-1541252260730-0412e8e2108e?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800',
-    ]
-    const randomImage = demoImages[Math.floor(Math.random() * demoImages.length)]
-    setSelectedMedia(prev => [...prev, { url: randomImage, type: 'image' }])
-    toast.success('Image added')
-  }
-
-  return (
-    <Card className="border shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Building2 className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm">Organization Updates</h3>
-            <p className="text-xs text-muted-foreground">Publish to all donors & missionaries</p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {['Announcement', 'Newsletter', 'Update', 'Prayer Request'].map((type) => (
-            <Button
-              key={type}
-              variant={postType === type ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setPostType(type)}
-              className="text-[10px] h-7 px-3 shrink-0"
-            >
-              {type}
-            </Button>
-          ))}
-        </div>
-
-        <div className="rounded-xl border border-border overflow-hidden focus-within:ring-2 focus-within:ring-ring/20">
-          <RichTextEditor
-            value={postContent}
-            onChange={setPostContent}
-            placeholder={`Write your ${postType.toLowerCase()}...`}
-            className=""
-            contentClassName="py-3 px-4 text-sm min-h-[120px]"
-            toolbarPosition="bottom"
-            proseInvert={false}
-            actions={
-              <div className="flex flex-col gap-3 w-full">
-                {selectedMedia.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {selectedMedia.map((item, idx) => (
-                      <div key={idx} className="relative h-14 w-14 rounded-lg overflow-hidden border shrink-0">
-                        <Image src={item.url} alt="" fill className="object-cover" sizes="56px" />
-                        <button
-                          onClick={() => setSelectedMedia(prev => prev.filter((_, i) => i !== idx))}
-                          className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button variant="ghost" size="sm" onClick={handleAddMedia} className="h-8 text-[10px] gap-1.5">
-                    <ImageIcon className="h-3.5 w-3.5" /> Media
-                  </Button>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 text-[10px] gap-1.5">
-                        {visibility === 'public' ? <Globe className="h-3.5 w-3.5" /> : 
-                         visibility === 'partners' ? <Users className="h-3.5 w-3.5" /> : 
-                         <Lock className="h-3.5 w-3.5" />}
-                        {visibility}
-                        <ChevronDown className="h-3 w-3 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem onClick={() => setVisibility('public')}>
-                        <Globe className="h-4 w-4 mr-2" /> Public
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVisibility('partners')}>
-                        <Users className="h-4 w-4 mr-2" /> Partners Only
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVisibility('private')}>
-                        <Lock className="h-4 w-4 mr-2" /> Private
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <div className="flex items-center gap-2 ml-auto">
-                    <Label htmlFor="pin-toggle" className="text-[10px] text-muted-foreground cursor-pointer">
-                      Pin
-                    </Label>
-                    <Switch
-                      id="pin-toggle"
-                      checked={isPinned}
-                      onCheckedChange={setIsPinned}
-                      className="scale-75"
-                    />
-                  </div>
-
-                  <Button
-                    onClick={handlePublish}
-                    disabled={!postContent.trim() || isPublishing}
-                    size="sm"
-                    className="h-8 px-4 text-[10px]"
-                  >
-                    {isPublishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-1.5" />}
-                    Publish
-                  </Button>
-                </div>
-              </div>
-            }
-          />
-        </div>
-
-        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-xl text-xs text-muted-foreground">
-          <Megaphone className="h-4 w-4 shrink-0" />
-          <span>Organization posts appear in all followers&apos; feeds and can be pinned globally.</span>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 function FlaggedCommentsPanel({
   comments,
   onAction,
@@ -1053,9 +869,9 @@ function FlaggedCommentsPanel({
 }) {
   if (comments.length === 0) {
     return (
-      <div className="text-center py-12 bg-muted/20 rounded-xl border-2 border-dashed border-border">
+      <div className="text-center py-10 bg-emerald-50/50 rounded-xl border-2 border-dashed border-emerald-200">
         <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
-        <h3 className="font-bold">No flagged comments</h3>
+        <h3 className="font-bold text-foreground">No flagged comments</h3>
         <p className="text-xs text-muted-foreground mt-1">All comments are approved.</p>
       </div>
     )
@@ -1064,34 +880,34 @@ function FlaggedCommentsPanel({
   return (
     <div className="space-y-3">
       {comments.map((comment) => (
-        <Card key={comment.id} className="border-amber-200 bg-amber-50/30">
-          <CardContent className="p-3">
+        <Card key={comment.id} className="rounded-xl border-amber-200 bg-amber-50/30">
+          <CardContent className="p-4">
             <div className="flex gap-3">
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="text-xs">{comment.author.name.charAt(0)}</AvatarFallback>
+              <Avatar className="h-9 w-9 shrink-0 border border-background shadow-sm">
+                <AvatarFallback className="text-xs font-bold bg-zinc-100">{comment.author.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs">{comment.author.name}</span>
-                  <span className="text-[10px] text-muted-foreground">{formatTimeAgo(comment.created_at)}</span>
+                  <span className="font-bold text-xs text-foreground">{comment.author.name}</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">{formatTimeAgo(comment.created_at)}</span>
                 </div>
-                <p className="text-xs text-foreground/80">{comment.content}</p>
-                <div className="flex items-center gap-2 pt-1">
+                <p className="text-xs text-foreground/80 leading-relaxed">{comment.content}</p>
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-[10px] text-emerald-600 hover:bg-emerald-50"
+                    className="h-7 px-3 text-[10px] text-emerald-600 hover:bg-emerald-100 rounded-lg font-bold uppercase tracking-wider"
                     onClick={() => onAction(comment.id, 'approve')}
                   >
-                    <Check className="h-3 w-3 mr-1" /> Approve
+                    <Check className="h-3 w-3 mr-1.5" /> Approve
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-[10px] text-rose-600 hover:bg-rose-50"
+                    className="h-7 px-3 text-[10px] text-rose-600 hover:bg-rose-100 rounded-lg font-bold uppercase tracking-wider"
                     onClick={() => onAction(comment.id, 'delete')}
                   >
-                    <Trash2 className="h-3 w-3 mr-1" /> Delete
+                    <Trash2 className="h-3 w-3 mr-1.5" /> Delete
                   </Button>
                 </div>
               </div>
@@ -1103,12 +919,12 @@ function FlaggedCommentsPanel({
   )
 }
 
-export default function FeedHubPage() {
+export default function ContentModerationPage() {
   const [activeTab, setActiveTab] = useState('moderation')
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS)
   const [flaggedComments, setFlaggedComments] = useState<Comment[]>(MOCK_FLAGGED_COMMENTS)
   const [stats] = useState<ModerationStats>(MOCK_STATS)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterVisibility, setFilterVisibility] = useState('all')
   const [filterType, setFilterType] = useState('all')
@@ -1155,53 +971,58 @@ export default function FeedHubPage() {
   }, [])
 
   return (
-    <div className="max-w-[1600px] mx-auto pb-20">
+    <div className="p-6 pb-20 space-y-6 animate-in fade-in duration-500">
       <PageHeader 
-        title="Feed Hub" 
-        description="Moderate content, manage organization publishing, and oversee all feed activity."
+        title="Content Moderation" 
+        description="Review flagged content, moderate posts, and manage comments across all feeds."
       >
-        <Button variant="outline" size="sm" className="h-9 gap-2">
+        <Link href="/mc/feed/org-updates">
+          <Button className="h-9 gap-2 rounded-xl font-bold">
+            <PenSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Org Updates</span>
+          </Button>
+        </Link>
+        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl">
           <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">Export Report</span>
+          <span className="hidden sm:inline">Export</span>
         </Button>
-        <Button variant="outline" size="sm" className="h-9 gap-2">
+        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl">
           <RefreshCw className="h-4 w-4" />
-          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </PageHeader>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
         <StatCard label="Total Posts" value={stats.totalPosts} icon={Activity} />
         <StatCard label="Flagged" value={stats.flaggedPosts} icon={Flag} variant="warning" />
         <StatCard label="Hidden" value={stats.hiddenPosts} icon={EyeOff} />
-        <StatCard label="Pending Review" value={stats.pendingReview} icon={Clock} variant="warning" />
+        <StatCard label="Pending" value={stats.pendingReview} icon={Clock} variant="warning" />
         <StatCard label="Comments" value={stats.totalComments} icon={MessageCircle} />
         <StatCard label="Flagged Comments" value={stats.flaggedComments} icon={AlertTriangle} variant={stats.flaggedComments > 0 ? 'danger' : 'default'} />
         <StatCard label="Actions Today" value={stats.actionsToday} icon={ShieldCheck} variant="success" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 space-y-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="xl:col-span-8 space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-              <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border">
+              <TabsList className="bg-zinc-100 p-1 rounded-xl h-auto">
                 <TabsTrigger
                   value="moderation"
-                  className="rounded-lg px-4 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm"
+                  className="rounded-lg px-4 py-2.5 font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <ShieldAlert className="h-3.5 w-3.5 mr-1.5" />
-                  Moderation Queue
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Queue
                   {flaggedPosts.length > 0 && (
-                    <Badge className="ml-2 h-4 px-1.5 text-[9px] bg-amber-500">
+                    <Badge className="ml-2 h-5 px-2 text-[9px] bg-amber-500 text-white rounded-full font-bold border-0">
                       {flaggedPosts.length}
                     </Badge>
                   )}
                 </TabsTrigger>
                 <TabsTrigger
                   value="all"
-                  className="rounded-lg px-4 py-2 font-bold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm"
+                  className="rounded-lg px-4 py-2.5 font-bold text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm"
                 >
-                  <Globe className="h-3.5 w-3.5 mr-1.5" />
+                  <Globe className="h-4 w-4 mr-2" />
                   All Posts
                 </TabsTrigger>
               </TabsList>
@@ -1214,58 +1035,58 @@ export default function FeedHubPage() {
                       placeholder="Search posts..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 w-full sm:w-64"
+                      className="pl-9 h-10 w-full sm:w-64 rounded-xl"
                     />
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                      <Button variant="outline" size="sm" className="h-10 gap-2 rounded-xl">
                         <Filter className="h-4 w-4" />
                         <span className="hidden sm:inline">Filter</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider">Visibility</DropdownMenuLabel>
-                      <DropdownMenuCheckboxItem checked={filterVisibility === 'all'} onCheckedChange={() => setFilterVisibility('all')}>
+                    <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-widest font-bold">Visibility</DropdownMenuLabel>
+                      <DropdownMenuCheckboxItem checked={filterVisibility === 'all'} onCheckedChange={() => setFilterVisibility('all')} className="rounded-lg">
                         All
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterVisibility === 'public'} onCheckedChange={() => setFilterVisibility('public')}>
+                      <DropdownMenuCheckboxItem checked={filterVisibility === 'public'} onCheckedChange={() => setFilterVisibility('public')} className="rounded-lg">
                         Public
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterVisibility === 'partners'} onCheckedChange={() => setFilterVisibility('partners')}>
+                      <DropdownMenuCheckboxItem checked={filterVisibility === 'partners'} onCheckedChange={() => setFilterVisibility('partners')} className="rounded-lg">
                         Partners
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterVisibility === 'private'} onCheckedChange={() => setFilterVisibility('private')}>
+                      <DropdownMenuCheckboxItem checked={filterVisibility === 'private'} onCheckedChange={() => setFilterVisibility('private')} className="rounded-lg">
                         Private
                       </DropdownMenuCheckboxItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider">Type</DropdownMenuLabel>
-                      <DropdownMenuCheckboxItem checked={filterType === 'all'} onCheckedChange={() => setFilterType('all')}>
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-widest font-bold">Type</DropdownMenuLabel>
+                      <DropdownMenuCheckboxItem checked={filterType === 'all'} onCheckedChange={() => setFilterType('all')} className="rounded-lg">
                         All Types
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterType === 'update'} onCheckedChange={() => setFilterType('update')}>
+                      <DropdownMenuCheckboxItem checked={filterType === 'update'} onCheckedChange={() => setFilterType('update')} className="rounded-lg">
                         Updates
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterType === 'prayer request'} onCheckedChange={() => setFilterType('prayer request')}>
+                      <DropdownMenuCheckboxItem checked={filterType === 'prayer request'} onCheckedChange={() => setFilterType('prayer request')} className="rounded-lg">
                         Prayer Requests
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterType === 'story'} onCheckedChange={() => setFilterType('story')}>
+                      <DropdownMenuCheckboxItem checked={filterType === 'story'} onCheckedChange={() => setFilterType('story')} className="rounded-lg">
                         Stories
                       </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem checked={filterType === 'announcement'} onCheckedChange={() => setFilterType('announcement')}>
+                      <DropdownMenuCheckboxItem checked={filterType === 'announcement'} onCheckedChange={() => setFilterType('announcement')} className="rounded-lg">
                         Announcements
                       </DropdownMenuCheckboxItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="h-9 w-32">
-                      <ArrowUpDown className="h-3.5 w-3.5 mr-1.5" />
+                    <SelectTrigger className="h-10 w-36 rounded-xl">
+                      <ArrowUpDown className="h-4 w-4 mr-2" />
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="oldest">Oldest</SelectItem>
-                      <SelectItem value="engagement">Engagement</SelectItem>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="newest" className="rounded-lg">Newest</SelectItem>
+                      <SelectItem value="oldest" className="rounded-lg">Oldest</SelectItem>
+                      <SelectItem value="engagement" className="rounded-lg">Engagement</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1293,20 +1114,16 @@ export default function FeedHubPage() {
           </Tabs>
         </div>
 
-        <div className="lg:col-span-4 space-y-6">
-          <OrgPublishingPanel />
-
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                    <MessageCircle className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm">Flagged Comments</h3>
-                    <p className="text-xs text-muted-foreground">{flaggedComments.length} need review</p>
-                  </div>
+        <div className="xl:col-span-4 space-y-6">
+          <Card className="rounded-2xl border shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <MessageCircle className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-foreground">Flagged Comments</h3>
+                  <p className="text-xs text-muted-foreground">{flaggedComments.length} need review</p>
                 </div>
               </div>
             </CardHeader>
@@ -1315,51 +1132,51 @@ export default function FeedHubPage() {
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm">
-            <CardHeader className="pb-3">
+          <Card className="rounded-2xl border shadow-sm">
+            <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
+                <div className="h-11 w-11 rounded-xl bg-zinc-100 flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-zinc-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">Recent Activity</h3>
+                  <h3 className="font-bold text-sm text-foreground">Recent Activity</h3>
                   <p className="text-xs text-muted-foreground">Moderation actions</p>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { action: 'Approved post', actor: 'Admin User', time: '5m ago', icon: Check, color: 'text-emerald-600' },
-                { action: 'Flagged comment', actor: 'System', time: '12m ago', icon: Flag, color: 'text-amber-600' },
-                { action: 'Hidden post', actor: 'Admin User', time: '1h ago', icon: EyeOff, color: 'text-muted-foreground' },
-                { action: 'Deleted comment', actor: 'Admin User', time: '2h ago', icon: Trash2, color: 'text-rose-600' },
+                { action: 'Approved post', actor: 'Admin User', time: '5m ago', icon: Check, color: 'text-emerald-600', bg: 'bg-emerald-100' },
+                { action: 'Flagged comment', actor: 'System', time: '12m ago', icon: Flag, color: 'text-amber-600', bg: 'bg-amber-100' },
+                { action: 'Hidden post', actor: 'Admin User', time: '1h ago', icon: EyeOff, color: 'text-zinc-600', bg: 'bg-zinc-100' },
+                { action: 'Deleted comment', actor: 'Admin User', time: '2h ago', icon: Trash2, color: 'text-rose-600', bg: 'bg-rose-100' },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-xs">
-                  <div className={cn('h-7 w-7 rounded-full bg-muted flex items-center justify-center', item.color)}>
-                    <item.icon className="h-3.5 w-3.5" />
+                <div key={idx} className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-50 transition-colors">
+                  <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center', item.bg, item.color)}>
+                    <item.icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{item.action}</p>
-                    <p className="text-muted-foreground">{item.actor}</p>
+                    <p className="font-medium text-xs text-foreground truncate">{item.action}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.actor}</p>
                   </div>
-                  <span className="text-muted-foreground shrink-0">{item.time}</span>
+                  <span className="text-[10px] text-muted-foreground font-medium shrink-0">{item.time}</span>
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          <Card className="border shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <Card className="rounded-2xl border shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
+            <CardContent className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="font-bold text-sm">AI Moderation</h3>
-                  <p className="text-xs text-muted-foreground">
+                <div className="space-y-2">
+                  <h3 className="font-bold text-sm text-foreground">AI Moderation</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Automatic flagging is enabled. Content with potential policy violations will be queued for review.
                   </p>
-                  <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                  <Button variant="link" size="sm" className="h-auto p-0 text-xs font-bold">
                     Configure Settings <ChevronRight className="h-3 w-3 ml-1" />
                   </Button>
                 </div>
