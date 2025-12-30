@@ -332,11 +332,11 @@ function ApplicationShell({ children }: { children: ReactNode }) {
           <ClientOnly fallback={<div className="h-12 border-b bg-background/95" />}>
             <AppHeader />
           </ClientOnly>
-          <main className='flex-1 overflow-y-auto'>
-            <div className="container-responsive py-4 sm:py-6 lg:py-10">
-              {children}
-            </div>
-          </main>
+<main className='flex-1 overflow-y-auto'>
+              <div className="container-responsive py-responsive-section safe-area-bottom">
+                {children}
+              </div>
+            </main>
           <footer className="border-t bg-background/95">
             <div className='container-responsive flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6 py-3'>
               <p className='text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center sm:text-left'>

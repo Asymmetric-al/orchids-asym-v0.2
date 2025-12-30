@@ -408,6 +408,7 @@ bun run build      # Production build
 
 ## Further Reading
 
+- [Responsive Design System](./RESPONSIVE.md) - Breakpoints, spacing, and mobile-first patterns
 - [Mock Data & Migration](./MOCK-DATA.md) - Mock data system and production migration guide
 - [Technical Decisions](./technical-decisions.md) - Key technical decisions and their rationale
 - [TanStack Integration](./tanstack-integration.md) - TanStack Query/DB usage guide

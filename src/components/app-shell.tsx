@@ -24,10 +24,12 @@ export function AppShell({
   return (
     <SidebarProvider>
       <AppSidebar role={role} tenantLogo={tenantLogo} tenantName={tenantName} />
-        <SidebarInset className="bg-zinc-50/50">
-          <AppHeader title={title} />
-          <main className="container-responsive flex-1 py-4 sm:py-6 lg:py-10">{children}</main>
-        </SidebarInset>
+      <SidebarInset className="bg-zinc-50/50">
+        <AppHeader title={title} />
+        <main className="container-responsive flex-1 py-responsive-section safe-area-bottom">
+          {children}
+        </main>
+      </SidebarInset>
     </SidebarProvider>
   )
 }
