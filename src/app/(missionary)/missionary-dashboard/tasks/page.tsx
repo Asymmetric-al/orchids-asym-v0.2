@@ -57,7 +57,7 @@ import {
   User,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useTasks } from '@/hooks/useTasks'
+import { useTasks } from '@/hooks'
 import { TaskDialog } from '@/features/missionary/components/task-dialog'
 import type { Task, TaskType, TaskStatus, TaskPriority } from '@/lib/missionary/types'
 

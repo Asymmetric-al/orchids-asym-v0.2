@@ -49,7 +49,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import {

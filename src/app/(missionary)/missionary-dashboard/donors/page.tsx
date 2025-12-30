@@ -82,11 +82,11 @@ import {
 } from 'lucide-react'
 import { format, formatDistanceToNow, differenceInMonths } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks'
 import { createClient } from '@/lib/supabase/client'
 import { AddPartnerDialog } from '@/features/missionary/components/add-partner-dialog'
 import { TaskDialog } from '@/features/missionary/components/task-dialog'
-import { useTasks } from '@/hooks/useTasks'
+import { useTasks } from '@/hooks'
 import type { Task } from '@/lib/missionary/types'
 import { toast } from 'sonner'
 import {

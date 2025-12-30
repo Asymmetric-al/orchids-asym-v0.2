@@ -1,4 +1,5 @@
-export type Role = 'finance' | 'fundraising' | 'mobilizers' | 'member_care' | 'events' | 'staff' | 'admin'
+export type { Role } from '@/config/navigation'
+import type { Role } from '@/config/navigation'
 
 export interface Tile {
   id: string

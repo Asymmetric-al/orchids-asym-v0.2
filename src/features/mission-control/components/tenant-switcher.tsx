@@ -10,7 +10,7 @@ import { useMC } from '../context'
 import type { Tenant } from '@/types'
 
 const STUB_TENANTS: Tenant[] = [
-  { id: '00000000-0000-0000-0000-000000000001', name: 'asymmetric.al', slug: 'asymmetric-al' },
+  { id: '00000000-0000-0000-0000-000000000001', name: 'asymmetric.al', slug: 'asymmetric-al', created_at: '', updated_at: '' },
 ]
 
 export const TenantSwitcher = memo(function TenantSwitcher() {

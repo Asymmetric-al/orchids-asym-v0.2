@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks'
 import type { Task, TaskFormData, TaskFilters, TaskStatus } from '@/lib/missionary/types'
 import { toast } from 'sonner'
 
