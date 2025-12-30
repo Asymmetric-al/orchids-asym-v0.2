@@ -303,8 +303,9 @@ const supabase = createClient()  // Sync
 ## Getting Help
 
 1. **Check docs**: Start with [ARCHITECTURE.md](./ARCHITECTURE.md) and [technical-decisions.md](./technical-decisions.md)
-2. **Search codebase**: Look for similar patterns in existing code
-3. **Ask questions**: Don't hesitate to ask if stuck
+2. **Mock data**: See [MOCK-DATA.md](./MOCK-DATA.md) for demo data and migration guide
+3. **Search codebase**: Look for similar patterns in existing code
+4. **Ask questions**: Don't hesitate to ask if stuck
 
 ---
 
@@ -325,3 +326,4 @@ const supabase = createClient()  // Sync
 | Utilities | `@/lib/utils` |
 | Types | `@/types` |
 | Features | `@/features/[feature]` |
+| Mock data | `@/lib/mock-data` |

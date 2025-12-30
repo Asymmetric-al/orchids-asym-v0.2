@@ -94,6 +94,7 @@ src/
 │   ├── supabase/       # Supabase client configurations
 │   ├── db/             # TanStack DB collections and hooks
 │   ├── auth/           # Authentication context
+│   ├── mock-data/      # Demo/development mock data (see MOCK-DATA.md)
 │   └── [domain]/       # Domain-specific utilities
 │
 ├── providers/          # React context providers
@@ -407,6 +408,7 @@ bun run build      # Production build
 
 ## Further Reading
 
+- [Mock Data & Migration](./MOCK-DATA.md) - Mock data system and production migration guide
 - [Technical Decisions](./technical-decisions.md) - Key technical decisions and their rationale
 - [TanStack Integration](./tanstack-integration.md) - TanStack Query/DB usage guide
 - [Modules: Teams & Permissions](./modules/teams-and-permissions.md) - Teams system documentation

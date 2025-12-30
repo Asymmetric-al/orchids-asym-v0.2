@@ -4,6 +4,8 @@
  * This is the main entry point for all mock data used throughout the application.
  * Import from '@/lib/mock-data' for a clean, unified API.
  *
+ * For production migration, see: docs/MOCK-DATA.md
+ *
  * @example
  * import { MISSIONARIES, getDonorById, TASKS } from '@/lib/mock-data'
  */
