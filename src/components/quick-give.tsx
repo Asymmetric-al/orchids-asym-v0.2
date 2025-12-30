@@ -44,43 +44,47 @@ function parseToNumber(intPart: string, decPart: string) {
 const sizeConfig = {
   xs: {
     container: "h-8 max-w-[120px]",
-    iconWrapper: "pl-2",
     icon: "h-3 w-3",
-    input: "pl-0.5 pr-8 text-sm",
-    currencyLabel: "right-2 text-[8px]",
+    input: "text-sm",
+    currencyLabel: "text-[8px]",
     buttonWrapper: 3,
     button: "ml-0.5 h-5 px-2 text-[10px]",
     arrow: "ml-0.5 h-2.5 w-2.5",
+    gap: "gap-0.5",
+    padding: "px-2",
   },
   sm: {
     container: "h-9 max-w-[160px]",
-    iconWrapper: "pl-2.5",
     icon: "h-3.5 w-3.5",
-    input: "pl-1 pr-10 text-base",
-    currencyLabel: "right-2.5 text-[9px]",
+    input: "text-base",
+    currencyLabel: "text-[9px]",
     buttonWrapper: 4,
     button: "ml-1 h-6 px-2.5 text-xs",
     arrow: "ml-1 h-3 w-3",
+    gap: "gap-1",
+    padding: "px-3",
   },
   default: {
     container: "h-11 max-w-[200px]",
-    iconWrapper: "pl-3",
     icon: "h-4 w-4",
-    input: "pl-1 pr-12 text-lg",
-    currencyLabel: "right-3 text-[10px]",
+    input: "text-lg",
+    currencyLabel: "text-[10px]",
     buttonWrapper: 5,
     button: "ml-1 h-7 px-3 text-xs",
     arrow: "ml-1 h-3.5 w-3.5",
+    gap: "gap-1",
+    padding: "px-3",
   },
   lg: {
     container: "h-14 max-w-xs",
-    iconWrapper: "pl-4",
     icon: "h-5 w-5",
-    input: "pl-1.5 pr-14 text-xl",
-    currencyLabel: "right-4 text-xs",
+    input: "text-xl",
+    currencyLabel: "text-xs",
     buttonWrapper: 6,
     button: "ml-1.5 h-9 px-4 text-sm",
     arrow: "ml-1.5 h-4 w-4",
+    gap: "gap-1.5",
+    padding: "px-4",
   },
 }
 
@@ -156,75 +160,74 @@ export function QuickGive({
         layout
         onClick={focusInput}
         className={cn(
-          "relative flex w-full items-center overflow-hidden rounded-full border bg-background cursor-text",
+          "relative flex w-full items-center justify-center overflow-hidden rounded-full border bg-background cursor-text",
           "transition-all duration-200",
           config.container,
+          config.padding,
           isFocused
             ? "border-foreground/80 shadow-[0_2px_12px_rgba(0,0,0,0.08)] ring-1 ring-foreground/10"
             : "border-border/80 shadow-sm hover:border-muted-foreground/50 hover:shadow"
         )}
       >
-        <div className={cn(
-          "pointer-events-none z-10 flex items-center justify-center",
-          config.iconWrapper
-        )}>
+        <div className={cn("flex items-center justify-center", config.gap)}>
           <DollarSign
             className={cn(
-              "transition-colors duration-150",
+              "flex-shrink-0 transition-colors duration-150",
               config.icon,
-              isFocused || displayValue ? "text-foreground" : "text-muted-foreground/50"
+              isFocused || displayValue ? "text-foreground" : "text-muted-foreground/40"
             )}
             strokeWidth={2.5}
           />
-        </div>
 
-        <div className="relative flex h-full flex-1 items-center">
-          <input
-            ref={inputRef}
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            value={displayValue}
-            onChange={onChange}
-            onKeyDown={onKeyDown}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="0"
-            aria-label="Donation amount"
-            className={cn(
-              "h-full w-full bg-transparent border-0 outline-none ring-0 focus:ring-0",
-              "font-semibold tracking-tight text-foreground font-sans",
-              "placeholder:text-muted-foreground/40 placeholder:font-normal",
-              config.input
-            )}
-          />
+          <div className="relative flex items-center">
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={displayValue}
+              onChange={onChange}
+              onKeyDown={onKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder="0"
+              aria-label="Donation amount"
+              style={{ width: Math.max(16, (displayValue.length || 1) * 10 + 4) }}
+              className={cn(
+                "h-full bg-transparent border-0 outline-none ring-0 focus:ring-0 text-center",
+                "font-semibold tracking-tight text-foreground font-sans",
+                "placeholder:text-muted-foreground/40 placeholder:font-normal",
+                config.input
+              )}
+            />
 
-          <AnimatePresence>
-            {!hasValue && !isFocused && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className={cn(
-                  "pointer-events-none absolute select-none font-semibold text-muted-foreground/50 uppercase tracking-wide",
-                  config.currencyLabel
-                )}
-              >
-                {currencyLabel}
-              </motion.span>
-            )}
-          </AnimatePresence>
+            <AnimatePresence>
+              {!hasValue && !isFocused && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className={cn(
+                    "ml-1 flex-shrink-0 select-none font-semibold text-muted-foreground/40 uppercase tracking-wide",
+                    config.currencyLabel
+                  )}
+                >
+                  {currencyLabel}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <AnimatePresence mode="popLayout">
           {hasValue && (
             <motion.div
-              initial={{ width: 0, opacity: 0, paddingRight: 0 }}
-              animate={{ width: "auto", opacity: 1, paddingRight: config.buttonWrapper }}
-              exit={{ width: 0, opacity: 0, paddingRight: 0 }}
+              initial={{ width: 0, opacity: 0, marginLeft: 0 }}
+              animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
+              exit={{ width: 0, opacity: 0, marginLeft: 0 }}
               transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-              className="flex h-full items-center justify-end overflow-hidden"
+              className="flex items-center justify-end overflow-hidden"
             >
               <MotionButton
                 type="button"

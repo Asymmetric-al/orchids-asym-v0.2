@@ -85,6 +85,9 @@ const BIO_MIN_WORDS = 200
 const BIO_MAX_WORDS = 600
 const BIO_MAX_CHARS = 3500
 
+const PLACEHOLDER_AVATAR = "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face"
+const PLACEHOLDER_COVER = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop"
+
 interface ProfileData {
   firstName: string
   lastName: string
@@ -1253,38 +1256,32 @@ export default function ProfilePage() {
                         className="border-[10px] sm:border-[12px] border-zinc-900 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative"
                       >
                         <div className="absolute top-0 left-0 right-0 h-28 sm:h-32">
-                          {profile.coverUrl ? (
                             <motion.img
-                              key={profile.coverUrl}
-                              src={profile.coverUrl}
+                              key={profile.coverUrl || 'placeholder'}
+                              src={profile.coverUrl || PLACEHOLDER_COVER}
                               alt="Cover"
                               className="w-full h-full object-cover"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.25 }}
                             />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-zinc-100 to-zinc-50 flex items-center justify-center">
-                              <ImageIcon className="h-8 w-8 sm:h-10 sm:w-10 text-zinc-200" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
-                        </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
+                          </div>
 
-                        <div className="absolute top-16 sm:top-20 left-0 right-0 flex justify-center">
-                          <motion.div 
-                            className="h-18 w-18 sm:h-20 sm:w-20 rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
-                            layout
-                            transition={springTransition}
-                          >
-                            <Avatar className="h-full w-full">
-                              <AvatarImage src={profile.avatarUrl} />
-                              <AvatarFallback className="bg-zinc-100 font-semibold text-base">
-                                {initials || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                          </motion.div>
-                        </div>
+                          <div className="absolute top-16 sm:top-20 left-0 right-0 flex justify-center">
+                            <motion.div 
+                              className="h-18 w-18 sm:h-20 sm:w-20 rounded-full border-[3px] border-white bg-white overflow-hidden shadow-lg ring-4 ring-white/50"
+                              layout
+                              transition={springTransition}
+                            >
+                              <Avatar className="h-full w-full">
+                                <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+                                <AvatarFallback className="bg-zinc-100 font-semibold text-base">
+                                  {initials || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                            </motion.div>
+                          </div>
 
                         <div className="mt-36 sm:mt-40 px-4 sm:px-5 text-center flex flex-col h-[calc(100%-9rem)] sm:h-[calc(100%-10rem)]">
                           <div className="flex-shrink-0">
@@ -1356,27 +1353,23 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="relative">
-                        <div className="h-16">
-                          {profile.coverUrl ? (
+                          <div className="h-16">
                             <img
-                              src={profile.coverUrl}
+                              src={profile.coverUrl || PLACEHOLDER_COVER}
                               alt="Cover"
                               className="w-full h-full object-cover"
                             />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-zinc-100 to-zinc-50" />
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent" />
-                        </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-transparent" />
+                          </div>
 
-                        <div className="px-4 pb-4">
-                          <div className="flex items-end gap-3 -mt-5">
-                            <Avatar className="h-10 w-10 border-2 border-white shadow-md ring-2 ring-white/50">
-                              <AvatarImage src={profile.avatarUrl} />
-                              <AvatarFallback className="bg-zinc-100 text-xs font-semibold">
-                                {initials || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
+                          <div className="px-4 pb-4">
+                            <div className="flex items-end gap-3 -mt-5">
+                              <Avatar className="h-10 w-10 border-2 border-white shadow-md ring-2 ring-white/50">
+                                <AvatarImage src={profile.avatarUrl || PLACEHOLDER_AVATAR} />
+                                <AvatarFallback className="bg-zinc-100 text-xs font-semibold">
+                                  {initials || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
                             <div className="flex-1 pb-0.5 min-w-0">
                               <h2 className="text-sm font-bold text-zinc-900 tracking-tight truncate">
                                 {profile.firstName || 'First'} {profile.lastName || 'Last'}
