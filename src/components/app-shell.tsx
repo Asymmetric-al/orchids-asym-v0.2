@@ -24,7 +24,7 @@ export function AppShell({
   return (
     <SidebarProvider>
       <AppSidebar role={role} tenantLogo={tenantLogo} tenantName={tenantName} />
-        <SidebarInset className="bg-zinc-50/50 dark:bg-transparent">
+        <SidebarInset className="bg-zinc-50/50">
           <AppHeader title={title} />
           <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-10">{children}</main>
         </SidebarInset>

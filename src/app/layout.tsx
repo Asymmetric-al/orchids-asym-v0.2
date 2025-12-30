@@ -49,11 +49,13 @@ export default function RootLayout({
           data-orchids-project-id="48583689-5836-4c2d-98d2-e5c1a9812316"
         />
             <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem={false}
-                disableTransitionOnChange
-              >
+                  attribute="class"
+                  defaultTheme="light"
+                  forcedTheme="light"
+                  enableSystem={false}
+                  storageKey="give-hope-theme"
+                  disableTransitionOnChange
+                >
                 <QueryProvider>
                   <Suspense fallback={null}>
                     <NuqsAdapter>

@@ -303,7 +303,7 @@ function AppHeader() {
 
 function ApplicationShell({ children }: { children: ReactNode }) {
   return (
-    <div className='flex min-h-screen w-full bg-zinc-50/50 dark:bg-transparent'>
+    <div className='flex min-h-screen w-full bg-zinc-50/50'>
       <SidebarProvider>
         <Sidebar collapsible='icon' className="border-r border-zinc-200/50 shadow-sm">
           <SidebarHeader className="h-12 border-b border-zinc-200/50 px-4 flex items-center justify-center">

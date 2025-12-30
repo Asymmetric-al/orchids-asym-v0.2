@@ -15,7 +15,6 @@ import {
   TooltipProvider,
 } from '@/components/ui/tooltip'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import type { NavItem } from '@/lib/mission-control/types'
 
 interface NavLinkProps {
@@ -123,8 +122,7 @@ const CollapseButton = memo(function CollapseButton({
   onToggle: () => void
 }) {
   return (
-    <div className="border-t border-border p-3 space-y-1">
-      <ThemeToggle collapsed={collapsed} />
+    <div className="border-t border-border p-3">
       <Button
         variant="ghost"
         size="sm"
