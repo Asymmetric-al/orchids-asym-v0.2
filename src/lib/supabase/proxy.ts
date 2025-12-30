@@ -55,14 +55,29 @@ export async function updateSession(request: NextRequest) {
       }
     }
   
-    // 3. Auth Protection
-    // Allow these routes without auth
-    const publicRoutes = ['/', '/login', '/register', '/auth/callback', '/api/auth/demo-account']
-    const isPublicRoute = publicRoutes.some(route => 
-      targetPathname === route || 
-      targetPathname.startsWith(route + '/') || 
-      targetPathname.startsWith('/api/')
-    )
+  // 3. Auth Protection
+  // Allow these routes without auth
+  const publicRoutes = [
+    '/',
+    '/login',
+    '/register',
+    '/auth/callback',
+    '/api/auth/demo-account',
+    '/about',
+    '/faq',
+    '/financials',
+    '/ways-to-give',
+    '/workers',
+    '/checkout',
+    '/sign',
+    '/sitemap.xml',
+    '/robots.txt',
+  ]
+  const isPublicRoute = publicRoutes.some(route => 
+    targetPathname === route || 
+    targetPathname.startsWith(route + '/') || 
+    targetPathname.startsWith('/api/')
+  )
   
     if (!user && !isPublicRoute) {
       const url = request.nextUrl.clone()
