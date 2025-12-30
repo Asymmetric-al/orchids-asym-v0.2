@@ -13,29 +13,35 @@ interface TimezoneSchedulerProps {
 }
 
 export function TimezoneScheduler({ remoteTimezone, remoteName }: TimezoneSchedulerProps) {
-  const [localTime, setLocalTime] = React.useState(new Date());
+  const [localTime, setLocalTime] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
+    setLocalTime(new Date());
     const timer = setInterval(() => setLocalTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const remoteTime = new Intl.DateTimeFormat('en-US', {
-    timeZone: remoteTimezone,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  }).format(localTime);
+  const remoteTime = localTime 
+    ? new Intl.DateTimeFormat('en-US', {
+        timeZone: remoteTimezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }).format(localTime)
+    : '--:--:-- --';
 
-  const localTimeStr = localTime.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  });
+  const localTimeStr = localTime 
+    ? localTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      })
+    : '--:--:-- --';
 
   const isRemoteWorkingHours = () => {
+    if (!localTime) return false;
     const hour = parseInt(new Intl.DateTimeFormat('en-US', {
       timeZone: remoteTimezone,
       hour: 'numeric',

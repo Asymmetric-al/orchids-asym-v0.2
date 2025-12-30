@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { CarePersonnel, ActivityLogEntry, CareThread, CarePlan } from '../types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,13 +21,26 @@ interface PersonnelProfileProps {
 }
 
 export function PersonnelProfile({ personnel, activities }: PersonnelProfileProps) {
+  const [localTime, setLocalTime] = useState<string | null>(null);
+  
   const heatmapData = useMemo(() => activities.map((a, index) => ({
     date: a.date.split('T')[0],
     intensity: (index % 4) + 1,
     type: a.type
   })), [activities]);
 
-  const localTime = new Date().toLocaleTimeString('en-US', { timeZone: personnel.timezone, hour: '2-digit', minute: '2-digit' });
+  useEffect(() => {
+    const updateTime = () => {
+      setLocalTime(new Date().toLocaleTimeString('en-US', { 
+        timeZone: personnel.timezone, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }));
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 60000);
+    return () => clearInterval(timer);
+  }, [personnel.timezone]);
 
   return (
     <div className="space-y-6">
@@ -55,7 +68,7 @@ export function PersonnelProfile({ personnel, activities }: PersonnelProfileProp
               <div className="flex flex-wrap gap-4 text-xs text-slate-500 font-medium">
                 <div className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {personnel.location}</div>
                 <div className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> {personnel.region}</div>
-                <div className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {localTime} (Local)</div>
+                <div className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {localTime || '--:--'} (Local)</div>
               </div>
             </div>
             <div className="flex gap-2">
