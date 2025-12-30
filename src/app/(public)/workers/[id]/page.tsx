@@ -3,7 +3,7 @@
 import React, { useState, use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getFieldWorkerById } from '@/lib/mock';
+import { getFieldWorkerById } from '@/lib/mock-data';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { 

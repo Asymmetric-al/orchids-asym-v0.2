@@ -10,7 +10,7 @@ import {
   CalendarDays, Landmark, Wallet, Building2,
   Zap, Activity, Shield
 } from 'lucide-react';
-import { getFieldWorkerById } from '@/lib/mock';
+import { getFieldWorkerById } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

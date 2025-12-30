@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { MissionBriefing, ImpactTile, DashboardSkeleton, Greeting } from '@/features/donor/components'
 
-import { RECENT_UPDATES, WORKER_FEEDS } from '@/lib/donor-dashboard/mock';
+import { RECENT_UPDATES, WORKER_FEEDS } from '@/lib/mock-data';
 
 export default function DonorDashboardPage() {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
