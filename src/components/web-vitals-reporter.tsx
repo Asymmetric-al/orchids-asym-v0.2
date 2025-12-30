@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 import { initWebVitals, type Metric } from '@/lib/monitoring/web-vitals'
 
 interface WebVitalsReporterProps {
@@ -9,27 +9,27 @@ interface WebVitalsReporterProps {
 }
 
 export function WebVitalsReporter({ analyticsEndpoint, debug }: WebVitalsReporterProps) {
-  useEffect(() => {
-    const handleViolation = (metric: Metric, threshold: number) => {
-      console.warn(
-        `[Performance Budget Violation] ${metric.name}: ${metric.value.toFixed(2)} exceeds threshold of ${threshold}`
+  const onViolation = useEffectEvent((metric: Metric, threshold: number) => {
+    console.warn(
+      `[Performance Budget Violation] ${metric.name}: ${metric.value.toFixed(2)} exceeds threshold of ${threshold}`
+    )
+
+    if (typeof window !== 'undefined' && 'Sentry' in window) {
+      const Sentry = window.Sentry as { captureMessage: (msg: string, level: string) => void }
+      Sentry.captureMessage(
+        `Performance budget violation: ${metric.name} = ${metric.value.toFixed(2)} (threshold: ${threshold})`,
+        'warning'
       )
-
-      if (typeof window !== 'undefined' && 'Sentry' in window) {
-        const Sentry = window.Sentry as { captureMessage: (msg: string, level: string) => void }
-        Sentry.captureMessage(
-          `Performance budget violation: ${metric.name} = ${metric.value.toFixed(2)} (threshold: ${threshold})`,
-          'warning'
-        )
-      }
     }
+  })
 
+  useEffect(() => {
     initWebVitals({
       analyticsEndpoint: analyticsEndpoint || '/api/analytics/web-vitals',
-      onViolation: handleViolation,
+      onViolation,
       debug: debug ?? process.env.NODE_ENV === 'development',
     })
-  }, [analyticsEndpoint, debug])
+  }, [analyticsEndpoint, debug, onViolation])
 
   return null
 }

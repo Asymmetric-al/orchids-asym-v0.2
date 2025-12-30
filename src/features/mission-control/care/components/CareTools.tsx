@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffectEvent } from 'react';
 import { 
   CommandDialog, CommandEmpty, CommandGroup, 
   CommandInput, CommandItem, CommandList 
@@ -20,21 +20,22 @@ export function CareTools({ personnel }: CareToolsProps) {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
 
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
-    };
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, []);
+  const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      setOpen((open) => !open);
+    }
+  });
 
-  const navigate = (path: string) => {
+  React.useEffect(() => {
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onKeyDown]);
+
+  const navigate = useEffectEvent((path: string) => {
     setOpen(false);
     router.push(path);
-  };
+  });
 
   return (
     <>

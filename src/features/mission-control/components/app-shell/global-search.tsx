@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useEffect, useEffectEvent, useMemo, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,26 +21,24 @@ export const GlobalSearch = memo(function GlobalSearch() {
   const router = useRouter()
   const { role } = useMC()
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((prev) => !prev)
-      }
+  const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      setOpen((prev) => !prev)
     }
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [])
+  })
+
+  useEffect(() => {
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onKeyDown])
 
   const filteredTiles = useMemo(() => TILES.filter((tile) => tile.roles.includes(role)), [role])
 
-  const handleSelect = useCallback(
-    (path: string) => {
-      router.push(path)
-      setOpen(false)
-    },
-    [router]
-  )
+  const handleSelect = useEffectEvent((path: string) => {
+    router.push(path)
+    setOpen(false)
+  })
 
   return (
     <>
