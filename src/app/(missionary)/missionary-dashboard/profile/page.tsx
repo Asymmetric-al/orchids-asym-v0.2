@@ -44,51 +44,45 @@ import {
   Copy,
   CheckCircle2,
   AlertCircle,
+  Info,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const fadeInUp = {
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -12 },
-}
-
-const scaleIn = {
-  initial: { opacity: 0, scale: 0.96 },
-  animate: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.96 },
-}
-
-const slideInRight = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -20 },
+  exit: { opacity: 0, y: -8 },
 }
 
 const staggerContainer = {
   animate: {
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
+      staggerChildren: 0.06,
+      delayChildren: 0.02,
     },
   },
 }
 
 const springTransition = {
   type: 'spring' as const,
-  stiffness: 380,
-  damping: 32,
+  stiffness: 400,
+  damping: 30,
 }
 
 const smoothTransition = {
-  duration: 0.3,
+  duration: 0.25,
   ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
 }
 
 const gentleTransition = {
-  duration: 0.4,
+  duration: 0.35,
   ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
 }
+
+const TAGLINE_MAX_LENGTH = 100
+const BIO_MIN_WORDS = 200
+const BIO_MAX_WORDS = 600
+const BIO_MAX_CHARS = 3500
 
 interface ProfileData {
   firstName: string
@@ -112,10 +106,8 @@ interface ValidationErrors {
   lastName?: string
   phone?: string
   website?: string
-  facebook?: string
-  instagram?: string
-  twitter?: string
-  youtube?: string
+  ministryFocus?: string
+  bio?: string
 }
 
 const initialProfile: ProfileData = {
@@ -133,6 +125,10 @@ const initialProfile: ProfileData = {
   website: '',
   avatarUrl: '',
   coverUrl: '',
+}
+
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length
 }
 
 function ProfileSkeleton() {
@@ -188,20 +184,20 @@ function FormField({
   icon: Icon,
   children,
   error,
+  helperText,
   className,
 }: {
   label: string
   icon?: React.ElementType
   children: React.ReactNode
   error?: string
+  helperText?: React.ReactNode
   className?: string
 }) {
   return (
     <motion.div 
       className={cn('space-y-1.5', className)}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
+      variants={fadeInUp}
     >
       <Label className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
         {Icon && <Icon className="h-3.5 w-3.5" />}
@@ -209,18 +205,29 @@ function FormField({
       </Label>
       {children}
       <AnimatePresence mode="wait">
-        {error && (
+        {error ? (
           <motion.p 
+            key="error"
             className="text-xs text-red-500 flex items-center gap-1"
             initial={{ opacity: 0, height: 0, y: -4 }}
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0, y: -4 }}
             transition={{ duration: 0.2 }}
           >
-            <AlertCircle className="h-3 w-3" />
+            <AlertCircle className="h-3 w-3 flex-shrink-0" />
             {error}
           </motion.p>
-        )}
+        ) : helperText ? (
+          <motion.div
+            key="helper"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {helperText}
+          </motion.div>
+        ) : null}
       </AnimatePresence>
     </motion.div>
   )
@@ -248,7 +255,10 @@ function SocialIcon({
   return (
     <motion.div 
       className="cursor-pointer"
-      whileHover={{ scale: 1.15, y: -1 }}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      whileHover={{ scale: 1.1, y: -1 }}
       whileTap={{ scale: 0.95 }}
       transition={springTransition}
     >
@@ -262,24 +272,22 @@ function AvatarUploadArea({
   initials,
   isUploading,
   onUploadClick,
-  isEditing,
 }: {
   avatarUrl: string
   initials: string
   isUploading: boolean
   onUploadClick: () => void
-  isEditing: boolean
 }) {
   return (
-    <motion.div
-      className={cn(
-        "relative group",
-        isEditing && "cursor-pointer"
-      )}
-      onClick={isEditing ? onUploadClick : undefined}
-      whileHover={isEditing ? { scale: 1.02 } : {}}
-      whileTap={isEditing ? { scale: 0.98 } : {}}
+    <motion.button
+      type="button"
+      onClick={onUploadClick}
+      disabled={isUploading}
+      className="relative group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 rounded-full"
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
       transition={springTransition}
+      aria-label="Upload profile picture"
     >
       <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
         <AvatarImage src={avatarUrl} />
@@ -287,6 +295,19 @@ function AvatarUploadArea({
           {initials || 'U'}
         </AvatarFallback>
       </Avatar>
+      
+      <motion.div 
+        className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
+        initial={false}
+      >
+        <motion.div
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          initial={false}
+        >
+          <Camera className="h-6 w-6 text-white drop-shadow-lg" />
+        </motion.div>
+      </motion.div>
+
       <AnimatePresence>
         {isUploading && (
           <motion.div 
@@ -295,35 +316,19 @@ function AvatarUploadArea({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-            </motion.div>
+            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-white animate-spin" />
           </motion.div>
         )}
       </AnimatePresence>
-      <AnimatePresence>
-        {isEditing && !isUploading && (
-          <motion.button
-            onClick={(e) => {
-              e.stopPropagation()
-              onUploadClick()
-            }}
-            className="absolute -bottom-1 -right-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white hover:bg-zinc-800 transition-colors"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={springTransition}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-    </motion.div>
+
+      <motion.div
+        className="absolute -bottom-1 -right-1 h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center shadow-lg border-2 border-white"
+        whileHover={{ scale: 1.1 }}
+        transition={springTransition}
+      >
+        <Camera className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+      </motion.div>
+    </motion.button>
   )
 }
 
@@ -331,25 +336,26 @@ function CoverUploadArea({
   coverUrl,
   isUploading,
   onUploadClick,
-  isEditing,
 }: {
   coverUrl: string
   isUploading: boolean
   onUploadClick: () => void
-  isEditing: boolean
 }) {
   return (
-    <motion.div
-      onClick={isEditing ? onUploadClick : undefined}
+    <motion.button
+      type="button"
+      onClick={onUploadClick}
+      disabled={isUploading}
       className={cn(
-        'aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden',
-        isEditing && 'cursor-pointer',
+        'w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2',
         coverUrl
           ? 'border-transparent'
           : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300'
       )}
-      whileHover={isEditing && !coverUrl ? { scale: 1.01, borderColor: '#a1a1aa' } : {}}
+      whileHover={{ scale: 1.005 }}
+      whileTap={{ scale: 0.995 }}
       transition={smoothTransition}
+      aria-label="Upload cover photo"
     >
       {coverUrl ? (
         <>
@@ -357,55 +363,49 @@ function CoverUploadArea({
             src={coverUrl}
             alt="Cover"
             className="absolute inset-0 w-full h-full object-cover"
-            initial={{ opacity: 0, scale: 1.05 }}
+            initial={{ opacity: 0, scale: 1.02 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={gentleTransition}
           />
-          {isEditing && (
+          <motion.div 
+            className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center transition-colors"
+            initial={false}
+          >
             <motion.div 
-              className="absolute inset-0 bg-black/0 hover:bg-black/40 flex items-center justify-center transition-colors group"
-              whileHover="hover"
+              className="bg-white rounded-lg px-3 py-1.5 shadow-lg opacity-0 hover:opacity-100 transition-opacity"
             >
-              <motion.div 
-                className="bg-white rounded-lg px-3 py-1.5 shadow-lg"
-                initial={{ opacity: 0, y: 8 }}
-                variants={{
-                  hover: { opacity: 1, y: 0 }
-                }}
-                transition={smoothTransition}
-              >
-                <span className="text-xs font-medium">Change Cover</span>
-              </motion.div>
+              <span className="text-xs font-medium flex items-center gap-1.5">
+                <Camera className="h-3.5 w-3.5" />
+                Change Cover
+              </span>
             </motion.div>
-          )}
+          </motion.div>
         </>
       ) : (
         <motion.div 
           className="flex flex-col items-center"
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={smoothTransition}
         >
           <motion.div 
             className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white shadow-sm border border-zinc-100 flex items-center justify-center mb-2 sm:mb-3"
-            animate={isUploading ? { rotate: [0, 180, 360] } : {}}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
             {isUploading ? (
-              <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400" />
+              <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-400 animate-spin" />
             ) : (
               <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-zinc-300" />
             )}
           </motion.div>
           <p className="text-xs sm:text-sm font-medium text-zinc-700">
-            {isEditing ? 'Click to upload cover photo' : 'No cover photo'}
+            Click to upload cover photo
           </p>
           <p className="text-[10px] sm:text-xs text-zinc-400 mt-0.5">
             1200x400px recommended
           </p>
         </motion.div>
       )}
-    </motion.div>
+    </motion.button>
   )
 }
 
@@ -428,20 +428,24 @@ function PreviewToggle({
         }}
       />
       <button
+        type="button"
         onClick={() => onChange('mobile')}
         className={cn(
           'relative z-10 px-2.5 py-1 rounded-md transition-colors',
           value === 'mobile' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'
         )}
+        aria-label="Mobile preview"
       >
         <Smartphone className="h-4 w-4" />
       </button>
       <button
+        type="button"
         onClick={() => onChange('desktop')}
         className={cn(
           'relative z-10 px-2.5 py-1 rounded-md transition-colors',
           value === 'desktop' ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'
         )}
+        aria-label="Desktop preview"
       >
         <Monitor className="h-4 w-4" />
       </button>
@@ -452,18 +456,14 @@ function PreviewToggle({
 function MotionCard({ 
   children, 
   className,
-  delay = 0 
 }: { 
   children: React.ReactNode
   className?: string
-  delay?: number 
 }) {
   return (
     <motion.div
       variants={fadeInUp}
-      initial="initial"
-      animate="animate"
-      transition={{ ...gentleTransition, delay }}
+      transition={gentleTransition}
     >
       <Card className={cn("rounded-2xl border-zinc-200 shadow-sm", className)}>
         {children}
@@ -494,6 +494,7 @@ export default function ProfilePage() {
   const [originalProfile, setOriginalProfile] = useState<ProfileData>(initialProfile)
 
   const initials = (profile.firstName?.[0] || '') + (profile.lastName?.[0] || '')
+  const bioWordCount = countWords(profile.bio)
 
   useEffect(() => {
     async function fetchProfile() {
@@ -560,13 +561,22 @@ export default function ProfilePage() {
       errors.phone = 'Please enter a valid phone number'
     }
     
+    if (profile.ministryFocus && profile.ministryFocus.length > TAGLINE_MAX_LENGTH) {
+      errors.ministryFocus = `Tagline is too long (max ${TAGLINE_MAX_LENGTH} characters)`
+    }
+
+    if (profile.bio) {
+      const wordCount = countWords(profile.bio)
+      if (wordCount < BIO_MIN_WORDS) {
+        errors.bio = `Please write at least ${BIO_MIN_WORDS} words (currently ${wordCount})`
+      } else if (wordCount > BIO_MAX_WORDS) {
+        errors.bio = `Please keep under ${BIO_MAX_WORDS} words (currently ${wordCount})`
+      }
+    }
+    
     if (profile.website && profile.website.length > 0) {
-      try {
-        if (!profile.website.startsWith('http://') && !profile.website.startsWith('https://')) {
-          errors.website = 'Website should start with http:// or https://'
-        }
-      } catch {
-        errors.website = 'Please enter a valid URL'
+      if (!profile.website.startsWith('http://') && !profile.website.startsWith('https://')) {
+        errors.website = 'Website should start with http:// or https://'
       }
     }
     
@@ -688,6 +698,16 @@ export default function ProfilePage() {
       } = supabase.storage.from('profiles').getPublicUrl(filePath)
 
       setProfile((prev) => ({ ...prev, coverUrl: publicUrl }))
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coverUrl: publicUrl }),
+      })
+
+      if (!res.ok) throw new Error('Failed to update profile')
+
+      setOriginalProfile((prev) => ({ ...prev, coverUrl: publicUrl }))
       toast.success('Cover photo uploaded')
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload cover image'
@@ -776,7 +796,7 @@ export default function ProfilePage() {
     return (
       <motion.div 
         className="flex flex-col items-center justify-center py-20 space-y-4"
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={gentleTransition}
       >
@@ -821,9 +841,9 @@ export default function ProfilePage() {
                           {copiedLink ? (
                             <motion.div
                               key="check"
-                              initial={{ scale: 0, rotate: -180 }}
+                              initial={{ scale: 0, rotate: -90 }}
                               animate={{ scale: 1, rotate: 0 }}
-                              exit={{ scale: 0, rotate: 180 }}
+                              exit={{ scale: 0, rotate: 90 }}
                               transition={springTransition}
                             >
                               <Check className="h-4 w-4 text-emerald-600" />
@@ -874,9 +894,9 @@ export default function ProfilePage() {
                 <AnimatePresence>
                   {isEditing && hasChanges && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.8, x: -10 }}
+                      initial={{ opacity: 0, scale: 0.9, x: -8 }}
                       animate={{ opacity: 1, scale: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.8, x: -10 }}
+                      exit={{ opacity: 0, scale: 0.9, x: -8 }}
                       transition={springTransition}
                     >
                       <Button
@@ -902,7 +922,7 @@ export default function ProfilePage() {
                     disabled={isSaving || (isEditing && !hasChanges)}
                     size="sm"
                     className={cn(
-                      'h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-300',
+                      'h-9 px-4 text-xs font-medium min-w-[100px] transition-colors duration-200',
                       saveSuccess && 'bg-emerald-600 hover:bg-emerald-600'
                     )}
                   >
@@ -913,16 +933,18 @@ export default function ProfilePage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
                         >
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </motion.div>
                       ) : saveSuccess ? (
                         <motion.div
                           key="success"
-                          initial={{ opacity: 0, scale: 0.5 }}
+                          initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
                           className="flex items-center"
+                          transition={springTransition}
                         >
                           <CheckCircle2 className="mr-1.5 h-4 w-4" />
                           Saved!
@@ -934,6 +956,7 @@ export default function ProfilePage() {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           className="flex items-center"
+                          transition={{ duration: 0.15 }}
                         >
                           <Save className="mr-1.5 h-4 w-4" />
                           Save
@@ -945,6 +968,7 @@ export default function ProfilePage() {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           className="flex items-center"
+                          transition={{ duration: 0.15 }}
                         >
                           <Pencil className="mr-1.5 h-4 w-4" />
                           Edit
@@ -962,7 +986,7 @@ export default function ProfilePage() {
               className="lg:col-span-7 space-y-6"
               variants={staggerContainer}
             >
-              <MotionCard delay={0.05}>
+              <MotionCard>
                 <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
                   <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
                     <User className="h-4 w-4" />
@@ -978,30 +1002,27 @@ export default function ProfilePage() {
                   >
                     <div className="grid sm:grid-cols-2 gap-4">
                       <FormField label="First Name" error={validationErrors.firstName}>
-                        <motion.div
-                          whileFocus={{ scale: 1.01 }}
-                          transition={springTransition}
-                        >
-                          <Input
-                            value={profile.firstName}
-                            onChange={(e) => updateProfile('firstName', e.target.value)}
-                            disabled={!isEditing}
-                            className={cn(
-                              "h-10 transition-all duration-200",
-                              isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
-                            )}
-                            placeholder="Your first name"
-                          />
-                        </motion.div>
+                        <Input
+                          value={profile.firstName}
+                          onChange={(e) => updateProfile('firstName', e.target.value)}
+                          readOnly={!isEditing}
+                          className={cn(
+                            "h-10 transition-all duration-200",
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
+                          )}
+                          placeholder="Your first name"
+                        />
                       </FormField>
                       <FormField label="Last Name" error={validationErrors.lastName}>
                         <Input
                           value={profile.lastName}
                           onChange={(e) => updateProfile('lastName', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                           placeholder="Your last name"
                         />
@@ -1013,11 +1034,12 @@ export default function ProfilePage() {
                         <Input
                           value={profile.location}
                           onChange={(e) => updateProfile('location', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           placeholder="City, Country"
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                         />
                       </FormField>
@@ -1025,65 +1047,98 @@ export default function ProfilePage() {
                         <Input
                           value={profile.phone}
                           onChange={(e) => updateProfile('phone', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           placeholder="+1 (555) 000-0000"
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                         />
                       </FormField>
                     </div>
 
-                    <FormField label="Tagline">
+                    <FormField 
+                      label="Tagline" 
+                      error={validationErrors.ministryFocus}
+                      helperText={
+                        <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
+                          <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <span>
+                            A brief description of your work that appears next to your name on the giving page and directory.
+                            {isEditing && (
+                              <span className={cn(
+                                "ml-1 font-medium",
+                                profile.ministryFocus.length > TAGLINE_MAX_LENGTH - 10 ? 'text-amber-500' : ''
+                              )}>
+                                ({profile.ministryFocus.length}/{TAGLINE_MAX_LENGTH})
+                              </span>
+                            )}
+                          </span>
+                        </p>
+                      }
+                    >
                       <Input
                         value={profile.ministryFocus}
                         onChange={(e) => updateProfile('ministryFocus', e.target.value)}
-                        disabled={!isEditing}
-                        placeholder="A short description of your work"
+                        readOnly={!isEditing}
+                        placeholder="e.g., Church planting in Southeast Asia"
+                        maxLength={TAGLINE_MAX_LENGTH}
                         className={cn(
                           "h-10 transition-all duration-200",
-                          isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          !isEditing && "bg-zinc-50 cursor-default",
+                          isEditing && "focus:ring-2 focus:ring-zinc-200"
                         )}
                       />
                     </FormField>
 
-                    <FormField label="About You">
-                      <div className="relative">
-                        <Textarea
-                          value={profile.bio}
-                          onChange={(e) => updateProfile('bio', e.target.value)}
-                          disabled={!isEditing}
-                          placeholder="Share a bit about yourself and your ministry..."
-                          className={cn(
-                            "min-h-[120px] resize-none transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
-                          )}
-                          maxLength={500}
-                        />
-                        <AnimatePresence>
+                    <FormField 
+                      label="About You"
+                      error={validationErrors.bio}
+                      helperText={
+                        <div className="space-y-1">
+                          <p className="text-[11px] text-zinc-400 flex items-start gap-1.5">
+                            <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span>
+                              Share your story, calling, and ministry work. This appears on your public profile page. 
+                              Include what you do, where you serve, and how supporters can pray for you.
+                            </span>
+                          </p>
                           {isEditing && (
-                            <motion.span 
+                            <motion.p 
                               className={cn(
-                                "absolute bottom-2 right-2 text-[10px] font-medium",
-                                profile.bio.length >= 450 ? 'text-amber-500' : 'text-zinc-300'
+                                "text-[11px] font-medium text-right",
+                                bioWordCount < BIO_MIN_WORDS ? 'text-zinc-400' : 
+                                bioWordCount > BIO_MAX_WORDS ? 'text-amber-500' : 'text-emerald-600'
                               )}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.2 }}
+                              transition={{ duration: 0.15 }}
                             >
-                              {profile.bio.length}/500
-                            </motion.span>
+                              {bioWordCount} / {BIO_MIN_WORDS}–{BIO_MAX_WORDS} words
+                            </motion.p>
                           )}
-                        </AnimatePresence>
-                      </div>
+                        </div>
+                      }
+                    >
+                      <Textarea
+                        value={profile.bio}
+                        onChange={(e) => updateProfile('bio', e.target.value)}
+                        readOnly={!isEditing}
+                        placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
+                        className={cn(
+                          "min-h-[180px] resize-none transition-all duration-200",
+                          !isEditing && "bg-zinc-50 cursor-default",
+                          isEditing && "focus:ring-2 focus:ring-zinc-200"
+                        )}
+                        maxLength={BIO_MAX_CHARS}
+                      />
                     </FormField>
                   </motion.div>
                 </CardContent>
               </MotionCard>
 
-              <MotionCard delay={0.1}>
+              <MotionCard>
                 <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
                   <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
                     <ImageIcon className="h-4 w-4" />
@@ -1093,21 +1148,18 @@ export default function ProfilePage() {
                 <CardContent className="p-4 sm:p-6 space-y-6">
                   <motion.div 
                     className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ ...gentleTransition, delay: 0.15 }}
+                    variants={fadeInUp}
                   >
                     <AvatarUploadArea
                       avatarUrl={profile.avatarUrl}
                       initials={initials}
                       isUploading={isUploading}
                       onUploadClick={() => fileInputRef.current?.click()}
-                      isEditing={isEditing}
                     />
                     <div className="space-y-2 text-center sm:text-left">
                       <p className="text-sm font-medium text-zinc-900">Profile Picture</p>
-                      <p className="text-xs text-zinc-500 max-w-[200px]">
-                        Square image, at least 400x400px. JPG or PNG.
+                      <p className="text-xs text-zinc-500 max-w-[220px]">
+                        Square image, at least 400x400px. JPG or PNG, max 5MB.
                       </p>
                       <input
                         type="file"
@@ -1116,39 +1168,33 @@ export default function ProfilePage() {
                         accept="image/*"
                         onChange={handleAvatarUpload}
                       />
-                      <AnimatePresence>
-                        {isEditing && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 8 }}
-                            transition={smoothTransition}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={isUploading}
-                              onClick={() => fileInputRef.current?.click()}
-                              className="h-8 text-xs"
-                            >
-                              {isUploading ? (
-                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Upload className="mr-1.5 h-3.5 w-3.5" />
-                              )}
-                              {isUploading ? 'Uploading...' : 'Upload'}
-                            </Button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={isUploading}
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-8 text-xs"
+                        >
+                          {isUploading ? (
+                            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Upload className="mr-1.5 h-3.5 w-3.5" />
+                          )}
+                          {isUploading ? 'Uploading...' : 'Upload Photo'}
+                        </Button>
+                      </motion.div>
                     </div>
                   </motion.div>
 
                   <motion.div 
                     className="space-y-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ ...gentleTransition, delay: 0.2 }}
+                    variants={fadeInUp}
                   >
                     <Label className="text-xs font-medium text-zinc-500">
                       Cover Photo
@@ -1157,8 +1203,10 @@ export default function ProfilePage() {
                       coverUrl={profile.coverUrl}
                       isUploading={isUploadingCover}
                       onUploadClick={() => coverInputRef.current?.click()}
-                      isEditing={isEditing}
                     />
+                    <p className="text-[11px] text-zinc-400">
+                      This image appears at the top of your public profile. Max 10MB.
+                    </p>
                     <input
                       type="file"
                       ref={coverInputRef}
@@ -1170,7 +1218,7 @@ export default function ProfilePage() {
                 </CardContent>
               </MotionCard>
 
-              <MotionCard delay={0.15}>
+              <MotionCard>
                 <CardHeader className="border-b border-zinc-100 px-4 sm:px-6 py-4">
                   <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
                     <Globe className="h-4 w-4" />
@@ -1189,11 +1237,12 @@ export default function ProfilePage() {
                         <Input
                           value={profile.instagram}
                           onChange={(e) => updateProfile('instagram', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           placeholder="@yourhandle"
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                         />
                       </FormField>
@@ -1201,11 +1250,12 @@ export default function ProfilePage() {
                         <Input
                           value={profile.facebook}
                           onChange={(e) => updateProfile('facebook', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           placeholder="facebook.com/yourpage"
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                         />
                       </FormField>
@@ -1215,11 +1265,12 @@ export default function ProfilePage() {
                         <Input
                           value={profile.twitter}
                           onChange={(e) => updateProfile('twitter', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           placeholder="@yourhandle"
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                         />
                       </FormField>
@@ -1227,11 +1278,12 @@ export default function ProfilePage() {
                         <Input
                           value={profile.youtube}
                           onChange={(e) => updateProfile('youtube', e.target.value)}
-                          disabled={!isEditing}
+                          readOnly={!isEditing}
                           placeholder="youtube.com/@channel"
                           className={cn(
                             "h-10 transition-all duration-200",
-                            isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                            !isEditing && "bg-zinc-50 cursor-default",
+                            isEditing && "focus:ring-2 focus:ring-zinc-200"
                           )}
                         />
                       </FormField>
@@ -1240,11 +1292,12 @@ export default function ProfilePage() {
                       <Input
                         value={profile.website}
                         onChange={(e) => updateProfile('website', e.target.value)}
-                        disabled={!isEditing}
+                        readOnly={!isEditing}
                         placeholder="https://yourwebsite.com"
                         className={cn(
                           "h-10 transition-all duration-200",
-                          isEditing && "ring-2 ring-transparent focus:ring-zinc-200"
+                          !isEditing && "bg-zinc-50 cursor-default",
+                          isEditing && "focus:ring-2 focus:ring-zinc-200"
                         )}
                       />
                     </FormField>
@@ -1255,10 +1308,8 @@ export default function ProfilePage() {
 
             <motion.div 
               className="lg:col-span-5"
-              variants={slideInRight}
-              initial="initial"
-              animate="animate"
-              transition={{ ...gentleTransition, delay: 0.2 }}
+              variants={fadeInUp}
+              transition={{ ...gentleTransition, delay: 0.15 }}
             >
               <div className="sticky top-24">
                 <div className="flex items-center justify-between mb-3 px-1">
@@ -1275,83 +1326,60 @@ export default function ProfilePage() {
                   {previewMode === 'mobile' ? (
                     <motion.div
                       key="mobile-preview"
-                      initial={{ opacity: 0, scale: 0.95, rotateY: -5 }}
-                      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, rotateY: 5 }}
+                      initial={{ opacity: 0, scale: 0.97, x: 10 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.97, x: -10 }}
                       transition={gentleTransition}
                       className="border-[10px] sm:border-[12px] border-zinc-900 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative"
                     >
-                      <motion.div 
-                        className="absolute top-0 left-0 right-0 h-32 sm:h-36"
-                        layoutId="preview-cover"
-                      >
+                      <div className="absolute top-0 left-0 right-0 h-32 sm:h-36">
                         {profile.coverUrl ? (
                           <motion.img
+                            key={profile.coverUrl}
                             src={profile.coverUrl}
                             alt="Cover"
                             className="w-full h-full object-cover"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
+                            transition={{ duration: 0.25 }}
                           />
                         ) : (
                           <div className="w-full h-full bg-zinc-100 flex items-center justify-center">
                             <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12 text-zinc-200" />
                           </div>
                         )}
-                      </motion.div>
+                      </div>
 
-                      <motion.div 
-                        className="absolute top-20 sm:top-24 left-0 right-0 flex justify-center"
-                        layoutId="preview-avatar"
-                      >
-                        <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
+                      <div className="absolute top-20 sm:top-24 left-0 right-0 flex justify-center">
+                        <motion.div 
+                          className="h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg"
+                          layout
+                          transition={springTransition}
+                        >
                           <Avatar className="h-full w-full">
                             <AvatarImage src={profile.avatarUrl} />
                             <AvatarFallback className="bg-zinc-100 font-bold text-base sm:text-lg">
                               {initials || 'U'}
                             </AvatarFallback>
                           </Avatar>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+                      </div>
 
                       <div className="mt-44 sm:mt-52 px-4 sm:px-6 text-center">
-                        <motion.h2 
-                          className="text-lg sm:text-xl font-bold text-zinc-900"
-                          key={`name-${profile.firstName}-${profile.lastName}`}
-                          initial={{ opacity: 0.5 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.2 }}
-                        >
+                        <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
                           {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                        </motion.h2>
+                        </h2>
                         <div className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 mt-1">
                           <MapPin className="h-3 w-3" />
-                          <motion.span
-                            key={`location-${profile.location}`}
-                            initial={{ opacity: 0.5 }}
-                            animate={{ opacity: 1 }}
-                          >
-                            {profile.location || 'Location'}
-                          </motion.span>
+                          <span>{profile.location || 'Location'}</span>
                         </div>
-                        <motion.p 
-                          className="text-xs font-medium text-zinc-600 mt-2"
-                          key={`tagline-${profile.ministryFocus}`}
-                          initial={{ opacity: 0.5 }}
-                          animate={{ opacity: 1 }}
-                        >
-                          {profile.ministryFocus || 'Tagline'}
-                        </motion.p>
+                        <p className="text-xs font-medium text-zinc-600 mt-2 line-clamp-2">
+                          {profile.ministryFocus || 'Your tagline will appear here'}
+                        </p>
 
-                        <motion.p 
-                          className="text-xs text-zinc-400 mt-4 line-clamp-3 px-2"
-                          key={`bio-${profile.bio.substring(0, 20)}`}
-                          initial={{ opacity: 0.5 }}
-                          animate={{ opacity: 1 }}
-                        >
+                        <p className="text-xs text-zinc-400 mt-4 line-clamp-3 px-2">
                           {profile.bio || 'Your bio will appear here.'}
-                        </motion.p>
+                        </p>
 
                         <div className="flex justify-center gap-3 mt-5">
                           <AnimatePresence>
@@ -1394,9 +1422,9 @@ export default function ProfilePage() {
                   ) : (
                     <motion.div
                       key="desktop-preview"
-                      initial={{ opacity: 0, scale: 0.95, rotateY: 5 }}
-                      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, rotateY: -5 }}
+                      initial={{ opacity: 0, scale: 0.97, x: -10 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.97, x: 10 }}
                       transition={gentleTransition}
                       className="border border-zinc-200 rounded-xl overflow-hidden shadow-lg bg-white"
                     >
@@ -1407,10 +1435,7 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="relative">
-                        <motion.div 
-                          className="h-20"
-                          layoutId="preview-cover"
-                        >
+                        <div className="h-20">
                           {profile.coverUrl ? (
                             <img
                               src={profile.coverUrl}
@@ -1420,18 +1445,16 @@ export default function ProfilePage() {
                           ) : (
                             <div className="w-full h-full bg-zinc-100" />
                           )}
-                        </motion.div>
+                        </div>
 
                         <div className="px-4 pb-4">
                           <div className="flex items-end gap-3 -mt-6">
-                            <motion.div layoutId="preview-avatar">
-                              <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                                <AvatarImage src={profile.avatarUrl} />
-                                <AvatarFallback className="bg-zinc-100 text-xs font-bold">
-                                  {initials || 'U'}
-                                </AvatarFallback>
-                              </Avatar>
-                            </motion.div>
+                            <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                              <AvatarImage src={profile.avatarUrl} />
+                              <AvatarFallback className="bg-zinc-100 text-xs font-bold">
+                                {initials || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="flex-1 pb-0.5">
                               <h2 className="text-sm font-bold text-zinc-900">
                                 {profile.firstName || 'First'} {profile.lastName || 'Last'}
@@ -1443,7 +1466,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
 
-                          <p className="text-[10px] font-medium text-zinc-600 mt-3">
+                          <p className="text-[10px] font-medium text-zinc-600 mt-3 line-clamp-1">
                             {profile.ministryFocus || 'Tagline'}
                           </p>
                           <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2">
@@ -1452,19 +1475,21 @@ export default function ProfilePage() {
 
                           <div className="flex items-center justify-between mt-4">
                             <div className="flex gap-2">
-                              {profile.instagram && (
-                                <SocialIcon platform="instagram" url={profile.instagram} />
-                              )}
-                              {profile.facebook && (
-                                <SocialIcon platform="facebook" url={profile.facebook} />
-                              )}
-                              {profile.twitter && (
-                                <SocialIcon platform="twitter" url={profile.twitter} />
-                              )}
+                              <AnimatePresence>
+                                {profile.instagram && (
+                                  <SocialIcon platform="instagram" url={profile.instagram} />
+                                )}
+                                {profile.facebook && (
+                                  <SocialIcon platform="facebook" url={profile.facebook} />
+                                )}
+                                {profile.twitter && (
+                                  <SocialIcon platform="twitter" url={profile.twitter} />
+                                )}
+                              </AnimatePresence>
                             </div>
                             <motion.div
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
                             >
                               <Button
                                 size="sm"
@@ -1484,7 +1509,7 @@ export default function ProfilePage() {
                   className="text-[10px] text-zinc-400 text-center mt-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.3 }}
                 >
                   Changes update in real-time
                 </motion.p>
