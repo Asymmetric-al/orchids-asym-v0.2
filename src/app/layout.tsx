@@ -8,7 +8,7 @@ import { WebVitalsReporter } from "@/components/web-vitals-reporter";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import Script from "next/script";
-import { TanStackDBProvider } from "@/lib/db/provider";
+import { QueryProvider } from "@/lib/db/query-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,13 +56,13 @@ export default function RootLayout({
                   storageKey="give-hope-theme"
                   disableTransitionOnChange
                 >
-<TanStackDBProvider>
+<QueryProvider>
                     <Suspense fallback={null}>
                       <NuqsAdapter>
                         {children}
                       </NuqsAdapter>
                     </Suspense>
-                  </TanStackDBProvider>
+                  </QueryProvider>
               </ThemeProvider>
           <Toaster />
           <WebVitalsReporter />
