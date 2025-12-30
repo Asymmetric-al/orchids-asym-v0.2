@@ -44,7 +44,7 @@ function generateBreadcrumbsFromPath(
   for (let i = 0; i < segments.length; i++) {
     currentPath += `/${segments[i]}`
     const segment = segments[i]
-    
+
     const label =
       mergedLabelMap[segment.toLowerCase()] ||
       segment
@@ -71,37 +71,53 @@ export function DashboardFooter({
   labelMap,
 }: DashboardFooterProps) {
   const pathname = usePathname()
-  const breadcrumbs = customBreadcrumbs || generateBreadcrumbsFromPath(pathname, labelMap)
+  const breadcrumbs =
+    customBreadcrumbs || generateBreadcrumbsFromPath(pathname, labelMap)
 
   return (
     <footer
       className={cn(
-        'bg-card sticky bottom-0 z-50 flex items-center justify-between gap-3 border-t p-4 max-md:flex-col sm:px-6 md:gap-6',
+        'bg-card/80 backdrop-blur-sm sticky bottom-0 z-40 flex items-center justify-between border-t border-border/50 px-4 py-2.5 sm:px-6',
+        'max-md:flex-col max-md:gap-1.5 md:gap-4',
         className
       )}
     >
-      <p className="text-muted-foreground text-center text-sm text-balance">
-        {`© ${new Date().getFullYear()}`}{' '}
-        <Link href={brandHref} className="text-primary hover:underline">
+      <p className="text-muted-foreground text-xs leading-relaxed">
+        © {new Date().getFullYear()}{' '}
+        <Link
+          href={brandHref}
+          className="text-foreground/80 font-medium hover:text-primary transition-colors"
+        >
           {brandName}
         </Link>
-        {tagline && `, ${tagline}`}
+        {tagline && (
+          <span className="text-muted-foreground/70"> · {tagline}</span>
+        )}
       </p>
       {showBreadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="gap-1 sm:gap-1.5 text-xs">
             {breadcrumbs.map((item, index) => (
               <Fragment key={index}>
-                <BreadcrumbItem>
+                <BreadcrumbItem className="gap-1">
                   {item.href ? (
                     <BreadcrumbLink asChild>
-                      <Link href={item.href}>{item.label}</Link>
+                      <Link
+                        href={item.href}
+                        className="text-muted-foreground/70 hover:text-foreground transition-colors"
+                      >
+                        {item.label}
+                      </Link>
                     </BreadcrumbLink>
                   ) : (
-                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    <BreadcrumbPage className="text-foreground/80 font-medium">
+                      {item.label}
+                    </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
-                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
+                {index < breadcrumbs.length - 1 && (
+                  <BreadcrumbSeparator className="[&>svg]:size-3 text-muted-foreground/50" />
+                )}
               </Fragment>
             ))}
           </BreadcrumbList>
