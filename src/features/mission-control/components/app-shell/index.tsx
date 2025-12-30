@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -19,8 +19,6 @@ import {
   PieChart, 
   LifeBuoy,
   Menu,
-  X,
-  ChevronLeft,
   Search,
   Bell,
   User,
@@ -39,9 +37,9 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Logo from "@/components/shadcn-studio/logo";
+import { DashboardFooter } from "@/components/dashboard-footer";
 
 const navigation = [
   { name: "Overview", href: "/mc", icon: LayoutDashboard },
@@ -225,6 +223,9 @@ export function AppShell({ children, title, breadcrumbs }: AppShellProps) {
             {children}
           </div>
         </main>
+
+        {/* Footer */}
+        <DashboardFooter brandName="Asym" tagline="Mission Control" />
       </div>
     </div>
   );

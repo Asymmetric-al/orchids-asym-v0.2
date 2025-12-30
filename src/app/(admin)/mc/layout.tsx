@@ -7,14 +7,10 @@ import {
   ChartPieIcon,
   ChevronRightIcon,
   DollarSignIcon,
-  FacebookIcon,
-  InstagramIcon,
   LanguagesIcon,
   LayoutGridIcon,
-  LinkedinIcon,
   MailIcon,
   SearchIcon,
-  TwitterIcon,
   UsersIcon,
   HeartHandshakeIcon,
   CalendarIcon,
@@ -23,8 +19,7 @@ import {
   PenToolIcon,
   SparklesIcon,
   LifeBuoyIcon,
-  ShieldCheckIcon,
-  Heart
+  ShieldCheckIcon
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -58,7 +53,7 @@ import ProfileDropdown from '@/components/shadcn-studio/blocks/dropdown-profile'
 import { MCProvider, useMC } from '@/lib/mission-control/context'
 import { ThemeProvider } from '@/providers/theme-provider'
 import { ClientOnly } from '@/features/mission-control/components/client-only'
-import { cn } from '@/lib/utils'
+import { DashboardFooter } from '@/components/dashboard-footer'
 
 type MenuSubItem = {
   label: string
@@ -336,34 +331,15 @@ function ApplicationShell({ children }: { children: ReactNode }) {
             <AppHeader />
           </ClientOnly>
 <main className='flex-1 overflow-y-auto'>
-              <div className="container-responsive py-responsive-section safe-area-bottom">
+              <div className="container-responsive py-responsive-section">
                 {children}
               </div>
             </main>
-          <footer className="border-t bg-background/95">
-            <div className='container-responsive flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6 py-3'>
-              <p className='text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center sm:text-left'>
-                {`© ${new Date().getFullYear()}`}{' '}
-                <span className='text-zinc-900 font-black'>GIVE HOPE</span>
-                <span className="mx-1 sm:mx-2 text-zinc-300 hidden sm:inline">|</span>
-                <span className="block sm:inline">Global Ministry platform</span>
-              </p>
-              <div className='flex items-center gap-4 text-zinc-400'>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
-                  <FacebookIcon className='size-3.5' />
-                </a>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
-                  <InstagramIcon className='size-3.5' />
-                </a>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
-                  <LinkedinIcon className='size-3.5' />
-                </a>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
-                  <TwitterIcon className='size-3.5' />
-                </a>
-              </div>
-            </div>
-          </footer>
+            <DashboardFooter 
+              brandName="Give Hope" 
+              brandHref="/mc" 
+              tagline="Mission Control" 
+            />
         </div>
       </SidebarProvider>
     </div>
