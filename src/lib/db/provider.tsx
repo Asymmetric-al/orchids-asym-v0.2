@@ -1,29 +1,21 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { type ReactNode } from 'react'
+import { getQueryClient, setQueryClient } from './client-db'
 
 interface TanStackDBProviderProps {
   children: ReactNode
 }
 
 export function TanStackDBProvider({ children }: TanStackDBProviderProps) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-            gcTime: 5 * 60 * 1000,
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  )
+  const queryClient = getQueryClient()
 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   )
 }
