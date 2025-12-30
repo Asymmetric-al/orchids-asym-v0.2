@@ -10,13 +10,13 @@ interface AppShellProps {
 
 export const AppShell = memo(function AppShell({ children }: AppShellProps) {
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50/50">
+    <div className="flex h-screen overflow-hidden bg-background">
       <div className="hidden lg:flex">
         <SidebarNav />
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar />
-        <main className="flex-1 overflow-auto bg-slate-50/50">{children}</main>
+        <main className="flex-1 overflow-auto bg-background">{children}</main>
       </div>
     </div>
   )

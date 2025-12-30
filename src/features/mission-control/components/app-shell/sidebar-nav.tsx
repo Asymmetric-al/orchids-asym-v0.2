@@ -15,6 +15,7 @@ import {
   TooltipProvider,
 } from '@/components/ui/tooltip'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import type { NavItem } from '@/lib/mission-control/types'
 
 interface NavLinkProps {
@@ -33,15 +34,15 @@ const NavLink = memo(function NavLink({ item, isActive, collapsed }: NavLinkProp
       className={cn(
         'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
         isActive
-          ? 'bg-slate-100 text-slate-900 font-semibold'
-          : 'text-slate-500 hover:bg-slate-100/60 hover:text-slate-900',
+          ? 'bg-accent text-foreground font-semibold'
+          : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
         collapsed && 'justify-center px-2'
       )}
     >
       <Icon
         className={cn(
           'h-5 w-5 shrink-0 transition-colors',
-          isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-900'
+          isActive ? 'text-foreground' : 'text-muted-foreground/70 group-hover:text-foreground'
         )}
       />
       {!collapsed && <span className="truncate">{item.title}</span>}
@@ -78,11 +79,11 @@ const NavSection = memo(function NavSection({
   return (
     <>
       {label && !collapsed && (
-        <span className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400/80">
+        <span className="mb-2 mt-6 px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
           {label}
         </span>
       )}
-      {label && collapsed && <div className="my-2 mx-2 h-px bg-slate-100" />}
+      {label && collapsed && <div className="my-2 mx-2 h-px bg-border" />}
       {items.map((item) => (
         <NavLink key={item.id} item={item} isActive={checkActive(item.route)} collapsed={collapsed} />
       ))}
@@ -100,13 +101,13 @@ const SidebarHeader = memo(function SidebarHeader({ collapsed }: { collapsed: bo
     >
       {!collapsed ? (
         <Link href="/mc" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm ring-1 ring-slate-900/5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/5">
             <LayoutDashboard className="h-5 w-5" />
           </div>
-          <span className="text-base font-bold tracking-tight text-slate-900">Mission Control</span>
+          <span className="text-base font-bold tracking-tight text-foreground">Mission Control</span>
         </Link>
       ) : (
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
           <LayoutDashboard className="h-5 w-5" />
         </div>
       )}
@@ -122,12 +123,13 @@ const CollapseButton = memo(function CollapseButton({
   onToggle: () => void
 }) {
   return (
-    <div className="border-t border-slate-100 p-3">
+    <div className="border-t border-border p-3 space-y-1">
+      <ThemeToggle collapsed={collapsed} />
       <Button
         variant="ghost"
         size="sm"
         className={cn(
-          'w-full justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-xl h-9',
+          'w-full justify-center text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-xl h-9',
           !collapsed && 'justify-start px-3'
         )}
         onClick={onToggle}
@@ -168,7 +170,7 @@ export const SidebarNav = memo(function SidebarNav() {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          'flex flex-col border-r border-slate-200/60 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out',
+          'flex flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-all duration-300 ease-in-out',
           sidebarCollapsed ? 'w-[70px]' : 'w-[260px]'
         )}
       >
