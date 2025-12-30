@@ -114,7 +114,7 @@ const modulesItems: MenuItem[] = [
   },
   {
     icon: ActivityIcon,
-    label: 'Feed',
+    label: 'Feed Hub',
     href: '/mc/feed'
   },
   {

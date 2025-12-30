@@ -17,6 +17,16 @@ export type AuditAction =
   | 'post_updated'
   | 'post_deleted'
   | 'post_draft_created'
+  | 'post_approved'
+  | 'post_hidden'
+  | 'post_flagged'
+  | 'post_restored'
+  | 'post_pinned'
+  | 'post_unpinned'
+  | 'post_deleted_by_admin'
+  | 'org_post_created'
+  | 'comment_moderated'
+  | 'comment_deleted_by_admin'
   | 'profile_updated'
 
 export interface AuditLogEntry {
@@ -90,13 +100,18 @@ export function createAuditLogger(context: AuthenticatedContext, request?: Reque
         userAgent,
       }),
 
-    logPost: (postId: string, action: 'post_created' | 'post_updated' | 'post_deleted' | 'post_draft_created') =>
+    logPost: (
+      postId: string, 
+      action: 'post_created' | 'post_updated' | 'post_deleted' | 'post_draft_created' | 'post_approved' | 'post_hidden' | 'post_flagged' | 'post_restored' | 'post_pinned' | 'post_unpinned' | 'post_deleted_by_admin' | 'org_post_created',
+      details?: Record<string, unknown>
+    ) =>
       logAuditEvent({
         tenantId: context.tenantId,
         userId: context.userId,
         action,
         resourceType: 'post',
         resourceId: postId,
+        details,
         ipAddress,
         userAgent,
       }),
