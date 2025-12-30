@@ -1310,24 +1310,24 @@ export default function ProfilePage() {
                           </p>
 
                           <div className="flex justify-center gap-2 mt-auto pb-2">
-                            <AnimatePresence>
-                              {profile.instagram && (
-                                <SocialIcon platform="instagram" url={profile.instagram} />
-                              )}
-                              {profile.facebook && (
-                                <SocialIcon platform="facebook" url={profile.facebook} />
-                              )}
-                              {profile.twitter && (
-                                <SocialIcon platform="twitter" url={profile.twitter} />
-                              )}
-                              {profile.youtube && (
-                                <SocialIcon platform="youtube" url={profile.youtube} />
-                              )}
-                              {profile.website && (
-                                <SocialIcon platform="website" url={profile.website} />
-                              )}
-                            </AnimatePresence>
-                          </div>
+                              <AnimatePresence>
+                                {profile.instagram && (
+                                  <SocialIcon key="mobile-instagram" platform="instagram" url={profile.instagram} />
+                                )}
+                                {profile.facebook && (
+                                  <SocialIcon key="mobile-facebook" platform="facebook" url={profile.facebook} />
+                                )}
+                                {profile.twitter && (
+                                  <SocialIcon key="mobile-twitter" platform="twitter" url={profile.twitter} />
+                                )}
+                                {profile.youtube && (
+                                  <SocialIcon key="mobile-youtube" platform="youtube" url={profile.youtube} />
+                                )}
+                                {profile.website && (
+                                  <SocialIcon key="mobile-website" platform="website" url={profile.website} />
+                                )}
+                              </AnimatePresence>
+                            </div>
                         </div>
 
                         <div className="absolute top-0 left-0 right-0 h-5 sm:h-6 flex justify-center pt-0.5 pointer-events-none">
@@ -1381,25 +1381,25 @@ export default function ProfilePage() {
                             </div>
                           </div>
 
-                          <div className="mt-3 flex items-center justify-between gap-2">
-                            <QuickGive 
-                              workerId="preview" 
-                              size="xs"
-                            />
-                            <div className="flex gap-1.5 flex-shrink-0">
-                              <AnimatePresence>
-                                {profile.instagram && (
-                                  <SocialIcon platform="instagram" url={profile.instagram} />
-                                )}
-                                {profile.facebook && (
-                                  <SocialIcon platform="facebook" url={profile.facebook} />
-                                )}
-                                {profile.twitter && (
-                                  <SocialIcon platform="twitter" url={profile.twitter} />
-                                )}
-                              </AnimatePresence>
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                              <QuickGive 
+                                workerId="preview" 
+                                size="xs"
+                              />
+                              <div className="flex gap-1.5 flex-shrink-0">
+                                <AnimatePresence>
+                                  {profile.instagram && (
+                                    <SocialIcon key="desktop-instagram" platform="instagram" url={profile.instagram} />
+                                  )}
+                                  {profile.facebook && (
+                                    <SocialIcon key="desktop-facebook" platform="facebook" url={profile.facebook} />
+                                  )}
+                                  {profile.twitter && (
+                                    <SocialIcon key="desktop-twitter" platform="twitter" url={profile.twitter} />
+                                  )}
+                                </AnimatePresence>
+                              </div>
                             </div>
-                          </div>
 
                           <p className="text-[10px] font-medium text-zinc-600 mt-3 line-clamp-1 leading-relaxed">
                             {profile.ministryFocus || 'Tagline'}
