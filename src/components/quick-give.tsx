@@ -13,7 +13,7 @@ type QuickGiveProps = {
   className?: string
   currencyLabel?: string
   minAmount?: number
-  size?: "default" | "compact"
+  size?: "xs" | "sm" | "default" | "lg"
 }
 
 const MotionButton = motion.create(Button)
@@ -41,6 +41,49 @@ function parseToNumber(intPart: string, decPart: string) {
   return Number.isFinite(i + d) ? i + d : 0
 }
 
+const sizeConfig = {
+  xs: {
+    container: "h-8 max-w-[120px]",
+    iconWrapper: "pl-2",
+    icon: "h-3 w-3",
+    input: "pl-0.5 pr-8 text-sm",
+    currencyLabel: "right-2 text-[8px]",
+    buttonWrapper: 3,
+    button: "ml-0.5 h-5 px-2 text-[10px]",
+    arrow: "ml-0.5 h-2.5 w-2.5",
+  },
+  sm: {
+    container: "h-9 max-w-[160px]",
+    iconWrapper: "pl-2.5",
+    icon: "h-3.5 w-3.5",
+    input: "pl-1 pr-10 text-base",
+    currencyLabel: "right-2.5 text-[9px]",
+    buttonWrapper: 4,
+    button: "ml-1 h-6 px-2.5 text-xs",
+    arrow: "ml-1 h-3 w-3",
+  },
+  default: {
+    container: "h-11 max-w-[200px]",
+    iconWrapper: "pl-3",
+    icon: "h-4 w-4",
+    input: "pl-1 pr-12 text-lg",
+    currencyLabel: "right-3 text-[10px]",
+    buttonWrapper: 5,
+    button: "ml-1 h-7 px-3 text-xs",
+    arrow: "ml-1 h-3.5 w-3.5",
+  },
+  lg: {
+    container: "h-14 max-w-xs",
+    iconWrapper: "pl-4",
+    icon: "h-5 w-5",
+    input: "pl-1.5 pr-14 text-xl",
+    currencyLabel: "right-4 text-xs",
+    buttonWrapper: 6,
+    button: "ml-1.5 h-9 px-4 text-sm",
+    arrow: "ml-1.5 h-4 w-4",
+  },
+}
+
 export function QuickGive({
   workerId,
   className,
@@ -65,6 +108,8 @@ export function QuickGive({
 
   const amount = React.useMemo(() => parseToNumber(intPart, decPart), [intPart, decPart])
   const hasValue = amount >= minAmount
+
+  const config = sizeConfig[size]
 
   function focusInput() {
     inputRef.current?.focus()
@@ -105,31 +150,29 @@ export function QuickGive({
     router.push(`/checkout?${qs.toString()}`)
   }
 
-  const isCompact = size === "compact"
-
   return (
-    <div className={cn("w-full", isCompact ? "max-w-[200px]" : "max-w-sm", className)}>
+    <div className={cn("w-full", className)}>
       <motion.div
         layout
         onClick={focusInput}
         className={cn(
-          "relative flex w-full items-center overflow-hidden rounded-full border-2 bg-background cursor-text",
-          "transition-colors duration-200",
-          isCompact ? "h-10" : "h-14 sm:h-16",
+          "relative flex w-full items-center overflow-hidden rounded-full border bg-background cursor-text",
+          "transition-all duration-200",
+          config.container,
           isFocused
-            ? "border-foreground shadow-[0_4px_24px_rgba(0,0,0,0.10)]"
-            : "border-border shadow-sm hover:border-muted-foreground/40"
+            ? "border-foreground/80 shadow-[0_2px_12px_rgba(0,0,0,0.08)] ring-1 ring-foreground/10"
+            : "border-border/80 shadow-sm hover:border-muted-foreground/50 hover:shadow"
         )}
       >
         <div className={cn(
           "pointer-events-none z-10 flex items-center justify-center",
-          isCompact ? "pl-3" : "pl-4 sm:pl-6"
+          config.iconWrapper
         )}>
           <DollarSign
             className={cn(
-              "transition-colors",
-              isCompact ? "h-4 w-4" : "h-5 w-5 sm:h-6 sm:w-6",
-              isFocused || displayValue ? "text-foreground" : "text-muted-foreground/40"
+              "transition-colors duration-150",
+              config.icon,
+              isFocused || displayValue ? "text-foreground" : "text-muted-foreground/50"
             )}
             strokeWidth={2.5}
           />
@@ -146,13 +189,13 @@ export function QuickGive({
             onKeyDown={onKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="0.00"
+            placeholder="0"
             aria-label="Donation amount"
             className={cn(
               "h-full w-full bg-transparent border-0 outline-none ring-0 focus:ring-0",
-              "font-bold tracking-tight text-foreground",
-              "placeholder:text-muted-foreground/35",
-              isCompact ? "pl-1 pr-12 text-lg" : "pl-2 pr-14 sm:pr-16 text-xl sm:text-2xl"
+              "font-semibold tracking-tight text-foreground font-sans",
+              "placeholder:text-muted-foreground/40 placeholder:font-normal",
+              config.input
             )}
           />
 
@@ -162,9 +205,10 @@ export function QuickGive({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
                 className={cn(
-                  "pointer-events-none absolute select-none font-bold text-muted-foreground/40",
-                  isCompact ? "right-3 text-[10px]" : "right-4 sm:right-6 text-xs sm:text-sm"
+                  "pointer-events-none absolute select-none font-semibold text-muted-foreground/50 uppercase tracking-wide",
+                  config.currencyLabel
                 )}
               >
                 {currencyLabel}
@@ -177,9 +221,9 @@ export function QuickGive({
           {hasValue && (
             <motion.div
               initial={{ width: 0, opacity: 0, paddingRight: 0 }}
-              animate={{ width: "auto", opacity: 1, paddingRight: isCompact ? 4 : 6 }}
+              animate={{ width: "auto", opacity: 1, paddingRight: config.buttonWrapper }}
               exit={{ width: 0, opacity: 0, paddingRight: 0 }}
-              transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+              transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
               className="flex h-full items-center justify-end overflow-hidden"
             >
               <MotionButton
@@ -188,39 +232,24 @@ export function QuickGive({
                   e.stopPropagation()
                   handleGive()
                 }}
-                initial={{ scale: 0.92, opacity: 0 }}
+                initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.92, opacity: 0 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className={cn(
-                  "rounded-full font-bold shadow-md whitespace-nowrap",
-                  isCompact
-                    ? "ml-1 h-7 px-3 text-xs"
-                    : "ml-2 h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base"
+                  "rounded-full font-semibold shadow-sm whitespace-nowrap",
+                  config.button
                 )}
               >
                 Give
-                <ArrowRight className={cn(isCompact ? "ml-1 h-3 w-3" : "ml-1.5 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5")} />
+                <ArrowRight className={config.arrow} />
               </MotionButton>
             </motion.div>
           )}
         </AnimatePresence>
       </motion.div>
-
-      <AnimatePresence>
-        {hasValue && !isCompact && (
-          <motion.p
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: "auto", marginTop: 8 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            className="text-center text-xs font-semibold text-emerald-600"
-          >
-            Your gift changes lives
-          </motion.p>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
