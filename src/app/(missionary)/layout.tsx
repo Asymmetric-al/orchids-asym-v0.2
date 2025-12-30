@@ -1,5 +1,9 @@
 import type { Metadata } from 'next'
-import { AppShell } from '@/components/app-shell'
+import dynamic from 'next/dynamic'
+
+const AppShell = dynamic(() => import('@/components/app-shell').then(mod => mod.AppShell), {
+  ssr: true,
+})
 
 export const metadata: Metadata = {
   robots: {
