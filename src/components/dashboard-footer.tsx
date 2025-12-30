@@ -25,19 +25,32 @@ interface DashboardFooterProps {
   tagline?: string
   breadcrumbs?: BreadcrumbItemData[]
   showBreadcrumbs?: boolean
+  labelMap?: Record<string, string>
 }
 
-function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItemData[] {
+const defaultLabelMap: Record<string, string> = {
+  mc: 'Mission Control',
+}
+
+function generateBreadcrumbsFromPath(
+  pathname: string,
+  labelMap: Record<string, string> = {}
+): BreadcrumbItemData[] {
   const segments = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItemData[] = []
+  const mergedLabelMap = { ...defaultLabelMap, ...labelMap }
 
   let currentPath = ''
   for (let i = 0; i < segments.length; i++) {
     currentPath += `/${segments[i]}`
-    const label = segments[i]
-      .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
+    const segment = segments[i]
+    
+    const label =
+      mergedLabelMap[segment.toLowerCase()] ||
+      segment
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
 
     breadcrumbs.push({
       label,
@@ -55,9 +68,10 @@ export function DashboardFooter({
   tagline = 'Ministry Support, Simplified',
   breadcrumbs: customBreadcrumbs,
   showBreadcrumbs = true,
+  labelMap,
 }: DashboardFooterProps) {
   const pathname = usePathname()
-  const breadcrumbs = customBreadcrumbs || generateBreadcrumbsFromPath(pathname)
+  const breadcrumbs = customBreadcrumbs || generateBreadcrumbsFromPath(pathname, labelMap)
 
   return (
     <footer

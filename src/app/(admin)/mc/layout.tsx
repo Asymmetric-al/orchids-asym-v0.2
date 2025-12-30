@@ -335,11 +335,11 @@ function ApplicationShell({ children }: { children: ReactNode }) {
                 {children}
               </div>
             </main>
-            <DashboardFooter 
-              brandName="Give Hope" 
-              brandHref="/mc" 
-              tagline="Mission Control" 
-            />
+<DashboardFooter 
+                brandName="Give Hope" 
+                brandHref="/" 
+                tagline="Mission Control" 
+              />
         </div>
       </SidebarProvider>
     </div>
