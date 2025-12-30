@@ -9,7 +9,7 @@ import {
   Facebook, Twitter, Linkedin, Mail, Check,
   BookmarkCheck, CornerDownRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

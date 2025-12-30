@@ -3,7 +3,7 @@
 import * as React from "react"
 import type { Table } from "@tanstack/react-table"
 import { X, Trash2, Download, RefreshCcw } from "lucide-react"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, motion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

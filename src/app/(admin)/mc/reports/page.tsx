@@ -13,7 +13,7 @@ import {
   FileDown, Plus, Search, Library, X,
   ClipboardList
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 
 // --- Mock Data ---
 

@@ -8,7 +8,7 @@ import {
   Clock, ArrowRightLeft, Plus, Lock, ArrowLeft,
   Edit2, Landmark, MapPin, Check, ShieldCheck
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { format, addMonths } from 'date-fns';
 
 import { Card, CardContent } from '@/components/ui/card';

@@ -8,7 +8,7 @@ import {
   TrendingUp, DollarSign, FileText
 } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Card, CardContent
 } from '@/components/ui/card';

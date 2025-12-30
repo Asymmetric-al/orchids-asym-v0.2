@@ -17,7 +17,7 @@ import {
   DoorOpen, Presentation, Utensils, Accessibility, CloudSun, Timer, BellRing,
   Building, Navigation, Wifi, Bed, Car, Smartphone, Bus, Coffee, Map, BedDouble
 } from 'lucide-react';
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion';
+import { motion, AnimatePresence, Reorder, useDragControls } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

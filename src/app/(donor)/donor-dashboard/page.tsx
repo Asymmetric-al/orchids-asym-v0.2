@@ -10,7 +10,7 @@ import {
   Heart, Rss, ArrowRight, Activity, Map,
   FileText, ChevronRight, LayoutDashboard
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Component Imports

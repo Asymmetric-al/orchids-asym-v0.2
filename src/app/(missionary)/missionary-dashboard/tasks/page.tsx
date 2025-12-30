@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { format, formatDistanceToNow, isToday, isPast, isTomorrow, isThisWeek } from 'date-fns'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'

@@ -7,7 +7,7 @@ import {
   Globe, ChevronDown, Wand2, X, Lock, Users,
   ShieldCheck, UserPlus, Check, Settings, CornerDownRight
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'

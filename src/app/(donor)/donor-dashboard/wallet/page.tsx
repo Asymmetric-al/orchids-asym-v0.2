@@ -10,7 +10,7 @@ import {
   Lock, ShieldCheck, Wifi, Edit2, MapPin, ArrowDown,
   Calendar, Building2, User
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

@@ -7,7 +7,7 @@ import {
   ChevronRight, Eye, EyeOff, Laptop, History,
   Receipt, Heart, Globe, AlertTriangle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

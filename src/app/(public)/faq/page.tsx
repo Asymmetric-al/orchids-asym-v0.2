@@ -6,7 +6,7 @@ import {
   DollarSign, Users, ShieldCheck, Heart, 
   Mail, MessageCircle, Sparkles
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';

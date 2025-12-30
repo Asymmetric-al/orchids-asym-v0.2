@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, MapPin, Filter, ArrowRight, Heart, 
   Globe, TrendingUp, Users, ChevronDown, X,
