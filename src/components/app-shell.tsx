@@ -26,7 +26,7 @@ export function AppShell({
       <AppSidebar role={role} tenantLogo={tenantLogo} tenantName={tenantName} />
         <SidebarInset className="bg-zinc-50/50">
           <AppHeader title={title} />
-          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-10">{children}</main>
+          <main className="container-responsive flex-1 py-4 sm:py-6 lg:py-10">{children}</main>
         </SidebarInset>
     </SidebarProvider>
   )

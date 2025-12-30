@@ -238,21 +238,21 @@ function AppHeader() {
 
   return (
     <header className='sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-      <div className='flex h-12 items-center justify-between px-4 sm:px-6'>
-        <div className='flex items-center gap-3'>
-          <SidebarTrigger className='-ml-1 h-8 w-8 [&_svg]:!size-4' />
-          <Separator orientation='vertical' className='h-4' />
+      <div className='flex h-12 items-center justify-between px-3 sm:px-4 lg:px-6'>
+        <div className='flex items-center gap-2 sm:gap-3'>
+          <SidebarTrigger className='-ml-1 h-8 w-8 [&_svg]:!size-4 touch-target' />
+          <Separator orientation='vertical' className='h-4 hidden sm:block' />
           <SearchDialog
             trigger={
               <>
-                <Button variant='ghost' className='hidden h-8 w-64 justify-start px-2 font-normal text-muted-foreground hover:bg-muted/50 sm:flex'>
+                <Button variant='ghost' className='hidden h-8 w-48 sm:w-64 justify-start px-2 font-normal text-muted-foreground hover:bg-muted/50 sm:flex'>
                   <SearchIcon className="mr-2 size-3.5" />
                   <span className="text-xs font-bold uppercase tracking-tight">Search...</span>
-                  <kbd className="pointer-events-none ml-auto inline-flex h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                  <kbd className="pointer-events-none ml-auto hidden sm:inline-flex h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
                     <span className="text-xs">⌘</span>K
                   </kbd>
                 </Button>
-                <Button variant='ghost' size='icon' className='h-8 w-8 sm:hidden'>
+                <Button variant='ghost' size='icon' className='h-8 w-8 sm:hidden touch-target'>
                   <SearchIcon className="size-4" />
                   <span className='sr-only'>Search</span>
                 </Button>
@@ -263,21 +263,21 @@ function AppHeader() {
         <div className='flex items-center gap-1 sm:gap-2'>
           <LanguageDropdown
             trigger={
-              <Button variant='ghost' size='icon' className="h-8 w-8">
+              <Button variant='ghost' size='icon' className="h-8 w-8 hidden sm:inline-flex">
                 <LanguagesIcon className="size-4" />
               </Button>
             }
           />
           <ActivityDialog
             trigger={
-              <Button variant='ghost' size='icon' className="h-8 w-8">
+              <Button variant='ghost' size='icon' className="h-8 w-8 hidden sm:inline-flex">
                 <ActivityIcon className="size-4" />
               </Button>
             }
           />
           <NotificationDropdown
             trigger={
-              <Button variant='ghost' size='icon' className='relative h-8 w-8'>
+              <Button variant='ghost' size='icon' className='relative h-8 w-8 touch-target'>
                 <BellIcon className="size-4" />
                 <span className='bg-rose-500 absolute top-2 right-2 size-1.5 rounded-full ring-2 ring-background' />
               </Button>
@@ -285,7 +285,7 @@ function AppHeader() {
           />
           <ProfileDropdown
             trigger={
-              <Button variant='ghost' size='icon' className='size-8 rounded-lg'>
+              <Button variant='ghost' size='icon' className='size-8 rounded-lg touch-target'>
                 <Avatar className='size-8 rounded-lg'>
                   <AvatarImage src={user?.avatarUrl || 'https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png'} />
                   <AvatarFallback className="text-[10px] rounded-lg">{user?.name?.charAt(0) || 'U'}</AvatarFallback>
@@ -306,15 +306,15 @@ function ApplicationShell({ children }: { children: ReactNode }) {
     <div className='flex min-h-screen w-full bg-zinc-50/50'>
       <SidebarProvider>
         <Sidebar collapsible='icon' className="border-r border-zinc-200/50 shadow-sm">
-          <SidebarHeader className="h-12 border-b border-zinc-200/50 px-4 flex items-center justify-center">
+          <SidebarHeader className="h-12 border-b border-zinc-200/50 px-3 sm:px-4 flex items-center justify-center">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton size='sm' className='gap-2.5 !bg-transparent' asChild>
+                <SidebarMenuButton size='sm' className='gap-2 sm:gap-2.5 !bg-transparent' asChild>
                   <a href='/mc'>
-                    <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs shadow-sm'>G</div>
-                    <div className='flex flex-col items-start group-data-[collapsible=icon]:hidden'>
-                      <span className='text-xs font-black tracking-widest uppercase leading-none'>GIVE HOPE</span>
-                      <span className='text-[8px] font-bold text-zinc-500 tracking-[0.2em] uppercase leading-none mt-0.5'>MISSION CONTROL</span>
+                    <div className='flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold text-xs shadow-sm shrink-0'>G</div>
+                    <div className='flex flex-col items-start group-data-[collapsible=icon]:hidden min-w-0'>
+                      <span className='text-[10px] sm:text-xs font-black tracking-widest uppercase leading-none truncate'>GIVE HOPE</span>
+                      <span className='text-[7px] sm:text-[8px] font-bold text-zinc-500 tracking-[0.2em] uppercase leading-none mt-0.5 truncate'>MISSION CONTROL</span>
                     </div>
                   </a>
                 </SidebarMenuButton>
@@ -333,29 +333,29 @@ function ApplicationShell({ children }: { children: ReactNode }) {
             <AppHeader />
           </ClientOnly>
           <main className='flex-1 overflow-y-auto'>
-            <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-10">
+            <div className="container-responsive py-4 sm:py-6 lg:py-10">
               {children}
             </div>
           </main>
           <footer className="border-t bg-background/95">
-            <div className='mx-auto flex w-full max-w-[1600px] items-center justify-between gap-6 px-4 py-3 sm:px-6 lg:px-8'>
-              <p className='text-[10px] font-bold text-muted-foreground uppercase tracking-widest'>
+            <div className='container-responsive flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6 py-3'>
+              <p className='text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center sm:text-left'>
                 {`© ${new Date().getFullYear()}`}{' '}
-                <span className='text-zinc-900 font-black'>GIVE HOPE MISSION CONTROL</span>
-                <span className="mx-2 text-zinc-300">|</span>
-                Global Ministry platform
+                <span className='text-zinc-900 font-black'>GIVE HOPE</span>
+                <span className="mx-1 sm:mx-2 text-zinc-300 hidden sm:inline">|</span>
+                <span className="block sm:inline">Global Ministry platform</span>
               </p>
               <div className='flex items-center gap-4 text-zinc-400'>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110">
+                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
                   <FacebookIcon className='size-3.5' />
                 </a>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110">
+                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
                   <InstagramIcon className='size-3.5' />
                 </a>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110">
+                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
                   <LinkedinIcon className='size-3.5' />
                 </a>
-                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110">
+                <a href='#' className="hover:text-zinc-900 transition-all transform hover:scale-110 touch-target p-2 -m-2">
                   <TwitterIcon className='size-3.5' />
                 </a>
               </div>
