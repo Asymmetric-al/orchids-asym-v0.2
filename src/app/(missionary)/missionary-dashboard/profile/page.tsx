@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/components/page-header'
 import {
@@ -508,15 +509,16 @@ function MobilePreviewFrame({ children }: { children: React.ReactNode }) {
   return (
     <div ref={containerRef} className="w-full flex justify-center">
       <div 
-        className="origin-top"
         style={{
-          transform: `scale(${scale})`,
-          width: MOBILE_PREVIEW_WIDTH,
+          width: MOBILE_PREVIEW_WIDTH * scale,
           height: MOBILE_PREVIEW_HEIGHT * scale,
+          overflow: 'hidden'
         }}
       >
-        <div
+        <div 
+          className="origin-top-left"
           style={{
+            transform: `scale(${scale})`,
             width: MOBILE_PREVIEW_WIDTH,
             height: MOBILE_PREVIEW_HEIGHT,
           }}
@@ -553,15 +555,16 @@ function DesktopPreviewFrame({ children }: { children: React.ReactNode }) {
   return (
     <div ref={containerRef} className="w-full flex justify-center">
       <div 
-        className="origin-top"
         style={{
-          transform: `scale(${scale})`,
-          width: DESKTOP_PREVIEW_WIDTH,
+          width: DESKTOP_PREVIEW_WIDTH * scale,
           height: DESKTOP_PREVIEW_HEIGHT * scale,
+          overflow: 'hidden'
         }}
       >
-        <div
+        <div 
+          className="origin-top-left"
           style={{
+            transform: `scale(${scale})`,
             width: DESKTOP_PREVIEW_WIDTH,
             height: DESKTOP_PREVIEW_HEIGHT,
           }}
@@ -1380,33 +1383,79 @@ export default function ProfilePage() {
                             </motion.div>
                           </div>
 
-                          <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col">
-                            <div className="flex-shrink-0">
-                              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
-                                {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                              </h2>
-                              <div className="flex items-center justify-center gap-1 text-xs text-zinc-500 mt-0.5">
-                                <MapPin className="h-3 w-3" />
-                                <span>{profile.location || 'Location'}</span>
+                            <div className="absolute top-[152px] left-0 right-0 bottom-0 px-5 text-center flex flex-col overflow-hidden">
+                              <div className="flex-shrink-0">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+                                    {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                                  </h2>
+                                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[8px] font-bold uppercase tracking-wider">
+                                    <Check className="h-2 w-2" /> Verified
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-500 mt-0.5">
+                                  <MapPin className="h-2.5 w-2.5" />
+                                  <span>{profile.location || 'Location'}</span>
+                                </div>
                               </div>
-                            </div>
 
-                            <div className="mt-4 flex justify-center">
-                              <QuickGive 
-                                workerId="preview" 
-                                size="sm"
-                              />
-                            </div>
+                              <div className="mt-4 flex justify-center flex-shrink-0">
+                                <QuickGive 
+                                  workerId="preview" 
+                                  size="sm"
+                                />
+                              </div>
 
-                            <p className="text-xs font-medium text-zinc-600 mt-4 line-clamp-2 leading-relaxed">
-                              {profile.ministryFocus || 'Your tagline will appear here'}
-                            </p>
+                              <div className="mt-6 flex-1 flex flex-col min-h-0">
+                                <Tabs defaultValue="story" className="w-full flex-1 flex flex-col">
+                                  <TabsList className="w-full justify-center border-b border-zinc-100 bg-transparent h-auto p-0 mb-4 gap-4">
+                                    <TabsTrigger 
+                                      value="story" 
+                                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
+                                    >
+                                      Our Story
+                                    </TabsTrigger>
+                                    <TabsTrigger 
+                                      value="updates" 
+                                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
+                                    >
+                                      Field Journal
+                                    </TabsTrigger>
+                                  </TabsList>
 
-                            <p className="text-xs text-zinc-400 mt-3 line-clamp-4 px-1 leading-relaxed flex-grow">
-                              {profile.bio || 'Your bio will appear here. Share your story, calling, and ministry work with potential supporters.'}
-                            </p>
+                                  <TabsContent value="story" className="outline-none flex-1 overflow-y-auto text-left pb-4">
+                                    <div className="space-y-3">
+                                      <p className="text-[11px] font-semibold text-zinc-900 leading-relaxed italic border-l-2 border-emerald-500 pl-3">
+                                        "{profile.ministryFocus || 'Your tagline will appear here'}"
+                                      </p>
+                                      <div className="text-[10px] text-zinc-500 leading-relaxed whitespace-pre-wrap">
+                                        {profile.bio || 'Your bio will appear here. Share your story, calling, and ministry work with potential supporters.'}
+                                      </div>
+                                    </div>
+                                  </TabsContent>
 
-                            <div className="flex justify-center gap-3 mt-auto pb-3">
+                                  <TabsContent value="updates" className="outline-none flex-1 overflow-y-auto pb-4">
+                                    <div className="space-y-4 py-2">
+                                      <div className="p-3 rounded-xl border border-zinc-100 bg-zinc-50/50 text-left">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <div className="h-5 w-5 rounded-full bg-zinc-200" />
+                                          <div className="flex-1">
+                                            <div className="h-2 w-16 bg-zinc-200 rounded mb-1" />
+                                            <div className="h-1.5 w-10 bg-zinc-100 rounded" />
+                                          </div>
+                                        </div>
+                                        <div className="h-2 w-full bg-zinc-100 rounded mb-1.5" />
+                                        <div className="h-2 w-2/3 bg-zinc-100 rounded" />
+                                      </div>
+                                      <p className="text-[10px] text-zinc-400 text-center italic">
+                                        Updates from your feed will appear here
+                                      </p>
+                                    </div>
+                                  </TabsContent>
+                                </Tabs>
+                              </div>
+
+                              <div className="flex justify-center gap-3 py-3 mt-auto bg-white border-t border-zinc-50">
                               <AnimatePresence>
                                 {profile.instagram && (
                                   <SocialIcon key="mobile-instagram" platform="instagram" url={profile.instagram} />
@@ -1470,43 +1519,48 @@ export default function ProfilePage() {
                                     {initials || 'U'}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 pb-0.5 min-w-0">
-                                  <h2 className="text-base font-bold text-zinc-900 tracking-tight truncate">
-                                    {profile.firstName || 'First'} {profile.lastName || 'Last'}
-                                  </h2>
-                                  <p className="text-xs text-zinc-500 flex items-center gap-0.5">
-                                    <MapPin className="h-3 w-3 flex-shrink-0" />
-                                    <span className="truncate">{profile.location || 'Location'}</span>
-                                  </p>
+                                  <div className="flex-1 pb-0.5 min-w-0">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <h2 className="text-base font-bold text-zinc-900 tracking-tight truncate">
+                                        {profile.firstName || 'First'} {profile.lastName || 'Last'}
+                                      </h2>
+                                      <div className="flex-shrink-0 flex items-center gap-1 px-1 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-[6px] font-bold uppercase tracking-wider">
+                                        <Check className="h-2 w-2" />
+                                      </div>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-500 flex items-center gap-0.5">
+                                      <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                                      <span className="truncate">{profile.location || 'Location'}</span>
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div className="mt-4 flex items-center justify-between gap-3">
-                                <QuickGive 
-                                  workerId="preview" 
-                                  size="xs"
-                                />
-                                <div className="flex gap-2 flex-shrink-0">
-                                  <AnimatePresence>
-                                    {profile.instagram && (
-                                      <SocialIcon key="desktop-instagram" platform="instagram" url={profile.instagram} />
-                                    )}
-                                    {profile.facebook && (
-                                      <SocialIcon key="desktop-facebook" platform="facebook" url={profile.facebook} />
-                                    )}
-                                    {profile.twitter && (
-                                      <SocialIcon key="desktop-twitter" platform="twitter" url={profile.twitter} />
-                                    )}
-                                  </AnimatePresence>
+                                <div className="mt-3 flex items-center justify-between gap-3">
+                                  <QuickGive 
+                                    workerId="preview" 
+                                    size="xs"
+                                  />
+                                  <div className="flex gap-2 flex-shrink-0">
+                                    <AnimatePresence>
+                                      {profile.instagram && (
+                                        <SocialIcon key="desktop-instagram" platform="instagram" url={profile.instagram} />
+                                      )}
+                                      {profile.facebook && (
+                                        <SocialIcon key="desktop-facebook" platform="facebook" url={profile.facebook} />
+                                      )}
+                                      {profile.twitter && (
+                                        <SocialIcon key="desktop-twitter" platform="twitter" url={profile.twitter} />
+                                      )}
+                                    </AnimatePresence>
+                                  </div>
                                 </div>
-                              </div>
 
-                              <p className="text-xs font-medium text-zinc-600 mt-4 line-clamp-1 leading-relaxed">
-                                {profile.ministryFocus || 'Your tagline will appear here'}
-                              </p>
-                              <p className="text-xs text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
-                                {profile.bio || 'Your bio will appear here. Share your story with supporters.'}
-                              </p>
+                                <p className="text-[10px] font-semibold text-zinc-600 mt-3 line-clamp-1 leading-relaxed italic border-l border-emerald-500 pl-2">
+                                  "{profile.ministryFocus || 'Your tagline will appear here'}"
+                                </p>
+                                <p className="text-[10px] text-zinc-400 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+                                  {profile.bio || 'Your bio will appear here. Share your story with supporters.'}
+                                </p>
                             </div>
                           </div>
                         </motion.div>
