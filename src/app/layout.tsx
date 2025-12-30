@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
 import { QueryProvider } from "@/providers/query-provider";
@@ -47,18 +48,20 @@ export default function RootLayout({
           strategy="afterInteractive"
           data-orchids-project-id="48583689-5836-4c2d-98d2-e5c1a9812316"
         />
-          <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
-              <QueryProvider>
-                <NuqsAdapter>
-                  {children}
-                </NuqsAdapter>
-              </QueryProvider>
-            </ThemeProvider>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem={false}
+                disableTransitionOnChange
+              >
+                <QueryProvider>
+                  <Suspense fallback={null}>
+                    <NuqsAdapter>
+                      {children}
+                    </NuqsAdapter>
+                  </Suspense>
+                </QueryProvider>
+              </ThemeProvider>
           <Toaster />
           <WebVitalsReporter />
           <VisualEditsMessenger />
